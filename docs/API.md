@@ -2,6 +2,25 @@
 
 ตัวอย่าง implementation: `server/index.ts` · frontend adapter: `src/data/apiRepository.ts`
 
+บน Vercel ใช้ api/router.ts → server/cloudApi.ts → server/postgresStore.ts เชื่อม PostgreSQL private schema leave_app ใช้ business commands เดิมและ session ฝั่ง server ไม่ใช้ไฟล์ JSON/session ใน memory ดู [SUPABASE.md](SUPABASE.md) API mode ไม่ fallback บันทึกลง IndexedDB เมื่อ backend ขัดข้อง
+
+## Cloud transport เพิ่มเติม
+
+| Method | Path | ข้อมูล |
+| --- | --- | --- |
+| GET | `/api/health` | cloud: status ok, mode cloud-postgres, documentTransport parts-v1, partCharacters 2097152; 503 เมื่อฐาน/migration ไม่พร้อม |
+| POST | `/api/uploads` | `{fileName,fileType,fileSize,encodedLength}` → `{uploadId,partCharacters}`; Employee/session |
+| PUT | `/api/uploads/:uploadId/parts/:part` | `{data}` base64; owner/session, idempotent replacement ของส่วนเดิม |
+| DELETE | `/api/uploads/:uploadId` | ยกเลิก staging ของตนเอง |
+| GET | `/api/documents/:id` | metadata + totalCharacters/partCharacters; ตรวจ canView |
+| GET | `/api/documents/:id/parts/:part` | `{part,data}` ส่วน data URL ที่บันทึก; ตรวจ canView ใหม่ทุกครั้ง |
+
+ทุก private response ใช้ no-store; cookie HttpOnly/SameSite=Lax/Secure เมื่อ HTTPS เซสชันเก็บ token hash อายุ 8 ชั่วโมงในฐานร่วมกัน บัญชี demo เปิดได้เฉพาะ ENABLE_DEMO_LOGIN=true และไม่ใช่ Supabase Auth
+
+Cloud จำกัด body command/part 3 MiB, login/metadata 64 KiB; base64 ไม่เกิน 2 MiB ตัวอักษรต่อส่วน ต่ำกว่า Vercel 4.5 MB รองรับไฟล์เดิม 100 MiB ApiRepository ตรวจ health เพื่อเลือก transport; mock JSON ที่ไม่มี parts-v1 ส่ง dataUrl เดิม Cloud submit/edit อ้างอิง `{attachment:{uploadId}}` หลังตรวจส่วนครบ/owner server ขยายเป็น AttachmentInput แล้วใช้ validator/domain เดิม ตรวจเพศ/กรณีก่อนข้อผิดพลาดไฟล์ บันทึกคำขอ/เอกสารและ consume staging ใน transaction เดียว ไม่อนุญาตใช้ upload ของคนอื่น
+
+Cloud snapshot คืน documents ตามสิทธิ์ด้วย remote:true/dataUrl:'' ไม่ส่งเอกสารใหญ่ตอน Login/ทุก 15 วินาที downloadDocument ของ adapter โหลด parts เมื่อกดดาวน์โหลดและตรวจขนาด Blob เทียบ fileSize ไฟล์เก็บ base64 ใน PostgreSQL ใช้พื้นที่ฐานร่วมกัน; ไม่ใช่ object storage การส่งออก JSON จาก HR ใน cloud จึงไม่รวมเนื้อไฟล์ remote
+
 API คืน JSON ทุก response วันที่ของข้อมูลเป็น ISO **ค.ศ. `YYYY-MM-DD`** และ timestamp เป็น UTC ISO 8601 ช่องกรอก/ข้อความบนหน้าจอเป็น **พ.ศ. `d/m/yyyy`** โดยแปลงใน `src/domain/date.ts`
 
 ## Endpoints

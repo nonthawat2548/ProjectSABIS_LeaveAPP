@@ -95,7 +95,11 @@
 
 ## เปิดฐานข้อมูลตัวอย่าง
 
-สำหรับ Supabase/PostgreSQL ใช้ [database/supabase/setup-10-people.sql](../database/supabase/setup-10-people.sql) แทน SQL สำหรับ SQLite ไฟล์นี้สร้าง schema ใหม่ `leave_app` พร้อม 9 ตารางหลัก/ตารางสนับสนุน/views และ seed จาก source 10 คน ใช้ TIMESTAMPTZ/JSONB เปิด RLS และถอนสิทธิ์ browser roles ทุกตารางรวม views; การอ่าน/ทำรายการต้องผ่าน backend ที่ตรวจสิทธิ์ ยังไม่ได้เชื่อม runtime ของแอปหรือสร้าง Supabase Auth users ดูขั้นตอนและข้อจำกัดใน [SUPABASE.md](SUPABASE.md)
+สำหรับ Supabase/PostgreSQL ใช้ [setup-10-people.sql](../database/supabase/setup-10-people.sql) สร้าง schema ใหม่ `leave_app` พร้อม 9 ตารางหลัก/ตารางสนับสนุน/views และ seed 10 คน ใช้ TIMESTAMPTZ/JSONB เปิด RLS ถอนสิทธิ์ browser roles รวม views แล้วรัน [002-cloud-api.sql](../database/supabase/002-cloud-api.sql) เพื่อเพิ่ม App_Session (token hash/employee/expiry), App_Upload (staging metadata/owner/expiry) และ App_Upload_Part (ordered base64 parts) โดยไม่ล้างข้อมูลเดิม ส่วนเพิ่มไม่นับใน 9 ตารางหลัก ไม่มี Supabase Auth users; api/router.ts ใช้ session ของชุด demo ที่เปิดผ่าน environment ดู [SUPABASE.md](SUPABASE.md)
+
+server/postgresStore.ts map SQL กลับเป็น Database เดิม วันที่ DATE อ่าน ISO ค.ศ. timestamp อ่าน UTC ISO; boolean additions เก็บ 0/1 ตาม mapping เดิม Read transaction ใช้ repeatable read; mutation ใช้ advisory transaction lock ร่วมทุก instance และ SELECT FOR UPDATE ก่อนเรียก domain เขียนเฉพาะแถวที่เปลี่ยนพร้อม quota/version ใน transaction เดียว ไม่บันทึกยอดคำนวณซ้ำ
+
+Cloud snapshot อ่านเอกสารเฉพาะ metadata คืน remote:true/dataUrl:'' (remote ไม่ใช่คอลัมน์ SQL) แต่ Leave_Document.Data_url ในฐานยังเก็บ base64 จริงที่ผ่านการตรวจขนาด/ชนิด/เนื้อหา ดาวน์โหลดผ่าน API เป็นส่วน ๆ หลังตรวจ canView ทุกครั้ง การยื่น/แก้ไข consume staging และล้าง parts พร้อมคำขอ/เอกสารใน transaction เดียว ไม่ล้าง data_url เดิมเมื่อโหลด metadata แล้วบันทึกคำสั่งอื่น ข้อมูลและ staging ใช้โควตาฐาน Free 500 MB ร่วมกัน ไม่ใช้ Supabase Storage; ส่งออก JSON จาก cloud เป็น metadata เอกสาร
 
 เปิดชุด 10 คน `src/data/leave-management-10-people.sqlite` ด้วยเครื่องมือ SQLite ที่คุณใช้อยู่ หรือนำเข้า `src/data/leave-management-10-people.sql` ในฐานใหม่ที่ว่าง ไฟล์เหล่านี้เป็นสำเนาส่งออก ไม่ใช่ฐานที่แอปอ่าน/เขียนขณะทำรายการ ตัวอย่างเดิมยังอยู่ใน `database/mock.sqlite`, `database/schema.sql` และ `database/seed.sql`
 

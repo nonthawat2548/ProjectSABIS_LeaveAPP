@@ -50,6 +50,9 @@
 | `src/data/apiRepository.ts` | REST API adapter |
 | `server/index.ts` | Mock REST API และ cookie session |
 | `server/store.ts` | อ่าน/เขียน JSON แบบ serialized และ atomic rename |
+| `api/router.ts`, `server/cloudApi.ts` | PostgreSQL REST API บน Vercel ตรวจ session/สิทธิ์และส่งเอกสารเป็น parts |
+| `server/postgresStore.ts` | mapping PostgreSQL, transaction/lock และเขียนเฉพาะแถวที่เปลี่ยน |
+| `database/supabase/` | SQL setup 10 คน และ migration ตาราง session/upload ของฐานกลาง |
 | `server/seed.ts` | คืนค่าข้อมูลหลังบ้านจำลอง |
 | `scripts/dev-api.mjs` | เปิด frontend พร้อม mock REST server |
 | `database/` | schema SQL, seed, JSON และ SQLite ตัวอย่าง |
@@ -66,7 +69,9 @@
 
 ## แหล่งข้อมูลและข้อจำกัดปัจจุบัน
 
-- สำหรับ Supabase/Vercel มี `database/supabase/setup-10-people.sql` และ `scripts/generate-supabase.mjs` เตรียม PostgreSQL schema `leave_app` จาก 9 ตารางหลัก/ตารางสนับสนุน/views และ source 10 คน; ใช้ TIMESTAMPTZ/JSONB เปิด RLS ถอนสิทธิ์ PUBLIC/anon/authenticated รวม views ไม่มี browser policy และยังไม่มี backend/Supabase Auth users หรือการเชื่อม frontend การนำเข้าไม่ซิงก์ข้อมูลจากอุปกรณ์และไม่เปลี่ยนโหมดแอป ดู `docs/SUPABASE.md`; ห้ามนำ SQLite SQL ไปรันกับ Supabase โดยตรงหรือเติม DROP/TRUNCATE เพื่อรันไฟล์ setup ซ้ำ ต้องเตรียม direct upload/object storage ที่รองรับ 100 MiB เพราะ Supabase Storage Free จำกัด 50 MB/ไฟล์และ Vercel Functions จำกัด body/response 4.5 MB
+- สำหรับ Supabase/Vercel มี PostgreSQL API แล้วใน `api/router.ts`/`server/cloudApi.ts` และ `server/postgresStore.ts` ใช้ schema `leave_app` จาก `database/supabase/setup-10-people.sql`; ฐานที่นำเข้าแล้วต้องรัน `002-cloud-api.sql` เพิ่ม App_Session/App_Upload/App_Upload_Part โดยไม่ล้างข้อมูลเดิม เปิด RLS ถอนสิทธิ์ PUBLIC/anon/authenticated รวม views ไม่มี browser policy ใช้ backend ตรวจ domain/session/สิทธิ์ภายใน transaction connection เดียวพร้อม advisory lock/SELECT FOR UPDATE และเขียน delta; snapshot ไม่โหลดเนื้อไฟล์และใช้ remote metadata ห้ามทำ data_url ของเอกสารเดิมหายจากการเขียน metadata
+- Vercel build เลือก API อัตโนมัติเมื่อไม่ได้ตั้ง mock; ตั้ง VITE_DATA_MODE=api, VITE_API_BASE_URL=/api และ POSTGRES_URL ฝั่ง server พร้อม deploy โค้ดใหม่ ไม่มี fallback ไป IndexedDB ไม่มีการย้ายข้อมูลเก่าข้ามโหมด API ใช้ session token สุ่มเก็บเฉพาะ hash ใน PostgreSQL อายุ 8 ชั่วโมง ตรวจ active/session ใหม่ทุก endpoint และ cookie HttpOnly/SameSite/Secure บน HTTPS บัญชียังเป็น demo ต้อง ENABLE_DEMO_LOGIN=true และยังไม่มี Supabase Auth users ดู docs/SUPABASE.md; ห้ามใส่ secret ใน VITE_* และห้ามนำ SQLite SQL มารันหรือเติม DROP/TRUNCATE เพื่อรัน setup ซ้ำ
+- Cloud รองรับ 100 MiB โดยส่ง base64 เป็น parts ขนาด 2 MiB ตัวอักษร (67 parts ที่ขนาดสูงสุด) body/response ต่ำกว่าเพดาน Vercel 4.5 MB ใช้ TEXT ใน PostgreSQL พร้อม upload staging ไม่ใช้ Supabase Storage ที่ Free จำกัด 50 MB/object พื้นที่ฐาน Free 500 MB ใช้ร่วมข้อมูล/เอกสารและ staging ชั่วคราว จึงเป็นทางเลือกสำหรับทดลอง ก่อนใช้งานจริงควรเปลี่ยนเป็น private object storage; ตรวจสิทธิ์ดาวน์โหลดทุก part ปุ่ม HR คืนค่าใน cloud มีผลทุกเครื่อง และ JSON export มีเฉพาะ metadata เอกสาร ไม่รวมไฟล์ remote
 - โหมดเบราว์เซอร์ใช้ IndexedDB (`mock`) ชื่อ `leave-management-10-people-v1`; โหมด `api` ใช้ Node.js REST API บันทึกลง `server/data/leave-management-10-people.json` เป็นค่าเริ่มต้น หรือไฟล์จาก `MOCK_DATA_FILE`
 - ทั้งสองโหมดเริ่มต้นและคืนค่าผ่าน `createDemoDatabase()` ใน `src/data/demoDatabase.ts` ซึ่ง clone `src/data/leave-management-10-people.json` ชุด 10 คน: Employee 7, Manager 2 และ HR 1
 - เก็บฐานเดิม IndexedDB `leave-management-v1` และ `server/data/db.json` ไว้ ไม่ย้ายหรือเขียนทับอัตโนมัติ โหมดเบราว์เซอร์ใช้ session key `leave-10-people-demo-session` และ BroadcastChannel `leave-10-people-data` แยกจากเดิม
@@ -135,6 +140,8 @@
 npm install
 npm run dev          # frontend; ค่าเริ่มต้นใช้ IndexedDB
 npm run dev:api      # frontend พร้อม mock REST server
+npm run dev:cloud    # frontend พร้อม PostgreSQL API; ตั้ง POSTGRES_URL/ENABLE_DEMO_LOGIN ใน .env
+npm run cloud:server # PostgreSQL API แยกสำหรับพัฒนา
 npm run mock:server  # เปิด mock server แยกต่างหาก
 npm test
 npm run typecheck
@@ -145,6 +152,8 @@ npm run preview
 `npm run dev` ไม่เปิด mock server เอง หากเปิดสอง terminal ให้ตั้ง `VITE_DATA_MODE=api` แล้วใช้ `npm run mock:server` ร่วมกับ `npm run dev` ดู proxy/port ใน `vite.config.ts` และ README
 
 ## การตรวจสอบและรายงานผล
+
+- สถานะเชื่อม PostgreSQL API (11/10/2569): npm test ผ่าน 161 รายการ npm run typecheck และ npm run build ผ่าน (build ตั้ง VERCEL=1 ตรวจค่าเริ่มต้น API) ตรวจ migration ซ้ำ/session ข้าม handler/สิทธิ์ตามบทบาท/ลาคลอดล่าสุด/โควตาพร้อมกัน/rollback/ไฟล์ multipart ผ่าน PGlite แยกจากข้อมูลผู้ใช้ ตรวจ Edge headless 154 ด้วย production bundle แบบ Vercel, viewport 320/390/1440px และสองธีม ผ่าน 11 กรณี รวมยื่นไฟล์ 100 MiB 67 parts เห็นจากอีกเซสชัน ผู้จัดการอนุมัติ และดาวน์โหลดกลับขนาด/hash ตรงกัน ไม่พบ page error หรือ horizontal overflow ตรวจภาพแล้ว ยังไม่ได้เชื่อม Supabase ของผู้ใช้หรือ deploy บน Vercel จริง และไม่ได้ตรวจบนโทรศัพท์จริง
 
 - การเตรียม Supabase/PostgreSQL (10/10/2569): เพิ่ม SQL setup/ตัวสร้าง/คู่มือและ tests/supabase-schema.test.ts 6 รายการผ่าน PGlite dev dependency บนฐานแยก ตรวจ schema/seed/ISO/timeline/เอกสาร/นโยบาย/ยอดเทียบ domain, RLS+grants รวม views, import ซ้ำไม่เขียนทับ และ escape ตัวอักษร; npm test ผ่าน 153 รายการ typecheck/build ผ่าน ยังไม่ได้รันกับ Supabase จริงหรือเชื่อม frontend/API และยังไม่ยืนยันการซิงก์ข้ามเครื่อง
 - เลือกตรวจให้ตรงกับสิ่งที่เปลี่ยน หากแก้วันที่ กฎการลา โควตา หรือสิทธิ์ ให้ตรวจกรณีที่เกี่ยวข้องใน `tests/date.test.ts`, `tests/workflow.test.ts` และ `tests/api.test.ts`

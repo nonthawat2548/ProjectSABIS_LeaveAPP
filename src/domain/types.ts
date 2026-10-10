@@ -8,7 +8,7 @@ export interface MaternityCase { id: number; employeeId: number; caseNo: number;
 export interface TimelineEvent { action: string; actorId: number; at: string; comment: string }
 export interface LeaveRequest { id: number; employeeId: number; leaveTypeId: number; maternityCaseId: number|null; startDate: string; endDate: string; reason: string; requestDate: string; status: RequestStatus; duration: Duration; version: number; timeline: TimelineEvent[] }
 export interface LeaveDay { id: number; leaveId: number; date: string; entitlementId: number|null; units: number }
-export interface LeaveDocument { id: number; leaveId: number; documentType: string; fileName: string; storageKey: string; fileType: string; fileSize: number; uploadedAt: string; dataUrl: string }
+export interface LeaveDocument { id: number; leaveId: number; documentType: string; fileName: string; storageKey: string; fileType: string; fileSize: number; uploadedAt: string; dataUrl: string; remote?: boolean }
 export interface LeaveApproval { id: number; leaveId: number; approverId: number; stepNo: number; reviewRole: 'Manager'|'HR'; reviewType: 'Decision'|'Consultation'; status: 'Pending'|'Approved'|'Rejected'|'Completed'; comment: string; assignedAt: string; reviewedAt: string|null; cancelled?:boolean }
 export interface WorkStatus { id: number; employeeId: number; date: string; statusType: 'In-office'|'WFH'|'Outside'; updatedAt: string }
 export interface ColleagueStatus { employeeId: number; name: string; position: string; department: string; date: string; workStatus: WorkStatus['statusType']|null; leaveDuration: Duration|null; updatedAt: string|null }
@@ -40,5 +40,6 @@ export interface LeaveRepository {
  snapshot():Promise<Database>;
  searchColleagues(query:string,date:string):Promise<ColleagueStatus[]>;
  execute(command:Command):Promise<CommandResult>;
+ downloadDocument?(document:LeaveDocument):Promise<Blob>;
  resetDemo():Promise<void>;
 }

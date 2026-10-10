@@ -86,7 +86,7 @@ npm run dev:api
 
 ดูรายละเอียดใน [docs/API.md](docs/API.md) และ [docs/DATABASE.md](docs/DATABASE.md)
 
-สำหรับ Supabase ที่สร้างผ่าน Vercel มี SQL PostgreSQL ชุด 10 คนพร้อมนำเข้าและขั้นตอนใน [docs/SUPABASE.md](docs/SUPABASE.md) ขั้นตอนนี้เตรียมฐานข้อมูลเท่านั้น ยังไม่ได้เชื่อม frontend หรือสร้าง API บน Vercel ข้อมูลยังไม่ซิงก์ข้ามเครื่องจนกว่าส่วนเชื่อมต่อจะพร้อม
+สำหรับ Supabase ที่สร้างผ่าน Vercel มี API PostgreSQL ใน `api/router.ts` และ SQL ชุด 10 คนพร้อม session/upload migration ดู [docs/SUPABASE.md](docs/SUPABASE.md) หลังนำเข้า SQL ตั้งค่า environment และ deploy โค้ดใหม่ ทุกเครื่องใช้ฐานกลางชุดเดียวกัน Vercel build เลือก API โดยค่าเริ่มต้นและไม่ fallback ไป IndexedDB เมื่อระบบขัดข้อง ข้อมูลเก่าในอุปกรณ์ไม่ย้ายอัตโนมัติ บัญชี login ยังเป็น demo ที่ต้องเปิด ENABLE_DEMO_LOGIN; ไฟล์ 100 MB ส่ง/ดาวน์โหลดเป็น parts และใช้พื้นที่ฐานข้อมูล สำหรับทดลองโดยไม่เพิ่มบริการ Storage
 
 1. สร้าง API ตาม contract ที่เตรียมไว้ หรือปรับ `src/data/apiRepository.ts` ให้ตรงกับ API ของคุณ
 2. ตั้งค่าใน `.env`:
