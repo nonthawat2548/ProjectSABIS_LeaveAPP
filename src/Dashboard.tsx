@@ -4,6 +4,7 @@ import { balance, effectiveWorkStatus } from './domain/service';
 import { formatDate, today } from './domain/date';
 import { Card, RequestTable, Stat } from './components';
 import { QuotaOverview, TeamOverview, UpcomingLeave, WelcomeHero, WeeklyOverview } from './ui';
+import { formatWorkStatus } from './labels';
 
 export function Dashboard({ db, actor }: PageProps) {
     const employee = actor.role === 'Employee';
@@ -17,10 +18,10 @@ export function Dashboard({ db, actor }: PageProps) {
     return <div className="dashboard-page"><WelcomeHero db={db} actor={actor} />
         <div className="dashboard-section-label"><span>ภาพรวมของคุณ</span><span>อัปเดตจากข้อมูลล่าสุด</span></div>
         <div className="stats">{employee ? <>
-            <Stat tone="mint" title="พักร้อนคงเหลือ" value={<>{vacation.remaining}<small>วัน</small></>} note={`จากสิทธิ์ ${vacation.total} วัน · ปี ${year + 543}`} icon={<Wallet />} />
-            <Stat tone="peach" title="กำลังรอพิจารณา" value={<>{pending.length}<small>คำขอ</small></>} note="ติดตามความคืบหน้าได้ทุกขั้นตอน" icon={<Clock3 />} />
-            <Stat tone="purple" title="คำขอที่อนุมัติ" value={<>{requests.filter(r => r.status === 'Approved').length}<small>คำขอ</small></>} note="รวมคำขอที่ได้รับอนุมัติทั้งหมด" icon={<CheckCircle2 />} />
-            <Stat tone="sky" title="สถานะการทำงานวันนี้" value={<span className="work-stat">{effectiveWorkStatus(db, actor.id, today()).replace('In-office', 'In office')}</span>} note={formatDate(today())} icon={<Laptop />} />
+            <Stat tone="mint" title="วันลาพักร้อนคงเหลือ" value={<>{vacation.remaining}<small>วัน</small></>} note={`จากสิทธิ์ ${vacation.total} วัน · ปี ${year + 543}`} icon={<Wallet />} />
+            <Stat tone="peach" title="คำขอรอพิจารณา" value={<>{pending.length}<small>คำขอ</small></>} note="ติดตามความคืบหน้าได้ทุกขั้นตอน" icon={<Clock3 />} />
+            <Stat tone="purple" title="คำขอที่อนุมัติแล้ว" value={<>{requests.filter(r => r.status === 'Approved').length}<small>คำขอ</small></>} note="รวมคำขอที่ได้รับอนุมัติทั้งหมด" icon={<CheckCircle2 />} />
+            <Stat tone="sky" title="สถานะงานวันนี้" value={<span className="work-stat">{formatWorkStatus(effectiveWorkStatus(db, actor.id, today()))}</span>} note={formatDate(today())} icon={<Laptop />} />
         </> : <>
             <Stat tone="peach" title={actor.role === 'HR' ? 'รอความเห็นของคุณ' : 'คำขอรอพิจารณา'} value={<>{actor.role === 'HR' ? consultations.length : pending.length}<small>คำขอ</small></>} note={actor.role === 'HR' ? 'รายการที่ได้รับมอบหมาย' : 'คำขอของพนักงานในทีม'} icon={<Clock3 />} />
             <Stat tone="purple" title="อยู่ระหว่างปรึกษา HR" value={<>{consultations.length}<small>คำขอ</small></>} note="รอความเห็นก่อนตัดสินผล" icon={<ShieldCheck />} />

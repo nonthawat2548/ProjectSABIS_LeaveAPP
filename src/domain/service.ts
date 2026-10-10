@@ -1,5 +1,6 @@
 import type { AttachmentInput, Balance, Command, CommandResult, Database, Employee, LeaveDay, LeaveRequest, MaternityCase, RequestInput } from './types';
 import { datesBetween, dayDifference, isoDate, today, workingDates } from './date';
+import { ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BASE64_LENGTH, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_LABEL, MAX_COMMAND_BODY_BYTES } from './attachments';
 export class DomainError extends Error {constructor(message:string,public code='VALIDATION'){super(message);this.name='DomainError'}}
 const fail=(text:string,code='VALIDATION'):never=>{throw new DomainError(text,code)};
 const nextId=(rows:{id:number}[])=>Math.max(0,...rows.map(r=>r.id))+1;
@@ -31,8 +32,22 @@ export function effectiveWorkStatus(db:Database,employeeId:number,date:string):s
  return units>=1?'Leave':units>0?`${base} / Leave (ครึ่งวัน)`:base;
 }
 export function validateAttachment(a:AttachmentInput):void {
- if(!a||!['application/pdf','image/jpeg','image/png'].includes(a.fileType)||typeof a.fileName!=='string'||!a.fileName.trim()||a.fileName.length>255||!Number.isInteger(a.fileSize)||a.fileSize<=0||a.fileSize>2*1024*1024||typeof a.dataUrl!=='string'||!a.dataUrl.startsWith(`data:${a.fileType};base64,`))fail('เอกสารต้องเป็น PDF, JPG หรือ PNG ขนาดไม่เกิน 2 MB');
- try {const raw=atob(a.dataUrl.split(',')[1]);if(raw.length!==a.fileSize)fail('ขนาดเอกสารไม่ตรงกับข้อมูล');const valid=a.fileType==='application/pdf'?raw.startsWith('%PDF-'):a.fileType==='image/png'?raw.startsWith('\x89PNG\r\n\x1a\n'):raw.startsWith('\xff\xd8\xff');if(!valid)fail('เนื้อหาเอกสารไม่ตรงกับชนิดไฟล์');}catch(e){if(e instanceof DomainError)throw e;fail('ข้อมูลเอกสารไม่ถูกต้อง')}
+ const sizeMessage=`เอกสารต้องเป็น PDF, JPG หรือ PNG ขนาดไม่เกิน ${MAX_ATTACHMENT_LABEL}`;
+ if(!a||!ALLOWED_ATTACHMENT_TYPES.some(type=>type===a.fileType)||typeof a.fileName!=='string'||!a.fileName.trim()||a.fileName.length>255||!Number.isInteger(a.fileSize)||a.fileSize<=0||a.fileSize>MAX_ATTACHMENT_BYTES||typeof a.dataUrl!=='string')fail(sizeMessage);
+ const prefix=`data:${a.fileType};base64,`;
+ if(!a.dataUrl.startsWith(prefix))fail(sizeMessage);
+ // Bound the encoded data even when a direct API caller falsifies fileSize.
+ if(a.dataUrl.length-prefix.length>MAX_COMMAND_BODY_BYTES)fail(sizeMessage);
+ // Preserve atob's support for ASCII whitespace and unpadded base64.
+ const encoded=a.dataUrl.slice(prefix.length).replace(/[ \t\r\n\f]/g,'');
+ if(encoded.length>MAX_ATTACHMENT_BASE64_LENGTH)fail(sizeMessage);
+ const padding=encoded.endsWith('==')?2:encoded.endsWith('=')?1:0;
+ if((padding>0&&encoded.length%4!==0)||(padding===0&&encoded.length%4===1)||/[^A-Za-z0-9+/]/.test(encoded.slice(0,encoded.length-padding)))fail('ข้อมูลเอกสารไม่ถูกต้อง');
+ const decodedSize=Math.floor(encoded.length*3/4)-padding;
+ if(decodedSize>MAX_ATTACHMENT_BYTES)fail(sizeMessage);
+ if(decodedSize!==a.fileSize)fail('ขนาดเอกสารไม่ตรงกับข้อมูล');
+ // Validate the signature without materializing a second 100 MB binary string.
+ try {const header=atob(encoded.slice(0,12));const valid=a.fileType==='application/pdf'?header.startsWith('%PDF-'):a.fileType==='image/png'?header.startsWith('\x89PNG\r\n\x1a\n'):header.startsWith('\xff\xd8\xff');if(!valid)fail('เนื้อหาเอกสารไม่ตรงกับชนิดไฟล์');}catch(e){if(e instanceof DomainError)throw e;fail('ข้อมูลเอกสารไม่ถูกต้อง')}
 }
 /** Uses the stored owner's gender, never a field supplied with a leave command. */
 export function maternityGenderIssue(employee:Pick<Employee,'gender'>):string|null {
@@ -87,7 +102,7 @@ function checkRequest(db:Database,actor:Employee,input:RequestInput,excludeId:nu
  const other=db.requests.filter(r=>r.employeeId===actor.id&&r.id!==excludeId&&['Pending','Approved'].includes(r.status));
  for(const r of other){if(input.duration!=='Full'&&r.duration!=='Full'&&input.duration!==r.duration)continue;if(db.days.some(d=>d.leaveId===r.id&&days.some(n=>n.date===d.date)))fail(`วันที่ลาซ้อนกับคำขอ ${requestCode(r)}`);}
  if(type.quotaScope==='Annual') {
-  for(const year of new Set(days.map(d=>Number(d.date.slice(0,4))))) {const b=balance(db,actor.id,type.id,year,null,excludeId);const needed=days.filter(d=>Number(d.date.slice(0,4))===year).reduce((a,d)=>a+d.units,0);if(needed>b.remaining-b.pending)fail(`สิทธิ์ปี ${year+543} ไม่พอ (ใช้ได้ ${Math.max(0,b.remaining-b.pending)} วันหลังหักที่รออนุมัติ)`,quotaCode);}
+  for(const year of new Set(days.map(d=>Number(d.date.slice(0,4))))) {const b=balance(db,actor.id,type.id,year,null,excludeId);const needed=days.filter(d=>Number(d.date.slice(0,4))===year).reduce((a,d)=>a+d.units,0);if(needed>b.remaining-b.pending)fail(`สิทธิ์ปี ${year+543} ไม่พอ (ใช้ได้ ${Math.max(0,b.remaining-b.pending)} วันหลังหักที่รอพิจารณา)`,quotaCode);}
  }else{const b=balance(db,actor.id,type.id,0,input.maternityCaseId,excludeId);if(total>b.remaining-b.pending)fail('โควตาของกรณีลาคลอดนี้ไม่เพียงพอ',quotaCode);}
  return {days,total};
 }
@@ -175,7 +190,7 @@ export function applyCommand(db:Database,actorId:number,c:Command,now=new Date()
  if(actor.role!=='HR')fail('เฉพาะฝ่ายบุคคลเท่านั้น','FORBIDDEN');
  if(c.type==='entitlement'){
   if(!db.employees.some(e=>e.id===c.employeeId)||!db.leaveTypes.some(t=>t.id===c.leaveTypeId&&t.quotaScope==='Annual')||!Number.isInteger(c.year)||c.year<1900||c.year>2200||!Number.isFinite(c.grantedDays)||c.grantedDays<0||c.grantedDays>999||c.grantedDays*2%1!==0)fail('ข้อมูลสิทธิ์ไม่ถูกต้อง');
-  const b=balance(db,c.employeeId,c.leaveTypeId,c.year);if(c.grantedDays<b.used+b.pending)fail('สิทธิ์ต้องไม่น้อยกว่าวันที่ใช้แล้วรวมกับคำขอที่รออนุมัติ');
+  const b=balance(db,c.employeeId,c.leaveTypeId,c.year);if(c.grantedDays<b.used+b.pending)fail('สิทธิ์ต้องไม่น้อยกว่าวันที่ใช้แล้วรวมกับคำขอที่รอพิจารณา');
   const e=db.entitlements.find(e=>e.employeeId===c.employeeId&&e.leaveTypeId===c.leaveTypeId&&e.year===c.year);if(e)e.grantedDays=c.grantedDays;else db.entitlements.push({id:nextId(db.entitlements),employeeId:c.employeeId,leaveTypeId:c.leaveTypeId,year:c.year,grantedDays:c.grantedDays});
   notify(db,c.employeeId,null,`HR อัปเดตสิทธิ์ลาปี ${c.year+543}`,at);return {message:'บันทึกสิทธิ์วันลาแล้ว'};
  }

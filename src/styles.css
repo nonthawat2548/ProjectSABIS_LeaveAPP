@@ -391,7 +391,7 @@ summary:focus-visible {
     color: var(--sidebar-muted);
     font-size: 12px;
     font-weight: 500;
-    letter-spacing: 1.7px;
+    letter-spacing: 0;
     padding: 27px 12px 12px
 }
 
@@ -1284,7 +1284,7 @@ tbody tr:hover {
 .hero-eyebrow {
     font-size: 12px;
     font-weight: 600;
-    letter-spacing: 1.7px;
+    letter-spacing: 0;
     color: var(--hero-muted);
     display: flex;
     gap: 8px;
@@ -1665,7 +1665,7 @@ tbody tr:hover {
 .section-eyebrow {
     display: block;
     font-size: 12px;
-    letter-spacing: 1.5px;
+    letter-spacing: 0;
     color: var(--subtle);
     margin-bottom: 7px
 }
@@ -1858,7 +1858,10 @@ tbody tr:hover {
 .team-status {
     font-size: 12px;
     color: var(--muted);
-    max-width: 70px;
+    max-width: 120px;
+    flex-shrink: 0;
+    line-height: 1.6;
+    text-align: right;
     overflow-wrap: anywhere
 }
 
@@ -2352,6 +2355,146 @@ tbody tr:hover {
 .work-badge.leave {
     background: var(--mint);
     color: var(--mint-ink)
+}
+
+.colleague-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px) auto;
+    gap: 20px;
+    align-items: start
+}
+
+.colleague-search>.btn {
+    margin-top: 28px;
+    min-height: 46px
+}
+
+.colleague-loading {
+    padding: 30px 12px;
+    text-align: center;
+    color: var(--muted)
+}
+
+.colleague-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px
+}
+
+.colleague-result-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 23px 0 13px
+}
+
+.colleague-result-heading .list-count {
+    margin: 0
+}
+
+.colleague-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 20px
+}
+
+.colleague-results>li {
+    min-width: 0
+}
+
+.colleague-results .card {
+    height: 100%
+}
+
+.colleague-person {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.colleague-person>div {
+    min-width: 0;
+    overflow-wrap: anywhere
+}
+
+.colleague-person strong,
+.colleague-person span:not(.avatar) {
+    display: block
+}
+
+.colleague-person small,
+.colleague-person>div>span,
+.colleague-position,
+.colleague-updated {
+    font-size: 12px;
+    color: var(--muted)
+}
+
+.colleague-person>div>span {
+    margin-top: 4px
+}
+
+.colleague-position {
+    margin: 16px 0;
+    overflow-wrap: anywhere
+}
+
+.colleague-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px
+}
+
+.colleague-unreported {
+    color: var(--muted);
+    background: var(--surface-soft)
+}
+
+.colleague-updated {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 18px 0 0;
+    line-height: 1.7
+}
+
+.colleague-updated>svg {
+    flex-shrink: 0;
+    margin-top: 3px
+}
+
+@media(max-width:1000px) {
+    .colleague-search {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 280px)
+    }
+
+    .colleague-search>.btn {
+        grid-column: 1 / -1;
+        margin-top: 0;
+        justify-self: end
+    }
+}
+
+@media(max-width:600px) {
+    .colleague-search {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px
+    }
+
+    .colleague-search>.btn {
+        width: 100%;
+        justify-self: stretch
+    }
+
+    .colleague-results {
+        gap: 14px
+    }
 }
 
 /* Calendar, people, notifications, and settings */
@@ -3861,7 +4004,7 @@ tbody tr:hover {
 
     .hero-eyebrow {
         font-size: 12px;
-        letter-spacing: 1px
+        letter-spacing: 0
     }
 
     .welcome-art {
@@ -4130,7 +4273,7 @@ tbody tr:hover {
 
     .welcome-copy .hero-eyebrow {
         font-size: 12px;
-        letter-spacing: .8px
+        letter-spacing: 0
     }
 
     .welcome-copy .hero-actions .btn {

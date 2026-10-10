@@ -100,13 +100,13 @@ test('Maternity form explains eligibility and reviews the selected case before s
         assert.equal(summary('กรณีที่เลือก'), 'กรณีที่ 1');
         assert.equal(summary('สิทธิ์ทั้งหมดของกรณี'), '9 วัน');
         assert.equal(summary('ใช้แล้ว'), '3 วัน');
-        assert.equal(summary('รออนุมัติ'), '1 วัน');
+        assert.equal(summary('รอพิจารณา'), '1 วัน');
         assert.equal(summary('คงเหลือ'), '6 วัน');
         assert.equal(summary('พร้อมยื่นเพิ่ม'), '5 วัน');
         await choose('leave-case', '2');
         assert.equal(summary('สิทธิ์ทั้งหมดของกรณี'), '17 วัน');
         assert.equal(summary('ใช้แล้ว'), '0 วัน');
-        assert.equal(summary('รออนุมัติ'), '0 วัน');
+        assert.equal(summary('รอพิจารณา'), '0 วัน');
         assert.equal((document.getElementById('leave-duration') as HTMLSelectElement).options.length, 1);
         assert(text().includes('แม้ข้ามปี ไม่แยกเป็นโควตารายปี'));
     });
@@ -158,7 +158,7 @@ test('Maternity form explains eligibility and reviews the selected case before s
         const start = addDays(today(), 40);
         const id = applyCommand(db, 3, { type: 'submit', input: { leaveTypeId: 4, maternityCaseId: 1, startDate: start, endDate: addDays(start, 2), duration: 'Full', reason: 'ลาเพื่อคลอดบุตร' } }).id!;
         await render(db, 3, id);
-        assert.equal(summary('รออนุมัติ (ไม่รวมคำขอที่แก้)'), '0 วัน');
+        assert.equal(summary('รอพิจารณา (ไม่รวมคำขอที่แก้)'), '0 วัน');
         assert.equal(summary('คำขอนี้'), '3 วัน');
         assert.equal(summary('พร้อมยื่นเพิ่ม'), '3 วัน');
         await submit(); assert(review());

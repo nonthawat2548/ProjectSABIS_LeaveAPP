@@ -11,6 +11,7 @@ export interface LeaveDay { id: number; leaveId: number; date: string; entitleme
 export interface LeaveDocument { id: number; leaveId: number; documentType: string; fileName: string; storageKey: string; fileType: string; fileSize: number; uploadedAt: string; dataUrl: string }
 export interface LeaveApproval { id: number; leaveId: number; approverId: number; stepNo: number; reviewRole: 'Manager'|'HR'; reviewType: 'Decision'|'Consultation'; status: 'Pending'|'Approved'|'Rejected'|'Completed'; comment: string; assignedAt: string; reviewedAt: string|null; cancelled?:boolean }
 export interface WorkStatus { id: number; employeeId: number; date: string; statusType: 'In-office'|'WFH'|'Outside'; updatedAt: string }
+export interface ColleagueStatus { employeeId: number; name: string; position: string; department: string; date: string; workStatus: WorkStatus['statusType']|null; leaveDuration: Duration|null; updatedAt: string|null }
 export interface Notification { id: number; employeeId: number; leaveId: number|null; text: string; createdAt: string; read: boolean }
 export interface Holiday { date: string; name: string }
 export interface Database { schemaVersion: 1; employees: Employee[]; leaveTypes: LeaveType[]; entitlements: Entitlement[]; maternityCases: MaternityCase[]; requests: LeaveRequest[]; days: LeaveDay[]; documents: LeaveDocument[]; approvals: LeaveApproval[]; workStatuses: WorkStatus[]; notifications: Notification[]; holidays: Holiday[] }
@@ -37,6 +38,7 @@ export interface LeaveRepository {
  session():Promise<Employee|null>;
  logout():Promise<void>;
  snapshot():Promise<Database>;
+ searchColleagues(query:string,date:string):Promise<ColleagueStatus[]>;
  execute(command:Command):Promise<CommandResult>;
  resetDemo():Promise<void>;
 }

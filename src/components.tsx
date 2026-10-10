@@ -3,8 +3,9 @@ import { CalendarDays, ChevronLeft, ChevronRight, X, FileText, Download, ArrowUp
 import type { Database, LeaveDocument, LeaveRequest, RequestStatus } from './domain/types';
 import { addDays, formatDate, formatDateTime, parseThaiDate, thaiMonths, today } from './domain/date';
 import { requestCode, totalDays } from './domain/service';
-export const statusLabels: Record<RequestStatus, string> = { Pending: 'รอพิจารณา', Approved: 'อนุมัติแล้ว', Rejected: 'ไม่อนุมัติ', Withdrawn: 'ยกเลิกแล้ว' };
-export const roleLabels = { Employee: 'พนักงาน', Manager: 'ผู้จัดการ', HR: 'ฝ่ายบุคคล' };
+import { ALLOWED_ATTACHMENT_TYPES } from './domain/attachments';
+import { statusLabels } from './labels';
+export { statusLabels, roleLabels } from './labels';
 export function Badge({ status }: { status: RequestStatus }) { return <span className={'badge ' + status.toLowerCase()}>{statusLabels[status]}</span> }
 export function Card({ title, children, action, className = '' }: { title?: string; children: ReactNode; action?: ReactNode; className?: string }) { return <section className={'card ' + className}>{title && <div className="card-head"><h2>{title}</h2>{action}</div>}<div className="card-body">{children}</div></section> }
 export function Heading({ title, description, action }: { title: string; description?: string; action?: ReactNode }) { return <div className="page-heading"><div><h1>{title}</h1>{description && <p>{description}</p>}</div>{action}</div> }
@@ -45,14 +46,33 @@ export function RequestTable({ db, requests, showEmployee = false }: { db: Datab
     </div>;
 }
 function documentBlob(doc: LeaveDocument): Blob {
-    if (!['application/pdf', 'image/png', 'image/jpeg', 'text/plain'].includes(doc.fileType)) throw new Error('ไม่รองรับชนิดเอกสาร');
+    if (!(ALLOWED_ATTACHMENT_TYPES as readonly string[]).includes(doc.fileType) && doc.fileType !== 'text/plain') throw new Error('ไม่รองรับชนิดเอกสาร');
     const split = doc.dataUrl.indexOf(','); if (split < 0) throw new Error('ข้อมูลเอกสารไม่ถูกต้อง');
-    const raw = doc.dataUrl.slice(0, split).includes(';base64') ? atob(doc.dataUrl.slice(split + 1)) : decodeURIComponent(doc.dataUrl.slice(split + 1));
-    return new Blob([Uint8Array.from(raw, c => c.charCodeAt(0))], { type: doc.fileType });
+    const base64 = doc.dataUrl.slice(0, split).includes(';base64');
+    const encoded = base64 ? doc.dataUrl.slice(split + 1).replace(/[ \t\r\n\f]/g, '') : doc.dataUrl.slice(split + 1);
+    const parts: Uint8Array<ArrayBuffer>[] = [];
+    // Decode bounded chunks so a large attachment does not create a per-byte JS array.
+    const chunkSize = 64 * 1024;
+    if (base64) {
+        for (let offset = 0; offset < encoded.length; offset += chunkSize) {
+            const raw = atob(encoded.slice(offset, offset + chunkSize));
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            parts.push(bytes);
+        }
+    } else {
+        const raw = decodeURIComponent(encoded), bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        parts.push(bytes);
+    }
+    return new Blob(parts, { type: doc.fileType });
+}
+function documentSize(bytes: number): string {
+    return bytes >= 1024 * 1024 ? (bytes / (1024 * 1024)).toLocaleString('th-TH', { maximumFractionDigits: 1 }) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB';
 }
 export function DocumentRow({ document: doc }: { document: LeaveDocument }) {
     const [error, setError] = useState(''); function download() { try { const url = URL.createObjectURL(documentBlob(doc)); const a = window.document.createElement('a'); a.href = url; a.download = doc.fileName; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000) } catch (e) { setError((e as Error).message) } }
-    return <div><div className="file-row"><FileText size={21} /><div className="file-info"><strong title={doc.fileName}>{doc.fileName}</strong><small>{Math.max(1, Math.round(doc.fileSize / 1024))} KB · {formatDateTime(doc.uploadedAt)}</small></div><button className="btn small" type="button" onClick={download}><Download size={15} />เปิด / ดาวน์โหลด</button></div>{doc.storageKey.startsWith('demo/') && <p className="tiny">เอกสารตัวอย่างสำหรับทดสอบระบบ</p>}{error && <p className="error" role="alert">{error}</p>}</div>;
+    return <div><div className="file-row"><FileText size={21} /><div className="file-info"><strong title={doc.fileName}>{doc.fileName}</strong><small>{documentSize(doc.fileSize)} · {formatDateTime(doc.uploadedAt)}</small></div><button className="btn small" type="button" onClick={download}><Download size={15} />เปิด / ดาวน์โหลด</button></div>{doc.storageKey.startsWith('demo/') && <p className="tiny">เอกสารตัวอย่างสำหรับทดสอบระบบ</p>}{error && <p className="error" role="alert">{error}</p>}</div>;
 }
 export function Dialog({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
     const ref = useRef<HTMLDivElement>(null); const previous = useRef<HTMLElement | null>(null);

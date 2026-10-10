@@ -13,10 +13,27 @@ API คืน JSON ทุก response วันที่ของข้อมู
 | GET | `/api/session` | session cookie | `{employee}` หรือ 401 |
 | DELETE | `/api/session` | — | `{message}` ล้าง session |
 | GET | `/api/snapshot` | session cookie | `Database` ที่กรองตามบทบาท |
+| GET | `/api/colleagues` | session cookie, `query`, `date` (ISO ค.ศ.) | `ColleagueStatus[]` ข้อมูลสถานะเพื่อนร่วมงาน |
 | POST | `/api/commands` | `Command` | `{message, id?}` |
 | POST | `/api/demo/reset` | `{}` + HR session | `{message}` |
 
 API จะเลือกผู้กระทำจาก session **ไม่รับ actorId/role จาก body** พนักงานเห็นข้อมูลคำขอตัวเอง ผู้จัดการเห็นทีมที่เป็นผู้จัดการโดยตรง HR มองเห็นข้อมูลการลาเพื่อดูแลสิทธิ์ แต่ส่งความเห็นได้เฉพาะคำขอที่ได้รับมอบหมาย
+
+## ค้นหาสถานะเพื่อนร่วมงาน
+
+`GET /api/colleagues?query=EMP-00008&date=2026-12-05` ต้องมี session ของ Employee, Manager หรือ HR ที่ยังใช้งานอยู่ ผู้ใช้ทุกบทบาทค้นหาข้อมูลสถานะพื้นฐานของพนักงานที่ active ได้ข้ามฝ่าย ไม่เปลี่ยนขอบเขตคำขอ เอกสาร โควตา หรือข้อมูลส่วนตัวใน `/api/snapshot` ผู้กระทำมาจาก session เท่านั้น ไม่เชื่อ `actorId` หรือ role ใน query/body
+
+`query` ยาวไม่เกิน 100 ตัวอักษร รองรับชื่อบางส่วนโดยไม่แยกตัวพิมพ์เล็ก/ใหญ่ เลข `Employee.id` แบบตรงตัว (เช่น `8`) และรหัสแสดงผล `EMP-00008`/`emp00008` หากเว้นว่าง มีเฉพาะช่องว่าง หรือไม่ส่ง query ให้แสดงพนักงาน active ทุกคน (รวมเจ้าของบัญชี) เรียงตามชื่อ เช่น `GET /api/colleagues?date=2026-12-05` รหัส EMP คำนวณจาก id ไม่ใช่ field ใหม่ในฐานข้อมูล `date` ต้องเป็นวันที่ ISO ค.ศ. ที่มีจริง ไม่มี session คืน 401; query/date ไม่ถูกต้องคืน 400 `VALIDATION`; ไม่พบคนคืน `[]`
+
+ผลลัพธ์แต่ละรายการมีเฉพาะ `employeeId`, `name`, `position`, `department`, `date`, `workStatus`, `leaveDuration` และ `updatedAt` ไม่มีอีเมล เบอร์โทร เพศ บทบาท ผู้จัดการ เหตุผล ประเภทลา เอกสาร หรือเลขคำขอ:
+
+```json
+[{"employeeId":8,"name":"ชุติมา แสงทอง","position":"เจ้าหน้าที่ประสานงานขาย","department":"ฝ่ายขาย","date":"2026-12-05","workStatus":"WFH","leaveDuration":null,"updatedAt":"2026-12-05T02:00:00.000Z"}]
+```
+
+`workStatus` คือ `In-office`/`WFH`/`Outside` ที่บันทึกในวันที่เลือก หรือ `null` เมื่อยังไม่ได้ระบุ ไม่สมมติว่าอยู่สำนักงาน `leaveDuration` คำนวณจาก `Leave_Day` ของคำขอ Approved ในวันนั้น: `Full` เมื่อรวมอย่างน้อย 1 วัน (รวมสองครึ่งวัน), `AM`/`PM` สำหรับครึ่งวัน และ `null` เมื่อไม่มีวันลาอนุมัติ การลาเต็มวันให้ `workStatus`/`updatedAt` เป็น `null`; ครึ่งวันคงสถานะงานของช่วงที่เหลือไว้ ไม่ส่งรายละเอียดคำขอ
+
+ทั้ง IndexedDB และ API ใช้ `src/domain/colleagues.ts` เป็นกฎร่วม เมื่อเปลี่ยนหลังบ้านจริงให้รองรับ `LeaveRepository.searchColleagues()` และตรวจ session/สิทธิ์ projection ที่ server เช่นเดียวกัน
 
 ## ข้อมูลจำลองที่ API ใช้งาน
 
@@ -43,7 +60,11 @@ API และ IndexedDB ของโหมดเบราว์เซอร์�
 }
 ```
 
-`duration`: `Full`, `AM`, `PM` · เอกสาร: `{fileName,fileType,fileSize,dataUrl}` โดย mock ใช้ base64 สำหรับ PDF/PNG/JPEG ไม่เกิน 2 MiB หลังบ้านจริงควรเปลี่ยนเป็น multipart upload/object storage แล้วคืน document ID หรือ storage key โดยปรับ adapter และ contract พร้อมกัน
+`duration`: `Full`, `AM`, `PM` · เอกสาร: `{fileName,fileType,fileSize,dataUrl}` โดย mock ใช้ base64 สำหรับ PDF/PNG/JPEG ไม่เกิน **100 MiB ต่อไฟล์** (`104857600` bytes; หน้าจอแสดง 100 MB ตามหน่วยเดิมของโปรเจกต์) ค่ากลางอยู่ใน `src/domain/attachments.ts` ฝั่งประมวลผลตรวจทั้งขนาดที่แจ้ง ขนาดที่คำนวณจาก base64 และ signature ของชนิดไฟล์ ไม่เชื่อ `fileSize` เพียงอย่างเดียว
+
+`POST /api/commands` รับ body ไม่เกิน `4 × ceil(MAX_ATTACHMENT_BYTES / 3) + 1 MiB` หรือ `140858712` bytes เพื่อรองรับ base64 พร้อม metadata; `POST /api/session` จำกัด 64 KiB คำขอ HTTP เกินเพดานคืน 413 `PAYLOAD_TOO_LARGE` ส่วนไฟล์เกิน 100 MiB หรือข้อมูลเอกสารไม่ถูกต้องคืน 400 `VALIDATION` ตรวจ session ก่อนรับ command body และตรวจสิทธิ์ตามเดิม ต้องรีสตาร์ต mock server หลังปรับเพดาน หากใช้ reverse proxy ภายนอกให้ตั้ง body limit สอดคล้องกัน
+
+การจัดเก็บและ snapshot ยังเป็น base64 แบบเดิม ไม่ได้เปลี่ยนเป็น multipart หรือแยก object storage ไฟล์ใหญ่ใช้พื้นที่และหน่วยความจำเพิ่มประมาณหนึ่งในสามสำหรับส่วน base64 และมีสำเนาระหว่างอ่าน/ส่ง/บันทึก หลังบ้านจริงควรใช้ multipart upload/object storage แล้วคืน document ID หรือ storage key โดยปรับ adapter และ contract พร้อมกัน
 
 ลาคลอด (`quotaScope = Pregnancy`) ต้องส่ง `maternityCaseId` ที่ HR เปิดให้เจ้าของคำขอ และ `duration = Full` ระบบอ่าน `Employee.gender` จากฐานข้อมูลหลังตรวจสิทธิ์ แล้วตรวจกรณี ผู้จัดการ วันที่ เหตุผล/นโยบาย/เอกสาร วันลาซ้อน และโควตาตามลำดับ `gender`, `employeeId`, `actorId` หรือ role ที่แทรกใน body ไม่เปลี่ยนเจ้าของคำขอหรือสิทธิ์นี้ กฎเดียวกันทำงานเมื่อ submit/edit และตรวจข้อมูลเจ้าของคำขอล่าสุดเมื่อ approve
 

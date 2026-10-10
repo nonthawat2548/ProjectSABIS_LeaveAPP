@@ -16,6 +16,10 @@
 
 `src/domain/types.ts` เป็น schema ฝั่ง TypeScript; `database/schema.sql` เป็น SQL สำหรับ SQLite ชุด 10 คนที่แอปใช้เริ่มต้นอยู่ใน `src/data/leave-management-10-people.json` โดย `createDemoDatabase()` ใน `src/data/demoDatabase.ts` clone ข้อมูลสำหรับ repository ทั้งสองโหมด `database/mock.sqlite` และ `database/mock-db.json` เป็นข้อมูลตัวอย่างเดิม **server เวอร์ชันนี้ใช้ JSON ไม่ได้เชื่อม SQLite โดยอัตโนมัติ**
 
+`Leave_Document.fileSize` เก็บขนาดไฟล์ต้นฉบับเป็น bytes รองรับ PDF/JPG/PNG ถึง 100 MiB ต่อไฟล์ตาม `src/domain/attachments.ts`; `dataUrl` ยังเป็น base64 ใน snapshot/JSON และ IndexedDB ซึ่งใช้พื้นที่มากกว่าไฟล์ต้นฉบับประมาณหนึ่งในสาม ไม่เพิ่มตารางหรือเปลี่ยน schema การบันทึกในเบราว์เซอร์ยังขึ้นกับพื้นที่ว่างและโควตาของอุปกรณ์
+
+ภายใน IndexedDB เอกสารที่มี data URL เกิน 1 MiB หรือทำให้เอกสาร inline รวมเกิน 4 MiB แบ่งเป็น string chunks ไม่เกิน 4 MiB ต่อ record เพื่อรองรับข้อจำกัดขนาด record ของ Chromium เก็บ manifest และ chunks ใน object store `database` เดิม โดยคง database version 1 และคืน `dataUrl` เต็มตาม `Database` เดิมเมื่ออ่าน snapshot การแก้คำขอ การเขียนเอกสาร และการล้าง chunks เก่าอยู่ใน transaction เดียวกัน ข้อมูล inline เดิมอ่านได้ทันทีและแปลงเมื่อมีการเขียนสำเร็จครั้งถัดไป โดยไม่รีเซ็ตฐาน การแบ่งส่วนนี้เป็นรายละเอียดของ browser repository; รูปแบบ API, source JSON และ 9 ตารางหลักยังเหมือนเดิม
+
 ## แหล่งข้อมูลที่ใช้งานจริงในโหมดจำลอง
 
 - โหมดเบราว์เซอร์: IndexedDB `leave-management-10-people-v1` เริ่มต้นด้วยชุด 10 คนและเก็บการทำรายการต่อในเบราว์เซอร์ ฐานเดิม `leave-management-v1` ถูกเก็บไว้
@@ -52,6 +56,14 @@
 
 ใน SQL มี views `Leave_Request_Summary`, `Leave_Entitlement_Balance`, `Maternity_Case_Balance` จึงไม่ต้องบันทึกค่าคำนวณซ้ำ
 
+## ข้อมูลค้นหาสถานะเพื่อนร่วมงาน
+
+`ColleagueStatus` เป็นผลอ่านที่คำนวณจาก Employee, Work_Status และ Leave_Request/Leave_Day ไม่เพิ่มตารางหรือ field ที่บันทึกซ้ำ รหัส `EMP-00008` เป็นรูปแบบแสดงผลของ `Employee.id = 8` เท่านั้น ค้นหาด้วยเลข id หรือชื่อบางส่วนได้
+
+ผู้ใช้ที่เข้าสู่ระบบและ active ทุกบทบาทค้นหาเพื่อนร่วมงาน active ข้ามฝ่ายได้เฉพาะชื่อ รหัส ตำแหน่ง ฝ่าย และสถานะในวันที่เลือก หากไม่มีตัวกรองให้แสดงทุกคนที่ active รวมเจ้าของบัญชี เรียงตามชื่อ รายละเอียดการลาและข้อมูลส่วนตัวใน snapshot ยังคงกรองตามสิทธิ์เดิม ใช้เฉพาะ Leave_Day ที่เชื่อมคำขอ Approved ไม่ใช้ Pending และไม่คำนวณวันลาเดิมใหม่จากปฏิทินวันหยุด การลาเต็มวัน/สองครึ่งวันแทนสถานะงาน; ครึ่งวันแสดง AM/PM ร่วมกับสถานะช่วงที่เหลือ
+
+เมื่อไม่พบ Work_Status ในวันที่เลือก ผลค้นหาให้ `workStatus = null` และหน้าจอแสดง “ยังไม่ได้ระบุสถานะ” ต่างจากค่าเริ่มต้น In-office ของหน้าบันทึกสถานะเดิม เพื่อไม่ให้ผลค้นหายืนยันสถานะที่ยังไม่มีการบันทึก
+
 ## กฎลาคลอดจากข้อมูลเดิม
 
 หลังตรวจ session บทบาท และความเป็นเจ้าของ/ผู้จัดการของคำขอ ระบบใช้ `Employee.gender` ของเจ้าของคำขอจากฐานข้อมูล: `Female` ตรวจขั้นถัดไป, `Male` ไม่ผ่านนโยบายลาคลอดของโปรเจกต์, `Other` หรือค่าที่ไม่มี/ไม่ถูกต้องต้องติดต่อ HR เพื่อตรวจข้อมูล ไม่รับเพศจาก `RequestInput` หรือ command body เป็นหลักฐานสิทธิ์
@@ -82,6 +94,8 @@
 ตารางสนับสนุนสองตารางไม่ถูกนับรวมใน 9 ตารางหลัก และไม่ได้แอบแก้ไฟล์ Data Dictionary ต้นฉบับ
 
 ## เปิดฐานข้อมูลตัวอย่าง
+
+สำหรับ Supabase/PostgreSQL ใช้ [database/supabase/setup-10-people.sql](../database/supabase/setup-10-people.sql) แทน SQL สำหรับ SQLite ไฟล์นี้สร้าง schema ใหม่ `leave_app` พร้อม 9 ตารางหลัก/ตารางสนับสนุน/views และ seed จาก source 10 คน ใช้ TIMESTAMPTZ/JSONB เปิด RLS และถอนสิทธิ์ browser roles ทุกตารางรวม views; การอ่าน/ทำรายการต้องผ่าน backend ที่ตรวจสิทธิ์ ยังไม่ได้เชื่อม runtime ของแอปหรือสร้าง Supabase Auth users ดูขั้นตอนและข้อจำกัดใน [SUPABASE.md](SUPABASE.md)
 
 เปิดชุด 10 คน `src/data/leave-management-10-people.sqlite` ด้วยเครื่องมือ SQLite ที่คุณใช้อยู่ หรือนำเข้า `src/data/leave-management-10-people.sql` ในฐานใหม่ที่ว่าง ไฟล์เหล่านี้เป็นสำเนาส่งออก ไม่ใช่ฐานที่แอปอ่าน/เขียนขณะทำรายการ ตัวอย่างเดิมยังอยู่ใน `database/mock.sqlite`, `database/schema.sql` และ `database/seed.sql`
 

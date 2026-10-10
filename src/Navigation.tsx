@@ -63,14 +63,14 @@ export function WorkspaceNavigation({ actor, menus, unread, route, open, onClose
                 }
             }}>
             <button type="button" className="icon-btn mobile-menu-close" ref={closeButton} aria-label="ปิดเมนู" onClick={onClose}><X size={20} /></button>
-            <a className="brand" href="#/dashboard" onClick={onClose}><span><BrandMark /></span><div>leave<span className="brand-dot">.</span><small>Space for your balance</small></div></a>
+            <a className="brand" href="#/dashboard" onClick={onClose}><span><BrandMark /></span><div lang="en">leave<span className="brand-dot">.</span><small>Space for your balance</small></div></a>
             <div className="workspace-card"><span className="workspace-icon"><Users size={17} /></span><div><strong>{actor.department}</strong><small>พื้นที่ทำงาน · {roleLabels[actor.role]}</small></div></div>
-            <div className="sidebar-label">WORKSPACE</div>
+            <div className="sidebar-label">พื้นที่ทำงาน</div>
             <nav aria-label="เมนูหลัก">{menus.map(menu => <a key={menu.path} className={'nav-link ' + (route === menu.path ? 'active' : '')}
                 href={'#' + menu.path} aria-current={route === menu.path ? 'page' : undefined} onClick={onClose}>
                 {menu.icon}<span>{menu.label}</span>{menu.path === '/notifications' && unread > 0 && <b>{unread}</b>}
             </a>)}</nav>
-            <div className="sidebar-note"><span><Sparkles size={17} />A little time for you.</span><p>วางแผนงานให้ลงตัว<br />มีเวลาให้สิ่งที่สำคัญ</p><a href={actor.role === 'Employee' ? '#/new' : '#/calendar'}> {actor.role === 'Employee' ? 'วางแผนวันลา' : 'ดูปฏิทินของทีม'}<ArrowUpRight size={15} /></a></div>
+            <div className="sidebar-note"><span><Sparkles size={17} />มีเวลาให้สิ่งที่สำคัญ</span><p>วางแผนงานให้ลงตัว<br />พักผ่อนได้อย่างมั่นใจ</p><a href={actor.role === 'Employee' ? '#/new' : '#/calendar'}> {actor.role === 'Employee' ? 'วางแผนวันลา' : 'ดูปฏิทินของทีม'}<ArrowUpRight size={15} /></a></div>
             <div className="sidebar-person"><Avatar person={actor} /><div><strong>{actor.name}</strong><small>{roleLabels[actor.role]}</small></div></div>
             <button className="logout" onClick={onLogout}><LogOut size={17} />ออกจากระบบ</button>
         </aside>

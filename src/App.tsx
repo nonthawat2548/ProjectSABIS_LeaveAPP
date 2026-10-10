@@ -12,6 +12,7 @@ import { Avatar, BrandMark, CommandMenu } from './ui';
 import { WorkspaceNavigation } from './Navigation';
 import { EntryTransition, type EntryState } from './EntryTransition';
 import { ENTRY_TIMING, motionDelay } from './motion';
+import { ColleaguesPage } from './ColleaguesPage';
 export interface PageProps { db: Database; actor: Employee; run: (c: Command) => Promise<CommandResult>; reload: () => Promise<void> }
 function useRoute() { const [route, setRoute] = useState(location.hash.slice(1) || '/dashboard'); useEffect(() => { const change = () => setRoute(location.hash.slice(1) || '/dashboard'); window.addEventListener('hashchange', change); return () => window.removeEventListener('hashchange', change) }, []); return route }
 export default function App() {
@@ -77,7 +78,7 @@ export default function App() {
     const menus: { path: string; label: string; icon: ReactNode }[] = [{ path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> }];
     if (actor.role === 'Employee') menus.push({ path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> }, { path: '/requests', label: 'ประวัติคำขอ', icon: <ClipboardList /> }, { path: '/quota', label: 'สิทธิ์และโควตา', icon: <Wallet /> });
     else menus.push({ path: '/requests', label: actor.role === 'HR' ? 'คำขอปรึกษา HR' : 'รายการคำขอของทีม', icon: <ClipboardList /> }, { path: '/calendar', label: 'ปฏิทินการลา', icon: <CalendarDays /> });
-    menus.push({ path: '/work', label: 'สถานะการทำงาน', icon: <Laptop /> }, { path: '/notifications', label: 'การแจ้งเตือน', icon: <Bell /> });
+    menus.push({ path: '/work', label: 'สถานะการทำงาน', icon: <Laptop /> }, { path: '/colleagues', label: 'สถานะเพื่อนร่วมงาน', icon: <Users /> }, { path: '/notifications', label: 'การแจ้งเตือน', icon: <Bell /> });
     if (actor.role === 'HR') menus.push({ path: '/admin', label: 'ข้อมูลและสิทธิ์การลา', icon: <Users /> }, { path: '/settings', label: 'การตั้งค่า', icon: <Settings /> });
     const match = route.match(/^\/request\/(\d+)(\/edit)?$/); const props: PageProps = { actor, db, run, reload }; let page: ReactNode; let title = menus.find(m => route === m.path)?.label ?? 'รายละเอียดคำขอ';
     if (route === '/dashboard') page = <Dashboard {...props} />;
@@ -87,13 +88,14 @@ export default function App() {
     else if (match && !match[2]) page = <RequestDetail key={route} {...props} id={Number(match[1])} />;
     else if (route === '/quota' && actor.role === 'Employee') page = <Quotas {...props} />;
     else if (route === '/work') page = <WorkPage {...props} />;
+    else if (route === '/colleagues') page = <ColleaguesPage {...props} />;
     else if (route === '/calendar' && actor.role !== 'Employee') page = <CalendarPage {...props} />;
     else if (route === '/notifications') page = <NotificationsPage {...props} />;
     else if (route === '/admin' && actor.role === 'HR') page = <AdminPage {...props} />;
     else if (route === '/settings' && actor.role === 'HR') page = <SettingsPage {...props} />;
     else { title = 'ไม่พบหน้า'; page = <><Heading title="ไม่พบหน้าหรือไม่มีสิทธิ์เข้าถึง" /><a className="btn primary" href="#/dashboard">กลับหน้าหลัก</a></> }
     const unread = db.notifications.filter(n => !n.read).length;
-    return <><div className="app-shell" inert={!!entry} aria-busy={!!entry}><WorkspaceNavigation actor={actor} menus={menus} unread={unread} open={mobile} onClose={closeMobile} onLogout={() => void logout()} route={route} /><div className="app-body" inert={mobile}><header className="topbar"><div className="topbar-title"><button className="icon-btn mobile-toggle" aria-label="เปิดหรือปิดเมนู" aria-expanded={mobile} aria-controls="workspace-navigation" onClick={() => setMobile(!mobile)}><Menu size={20} /></button><a href="#/dashboard" className="breadcrumb-root">Workspace</a><ChevronLeft className="flip breadcrumb-chevron" size={13} /><span>{title}</span></div><div className="topbar-actions"><button className="header-search" aria-label="ค้นหาเมนูและคำขอ" onClick={() => setCommandOpen(true)}><Search size={17} /><span>ค้นหาในระบบ</span><kbd>⌘ / Ctrl K</kbd></button><ThemeButton theme={theme} onToggle={() => setTheme(t => t === 'light' ? 'dark' : 'light')} /><button className="icon-btn" aria-label="รีเฟรชข้อมูล" onClick={() => void reload().then(() => setToast('ข้อมูลเป็นปัจจุบันแล้ว')).catch(e => setError(e.message))}><RefreshCw size={17} /></button><a className="icon-btn bell" href="#/notifications" aria-label={`การแจ้งเตือน ${unread} รายการใหม่`}><Bell size={19} />{unread > 0 && <span>{unread}</span>}</a><div className="header-avatar"><Avatar person={actor} size="small" /></div></div></header><div className="mode-bar"><span><span className="status-dot" />พื้นที่ทดลอง · {dataMode === 'mock' ? 'ข้อมูลบันทึกในเบราว์เซอร์' : 'เชื่อมข้อมูลจำลองผ่าน API'}</span><span><CalendarDays size={13} /> {formatDate(today())} · พ.ศ.</span></div><main key={route} ref={main} tabIndex={-1}><div className="back-row">{route !== '/dashboard' && <a href="#/dashboard" className="text-link"><ChevronLeft size={14} />หน้าหลัก</a>}</div>{error && <div className="error" role="alert">{error}<button className="icon-btn" aria-label="ปิดข้อผิดพลาด" onClick={() => setError('')}><X size={15} /></button></div>}{page}</main><footer><span><BrandMark />Leave Management</span><span>ข้อมูลและนโยบายตัวอย่าง · วันที่ วัน/เดือน/ปี พ.ศ.</span></footer></div>{toast && <div className="toast" role="status"><span className="toast-icon"><Check size={17} /></span>{toast}<button onClick={() => setToast('')} aria-label="ปิดแจ้งเตือน"><X size={15} /></button></div>}{commandOpen && <CommandMenu menus={menus} db={db} onClose={() => setCommandOpen(false)} />}</div>{entry && <EntryTransition {...entry} />}</>;
+    return <><div className="app-shell" inert={!!entry} aria-busy={!!entry}><WorkspaceNavigation actor={actor} menus={menus} unread={unread} open={mobile} onClose={closeMobile} onLogout={() => void logout()} route={route} /><div className="app-body" inert={mobile}><header className="topbar"><div className="topbar-title"><button className="icon-btn mobile-toggle" aria-label="เปิดหรือปิดเมนู" aria-expanded={mobile} aria-controls="workspace-navigation" onClick={() => setMobile(!mobile)}><Menu size={20} /></button><a href="#/dashboard" className="breadcrumb-root">พื้นที่ทำงาน</a><ChevronLeft className="flip breadcrumb-chevron" size={13} /><span>{title}</span></div><div className="topbar-actions"><button className="header-search" aria-label="ค้นหาเมนูและคำขอ" onClick={() => setCommandOpen(true)}><Search size={17} /><span>ค้นหาในระบบ</span><kbd>Ctrl / ⌘ + K</kbd></button><ThemeButton theme={theme} onToggle={() => setTheme(t => t === 'light' ? 'dark' : 'light')} /><button className="icon-btn" aria-label="รีเฟรชข้อมูล" onClick={() => void reload().then(() => setToast('ข้อมูลเป็นปัจจุบันแล้ว')).catch(e => setError(e.message))}><RefreshCw size={17} /></button><a className="icon-btn bell" href="#/notifications" aria-label={`การแจ้งเตือน ${unread} รายการใหม่`}><Bell size={19} />{unread > 0 && <span>{unread}</span>}</a><div className="header-avatar"><Avatar person={actor} size="small" /></div></div></header><div className="mode-bar"><span><span className="status-dot" />พื้นที่ทดลอง · {dataMode === 'mock' ? 'ข้อมูลบันทึกในเบราว์เซอร์' : 'ข้อมูลบันทึกบนเซิร์ฟเวอร์ทดลอง'}</span><span><CalendarDays size={13} /> {formatDate(today())} · พ.ศ.</span></div><main key={route} ref={main} tabIndex={-1}><div className="back-row">{route !== '/dashboard' && <a href="#/dashboard" className="text-link"><ChevronLeft size={14} />หน้าหลัก</a>}</div>{error && <div className="error" role="alert">{error}<button className="icon-btn" aria-label="ปิดข้อผิดพลาด" onClick={() => setError('')}><X size={15} /></button></div>}{page}</main><footer><span lang="en"><BrandMark />Leave Management</span><span>ข้อมูลและนโยบายตัวอย่าง · วันที่ วัน/เดือน/ปี พ.ศ.</span></footer></div>{toast && <div className="toast" role="status"><span className="toast-icon"><Check size={17} /></span>{toast}<button onClick={() => setToast('')} aria-label="ปิดแจ้งเตือน"><X size={15} /></button></div>}{commandOpen && <CommandMenu menus={menus} db={db} onClose={() => setCommandOpen(false)} />}</div>{entry && <EntryTransition {...entry} />}</>;
 }
 export function ThemeButton({ theme, onToggle }: { theme: 'light' | 'dark'; onToggle: () => void }) { return <button className="icon-btn theme-toggle" aria-label={theme === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'} title={theme === 'light' ? 'ธีมมืด' : 'ธีมสว่าง'} onClick={onToggle}>{theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}</button> }
 export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin: (e: string, p: string) => Promise<void>; initialError: string; theme: 'light' | 'dark'; onToggleTheme: () => void }) {
@@ -123,9 +125,9 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
     }
     return <div className="login-page">
         <div className="login-intro">
-            <div className="intro-brand"><span><BrandMark /></span>leave<span className="brand-dot">.</span></div>
+            <div className="intro-brand" lang="en"><span><BrandMark /></span>leave<span className="brand-dot">.</span></div>
             <div className="login-story">
-                <span className="eyebrow"><span className="pulse-dot" />YOUR TIME. YOUR BALANCE.</span>
+                <span className="eyebrow" lang="en"><span className="pulse-dot" />Space for your balance</span>
                 <h1>งานลงตัว<br />มีเวลาให้<span>ชีวิต</span><span className="story-star">✦</span></h1>
                 <p>ให้การจัดการวันลาเป็นเรื่องง่าย<br />เพื่อทุกวันที่ทำงาน และทุกวันที่พักผ่อน</p>
                 <div className="login-illustration">
@@ -137,7 +139,7 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
             <div className="login-benefits"><span><ShieldCheck size={15} />สิทธิ์ตามบทบาท</span><span><CalendarDays size={15} />ปฏิทินวันลา</span><span><Bell size={15} />ติดตามผล</span></div>
         </div>
         <div className="login-panel">
-            <div className="login-topline"><span>LEAVE MANAGEMENT SYSTEM</span><ThemeButton theme={theme} onToggle={onToggleTheme} /></div>
+            <div className="login-topline"><span lang="en">Leave Management</span><ThemeButton theme={theme} onToggle={onToggleTheme} /></div>
             <div className="login-card">
                 <span className="login-kicker"><span className="status-dot" />พร้อมเริ่มวันใหม่</span>
                 <h2>ยินดีต้อนรับกลับมา<span> ✦</span></h2>
@@ -165,9 +167,9 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
                     {error && <div className="error" role="alert">{error}</div>}
                     <button className={'btn primary login-submit' + (busy ? ' is-busy' : '')} disabled={busy}><span>{busy ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่พื้นที่ทำงาน'}</span>{busy ? <LoaderCircle size={18} className="button-spinner" aria-hidden="true" /> : <ArrowRight size={18} />}</button>
                 </form>
-                <div className="login-note"><DatabaseIcon size={18} /><div><strong>พื้นที่ทดลองใช้งาน</strong><p>ทุกบัญชีใช้รหัส <code>{DEMO_PASSWORD}</code><br />{dataMode === 'mock' ? 'ข้อมูลของคุณบันทึกในเบราว์เซอร์นี้' : 'กำลังเชื่อมข้อมูลจำลองผ่าน REST API'}</p></div></div>
+                <div className="login-note"><DatabaseIcon size={18} /><div><strong>พื้นที่ทดลองใช้งาน</strong><p>ทุกบัญชีใช้รหัสผ่าน <code>{DEMO_PASSWORD}</code><br />{dataMode === 'mock' ? 'ข้อมูลของคุณบันทึกในเบราว์เซอร์นี้' : 'ข้อมูลบันทึกบนเซิร์ฟเวอร์ทดลอง'}</p></div></div>
             </div>
-            <div className="login-bottom">ออกแบบให้การทำงานและชีวิตสมดุลขึ้น<span>© {new Date().getFullYear()} Leave</span></div>
+            <div className="login-bottom">ออกแบบให้การทำงานและชีวิตสมดุลขึ้น<span lang="en">© {new Date().getFullYear()} Leave Management</span></div>
         </div>
     </div>;
 }
