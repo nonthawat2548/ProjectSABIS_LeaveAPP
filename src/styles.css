@@ -122,6 +122,11 @@ body {
     min-width: 320px
 }
 
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%
+}
+
 button,
 input,
 select,
@@ -209,6 +214,7 @@ input,
 select,
 textarea {
     width: 100%;
+    min-width: 0;
     min-height: 46px;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -605,6 +611,13 @@ summary:focus-visible {
 }
 
 .mobile-toggle {
+    display: none
+}
+
+.mobile-menu-backdrop,
+.mobile-menu-close,
+.request-cards,
+.work-cards {
     display: none
 }
 
@@ -4511,6 +4524,424 @@ tbody tr:hover {
 
     .nav-link {
         min-height: 46px
+    }
+}
+
+/* Phone layout: navigation overlays the page, and lists keep every field visible. */
+@media(max-width:760px) {
+    .app-shell,
+    .login-page {
+        min-height: 100dvh
+    }
+
+    .sidebar {
+        position: fixed;
+        z-index: 50;
+        top: max(12px, env(safe-area-inset-top));
+        left: max(12px, env(safe-area-inset-left));
+        width: min(340px, calc(100% - 24px));
+        height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        max-height: none;
+        margin: 0;
+        padding: 24px 18px 18px;
+        overscroll-behavior: contain;
+        box-shadow: var(--shadow-overlay)
+    }
+
+    .sidebar.mobile-open {
+        display: flex
+    }
+
+    .mobile-menu-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        border: 0;
+        background: #071a14a6;
+        touch-action: none
+    }
+
+    .mobile-menu-close {
+        display: inline-flex;
+        position: sticky;
+        top: 0;
+        align-self: flex-end;
+        margin-bottom: -44px;
+        flex-shrink: 0;
+        z-index: 1;
+        color: var(--sidebar-ink);
+        background: var(--sidebar)
+    }
+
+    .sidebar .brand {
+        padding-right: 40px;
+        flex-shrink: 0
+    }
+
+    .sidebar nav {
+        grid-template-columns: minmax(0, 1fr)
+    }
+
+    .sidebar .nav-link {
+        min-height: 46px;
+        font-size: 13px
+    }
+
+    .sidebar-person {
+        flex-shrink: 0
+    }
+
+    .sidebar>.logout {
+        position: static;
+        max-width: none;
+        min-height: 44px;
+        font-size: 13px;
+        margin-top: 8px;
+        flex-shrink: 0
+    }
+
+    .topbar {
+        gap: 4px;
+        padding: 8px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left))
+    }
+
+    .topbar-title {
+        flex: 1;
+        min-width: 0;
+        font-size: 12px
+    }
+
+    .topbar-title>span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    .topbar-actions {
+        flex-shrink: 0;
+        gap: 0
+    }
+
+    .icon-btn,
+    .header-search {
+        width: 44px;
+        height: 44px
+    }
+
+    .btn {
+        min-height: 44px
+    }
+
+    .welcome-copy .hero-actions .btn {
+        min-height: 44px;
+        font-size: 13px
+    }
+
+    .field input,
+    .field select,
+    .field textarea,
+    .command-search input {
+        font-size: 16px
+    }
+
+    .date-input input,
+    .password-input input {
+        min-height: 52px;
+        padding-right: 56px
+    }
+
+    .date-input>button,
+    .password-input .icon-btn {
+        width: 44px;
+        height: 44px;
+        min-height: 44px;
+        top: 4px;
+        right: 4px
+    }
+
+    main {
+        padding: 16px max(16px, env(safe-area-inset-right)) 28px max(16px, env(safe-area-inset-left))
+    }
+
+    .page-heading {
+        flex-wrap: wrap;
+        align-items: flex-start
+    }
+
+    .page-heading>div {
+        min-width: 0
+    }
+
+    .page-heading>select {
+        width: 100%
+    }
+
+    .weekly-overview {
+        display: block
+    }
+
+    .weekly-overview>div:first-child {
+        width: auto;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px
+    }
+
+    .week-strip {
+        gap: 4px
+    }
+
+    .week-strip>div {
+        width: 100%;
+        min-width: 0
+    }
+
+    .request-table,
+    .work-table {
+        display: none
+    }
+
+    .request-cards,
+    .work-cards {
+        display: block;
+        list-style: none;
+        margin: 0;
+        padding: 0
+    }
+
+    .request-cards>li {
+        padding: 18px 16px;
+        border-bottom: 1px solid var(--border)
+    }
+
+    .request-cards>li:last-child,
+    .work-cards>li:last-child {
+        border-bottom: 0
+    }
+
+    .request-card-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px 12px
+    }
+
+    .request-card-header .code-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 44px
+    }
+
+    .request-cards time {
+        display: block;
+        font-size: 12px;
+        color: var(--muted)
+    }
+
+    .request-card-person {
+        margin-top: 12px;
+        font-weight: 500;
+        overflow-wrap: anywhere
+    }
+
+    .request-card-details {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+        margin: 14px 0 0;
+        font-size: 13px
+    }
+
+    .request-card-details dt {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 4px
+    }
+
+    .request-card-details dd {
+        margin: 0;
+        overflow-wrap: anywhere
+    }
+
+    .request-card-details small {
+        display: block;
+        color: var(--muted);
+        font-size: 12px
+    }
+
+    .request-card-dates {
+        grid-column: 1/-1
+    }
+
+    .work-cards>li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 12px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border)
+    }
+
+    .work-cards strong {
+        font-size: 14px;
+        font-weight: 500;
+        overflow-wrap: anywhere
+    }
+
+    .work-cards small {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 5px
+    }
+
+    .work-cards .work-badge {
+        max-width: 120px;
+        font-size: 12px
+    }
+
+    .table-scroll,
+    .calendar-scroll {
+        min-width: 0;
+        max-width: 100%;
+        overscroll-behavior-x: contain
+    }
+
+    .table-scroll:not(.request-table):not(.work-table) table {
+        min-width: 560px
+    }
+
+    .calendar-controls .actions {
+        min-width: 0;
+        flex-wrap: wrap
+    }
+
+    .calendar-controls h2 {
+        min-width: 0
+    }
+
+    .date-picker {
+        position: fixed;
+        top: auto;
+        left: 50%;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        width: min(360px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto
+    }
+
+    .date-picker .picker-head select {
+        font-size: 16px;
+        min-height: 44px
+    }
+
+    .date-picker .picker-head button {
+        min-width: 36px;
+        height: 44px
+    }
+
+    .picker-grid>button {
+        min-height: 40px
+    }
+
+    .picker-foot button {
+        min-height: 44px;
+        min-width: 44px
+    }
+
+    .dialog-shade {
+        padding: 12px
+    }
+
+    .dialog {
+        padding: 18px;
+        max-height: calc(100dvh - 24px)
+    }
+
+    .toast {
+        bottom: max(16px, env(safe-area-inset-bottom));
+        overflow-wrap: anywhere
+    }
+
+    .login-page {
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        gap: 20px
+    }
+
+    .login-intro {
+        padding: 16px 18px;
+        border-radius: 18px
+    }
+
+    .login-story,
+    .login-benefits {
+        display: none
+    }
+
+    .login-panel {
+        padding: 0;
+        flex: 1
+    }
+
+    .login-topline {
+        margin-bottom: 18px;
+        letter-spacing: .6px
+    }
+
+    .login-card {
+        margin: 0 auto
+    }
+
+    .login-card h2 {
+        font-size: clamp(22px, 6vw, 27px)
+    }
+
+    .demo-label {
+        margin-top: 22px;
+        font-size: 12px
+    }
+
+    .demo-accounts {
+        margin-bottom: 20px
+    }
+
+    .demo-accounts strong,
+    .demo-accounts small,
+    .login-note p {
+        font-size: 12px
+    }
+
+    .login-bottom {
+        flex-wrap: wrap;
+        margin-top: 24px;
+        padding-bottom: env(safe-area-inset-bottom)
+    }
+}
+
+@media(max-width:500px) {
+    .page-heading>.btn {
+        width: 100%;
+        justify-content: center;
+        font-size: 13px
+    }
+
+    .app-body>footer {
+        flex-direction: column;
+        gap: 8px
+    }
+
+    .app-body>footer>span:last-child {
+        max-width: none;
+        text-align: left
     }
 }
 
