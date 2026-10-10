@@ -1,0 +1,71 @@
+Data Dictionary — Leave Management System,,,,,,,,,
+,,,,,,,,,
+Table Name,Attribute Name,Contents,Type,Length,Format,Domain,Not Null?,Key,FK to Table
+Employee,Employee_id,Employee ID,INT,10,9999999999,,YES,PK,
+,Name,Employee Full Name,VARCHAR,150,,,YES,,
+,Gender,Employee Gender,VARCHAR,20,,"Male, Female, Other",YES,,
+,Email,Employee Email Address,VARCHAR,255,name@domain,,YES,UK,
+,Phone,Employee Phone Number,VARCHAR,20,9999999999,,NO,,
+,Position,Employee Position,VARCHAR,100,,,YES,,
+,Role,System Role,VARCHAR,50,,"Employee, Manager, HR",YES,,
+,Manager_id,Direct Manager ID,INT,10,9999999999,,NO,FK,Employee
+Leave_Type,Leave_type_id,Leave Type ID,INT,10,9999999999,,YES,PK,
+,Leave_type_name,Leave Type Name,VARCHAR,100,,"Sick Leave, Annual Leave, Personal Leave, Maternity Leave",YES,UK,
+,Quota_scope,Leave Quota Scope,VARCHAR,30,,"Annual, Pregnancy",YES,,
+,Default_quota_days,Default Leave Quota Days,INT,3,999,0-999,NO,,
+,Day_count_basis,Leave Day Counting Basis,VARCHAR,30,,"Working Days, Calendar Days",YES,,
+,Advance_notice_days,Required Advance Notice Days,INT,3,999,0-999,YES,,
+,Document_required_from_days,Minimum Leave Days Requiring Document,INT,3,999,0-999,NO,,
+,Required_document_type,Required Supporting Document Type,VARCHAR,100,,Medical Certificate,NO,,
+,Eligible_gender,Eligible Gender,VARCHAR,20,,"Male, Female, Other",NO,,
+Leave_Entitlement,Entitlement_id,Leave Entitlement ID,INT,10,9999999999,,YES,PK,
+,Employee_id,Employee ID Owning the Entitlement,INT,10,9999999999,,YES,FK,Employee
+,Leave_type_id,Leave Type ID,INT,10,9999999999,,YES,FK,Leave_Type
+,Entitlement_year,Entitlement Year,INT,4,YYYY,?? ?.?.,YES,,
+,Granted_days,Granted Leave Days,INT,3,999,0-999,YES,,
+,Used_days,Used Leave Days,INT,3,999,Derived,YES,Derived,
+,Remaining_days,Remaining Leave Days,INT,3,999,Granted_days - Used_days,YES,Derived,
+Maternity_Case,Maternity_case_id,Maternity Case ID,INT,10,9999999999,,YES,PK,
+,Employee_id,Employee ID Owning the Maternity Case,INT,10,9999999999,,YES,FK,Employee
+,Case_no,Pregnancy Case Number,INT,3,999,1-999,YES,,
+,Maximum_days,Maximum Maternity Leave Days,INT,3,999,?????? 120 ???,YES,,
+,Used_days,Used Leave Days,INT,3,999,Derived,YES,Derived,
+,Remaining_days,Remaining Leave Days,INT,3,999,Maximum_days - Used_days,YES,Derived,
+Leave_Request,Leave_id,Leave Request ID,INT,10,9999999999,,YES,PK,
+,Employee_id,Employee ID Submitting the Request,INT,10,9999999999,,YES,FK,Employee
+,Leave_type_id,Leave Type ID,INT,10,9999999999,,YES,FK,Leave_Type
+,Maternity_case_id,Related Maternity Case ID,INT,10,9999999999,,NO,FK,Maternity_Case
+,Start_date,Leave Start Date,DATE,10,YYYY-MM-DD,,YES,,
+,End_date,Leave End Date,DATE,10,YYYY-MM-DD,End_date >= Start_date,YES,,
+,Reason,Leave Reason,VARCHAR,500,,,YES,,
+,Request_date,Leave Request Date and Time,TIMESTAMP,19,YYYY-MM-DD HH:MM:SS,,YES,,
+,Status,Status,VARCHAR,20,,"Pending, Approved, Rejected",YES,,
+,Total_days,Total Leave Days,INT,3,999,Derived from Leave_Day,YES,Derived,
+Leave_Day,Leave_day_id,Leave Day ID,INT,10,9999999999,,YES,PK,
+,Leave_id,Related Leave Request ID,INT,10,9999999999,,YES,FK,Leave_Request
+,Leave_date,Leave Date,DATE,10,YYYY-MM-DD,,YES,,
+,Entitlement_id,Related Leave Entitlement ID,INT,10,9999999999,,NO,FK,Leave_Entitlement
+Leave_Document,Document_id,Document ID,INT,10,9999999999,,YES,PK,
+,Leave_id,Related Leave Request ID,INT,10,9999999999,,YES,FK,Leave_Request
+,Document_type,Document Type,VARCHAR,100,,Medical Certificate,YES,,
+,File_name,File Name,VARCHAR,255,,,YES,,
+,Storage_key,File Storage Reference,VARCHAR,500,,,YES,,
+,File_type,File Type,VARCHAR,20,,"PDF, JPG, PNG",YES,,
+,File_size,File Size,BIGINT,20,99999999999999999999,Bytes,YES,,
+,Uploaded_at,Upload Date and Time,TIMESTAMP,19,YYYY-MM-DD HH:MM:SS,,YES,,
+Leave_Approval,Approval_id,Approval Record ID,INT,10,9999999999,,YES,PK,
+,Leave_id,Related Leave Request ID,INT,10,9999999999,,YES,FK,Leave_Request
+,Approver_id,Approver Employee ID,INT,10,9999999999,,YES,FK,Employee
+,Step_no,Review Step Number,INT,3,999,1-999,YES,,
+,Review_role,Reviewer Role,VARCHAR,50,,"Manager, HR",YES,,
+,Review_type,Review Type,VARCHAR,30,,"Decision, Consultation",YES,,
+,Status,Status,VARCHAR,20,,"Pending, Approved, Rejected",YES,,
+,Comment,Review Comment or Rejection Reason,VARCHAR,500,,,NO,,
+,Assigned_at,Review Assignment Date and Time,TIMESTAMP,19,YYYY-MM-DD HH:MM:SS,,YES,,
+,Reviewed_at,Review Date and Time,TIMESTAMP,19,YYYY-MM-DD HH:MM:SS,,NO,,
+Work_Status,Work_status_id,Work Status ID,INT,10,9999999999,,YES,PK,
+,Employee_id,Employee ID Owning the Daily Status,INT,10,9999999999,,YES,FK,Employee
+,Status_date,Work Status Date,DATE,10,YYYY-MM-DD,,YES,,
+,Status_type,Work Status Type,VARCHAR,30,,"In-office, Leave, WFH, Outside",YES,,
+,Leave_id,Related Approved Leave Request ID,INT,10,9999999999,,NO,FK,Leave_Request
+,Updated_at,Last Updated Date and Time,TIMESTAMP,19,YYYY-MM-DD HH:MM:SS,,YES,,

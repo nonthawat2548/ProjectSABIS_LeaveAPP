@@ -1,0 +1,2152 @@
+{
+  "schemaVersion": 1,
+  "employees": [
+    {
+      "id": 1,
+      "name": "พิมพ์ชนก วัฒนกุล",
+      "gender": "Female",
+      "email": "employee@demo.local",
+      "phone": "0810000001",
+      "position": "นักพัฒนาระบบ",
+      "role": "Employee",
+      "managerId": 4,
+      "department": "ฝ่ายไอที",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "นัทธพงศ์ สุขใจ",
+      "gender": "Male",
+      "email": "nat@demo.local",
+      "phone": "0810000002",
+      "position": "เจ้าหน้าที่ระบบ",
+      "role": "Employee",
+      "managerId": 4,
+      "department": "ฝ่ายไอที",
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "อรทัย มั่นคง",
+      "gender": "Female",
+      "email": "orn@demo.local",
+      "phone": "0810000003",
+      "position": "นักวิเคราะห์ระบบ",
+      "role": "Employee",
+      "managerId": 4,
+      "department": "ฝ่ายไอที",
+      "active": true
+    },
+    {
+      "id": 4,
+      "name": "ธนวัฒน์ กิตติวงศ์",
+      "gender": "Male",
+      "email": "manager@demo.local",
+      "phone": "0810000004",
+      "position": "ผู้จัดการฝ่ายไอที",
+      "role": "Manager",
+      "managerId": null,
+      "department": "ฝ่ายไอที",
+      "active": true
+    },
+    {
+      "id": 5,
+      "name": "ศิริพร ใจดี",
+      "gender": "Female",
+      "email": "hr@demo.local",
+      "phone": "0810000005",
+      "position": "เจ้าหน้าที่ฝ่ายบุคคล",
+      "role": "HR",
+      "managerId": null,
+      "department": "ฝ่ายบุคคล",
+      "active": true
+    },
+    {
+      "id": 6,
+      "name": "กานต์ พรชัย",
+      "gender": "Other",
+      "email": "other@demo.local",
+      "phone": "0810000006",
+      "position": "เจ้าหน้าที่ฝ่ายขาย",
+      "role": "Employee",
+      "managerId": 7,
+      "department": "ฝ่ายขาย",
+      "active": true
+    },
+    {
+      "id": 7,
+      "name": "ปกรณ์ รุ่งเรือง",
+      "gender": "Male",
+      "email": "sales-manager@demo.local",
+      "phone": "0810000007",
+      "position": "ผู้จัดการฝ่ายขาย",
+      "role": "Manager",
+      "managerId": null,
+      "department": "ฝ่ายขาย",
+      "active": true
+    },
+    {
+      "id": 8,
+      "name": "ชุติมา แสงทอง",
+      "gender": "Female",
+      "email": "chutima@demo.local",
+      "phone": "0810000008",
+      "position": "เจ้าหน้าที่ประสานงานขาย",
+      "role": "Employee",
+      "managerId": 7,
+      "department": "ฝ่ายขาย",
+      "active": true
+    },
+    {
+      "id": 9,
+      "name": "มาลินี สุขสวัสดิ์",
+      "gender": "Female",
+      "email": "malinee@demo.local",
+      "phone": "0810000009",
+      "position": "เจ้าหน้าที่ดูแลลูกค้า",
+      "role": "Employee",
+      "managerId": 7,
+      "department": "ฝ่ายขาย",
+      "active": true
+    },
+    {
+      "id": 10,
+      "name": "วีรภัทร ตั้งใจ",
+      "gender": "Male",
+      "email": "weeraphat@demo.local",
+      "phone": "0810000010",
+      "position": "เจ้าหน้าที่ทดสอบระบบ",
+      "role": "Employee",
+      "managerId": 4,
+      "department": "ฝ่ายไอที",
+      "active": true
+    }
+  ],
+  "leaveTypes": [
+    {
+      "id": 1,
+      "name": "ลาพักร้อน",
+      "quotaScope": "Annual",
+      "defaultQuotaDays": 10,
+      "dayCountBasis": "Working Days",
+      "advanceNoticeDays": 1,
+      "documentRequiredFromDays": null,
+      "requiredDocumentType": null,
+      "eligibleGender": null
+    },
+    {
+      "id": 2,
+      "name": "ลาป่วย",
+      "quotaScope": "Annual",
+      "defaultQuotaDays": 30,
+      "dayCountBasis": "Working Days",
+      "advanceNoticeDays": 0,
+      "documentRequiredFromDays": 3,
+      "requiredDocumentType": "Medical Certificate",
+      "eligibleGender": null
+    },
+    {
+      "id": 3,
+      "name": "ลากิจ",
+      "quotaScope": "Annual",
+      "defaultQuotaDays": 6,
+      "dayCountBasis": "Working Days",
+      "advanceNoticeDays": 1,
+      "documentRequiredFromDays": null,
+      "requiredDocumentType": null,
+      "eligibleGender": null
+    },
+    {
+      "id": 4,
+      "name": "ลาคลอด",
+      "quotaScope": "Pregnancy",
+      "defaultQuotaDays": 120,
+      "dayCountBasis": "Calendar Days",
+      "advanceNoticeDays": 1,
+      "documentRequiredFromDays": null,
+      "requiredDocumentType": null,
+      "eligibleGender": "Female"
+    }
+  ],
+  "entitlements": [
+    {
+      "id": 1,
+      "employeeId": 1,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 2,
+      "employeeId": 1,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 3,
+      "employeeId": 1,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 4,
+      "employeeId": 1,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 5,
+      "employeeId": 1,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 6,
+      "employeeId": 1,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 7,
+      "employeeId": 2,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 8,
+      "employeeId": 2,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 9,
+      "employeeId": 2,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 10,
+      "employeeId": 2,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 11,
+      "employeeId": 2,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 12,
+      "employeeId": 2,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 13,
+      "employeeId": 3,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 14,
+      "employeeId": 3,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 15,
+      "employeeId": 3,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 16,
+      "employeeId": 3,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 17,
+      "employeeId": 3,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 18,
+      "employeeId": 3,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 19,
+      "employeeId": 4,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 20,
+      "employeeId": 4,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 21,
+      "employeeId": 4,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 22,
+      "employeeId": 4,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 23,
+      "employeeId": 4,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 24,
+      "employeeId": 4,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 25,
+      "employeeId": 5,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 26,
+      "employeeId": 5,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 27,
+      "employeeId": 5,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 28,
+      "employeeId": 5,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 29,
+      "employeeId": 5,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 30,
+      "employeeId": 5,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 31,
+      "employeeId": 6,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 32,
+      "employeeId": 6,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 33,
+      "employeeId": 6,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 34,
+      "employeeId": 6,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 35,
+      "employeeId": 6,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 36,
+      "employeeId": 6,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 37,
+      "employeeId": 7,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 38,
+      "employeeId": 7,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 39,
+      "employeeId": 7,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 40,
+      "employeeId": 7,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 41,
+      "employeeId": 7,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 42,
+      "employeeId": 7,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 43,
+      "employeeId": 8,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 44,
+      "employeeId": 8,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 45,
+      "employeeId": 8,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 46,
+      "employeeId": 8,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 47,
+      "employeeId": 8,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 48,
+      "employeeId": 8,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 49,
+      "employeeId": 9,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 50,
+      "employeeId": 9,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 51,
+      "employeeId": 9,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 52,
+      "employeeId": 9,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 53,
+      "employeeId": 9,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 54,
+      "employeeId": 9,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    },
+    {
+      "id": 55,
+      "employeeId": 10,
+      "leaveTypeId": 1,
+      "year": 2026,
+      "grantedDays": 10
+    },
+    {
+      "id": 56,
+      "employeeId": 10,
+      "leaveTypeId": 1,
+      "year": 2027,
+      "grantedDays": 10
+    },
+    {
+      "id": 57,
+      "employeeId": 10,
+      "leaveTypeId": 2,
+      "year": 2026,
+      "grantedDays": 30
+    },
+    {
+      "id": 58,
+      "employeeId": 10,
+      "leaveTypeId": 2,
+      "year": 2027,
+      "grantedDays": 30
+    },
+    {
+      "id": 59,
+      "employeeId": 10,
+      "leaveTypeId": 3,
+      "year": 2026,
+      "grantedDays": 6
+    },
+    {
+      "id": 60,
+      "employeeId": 10,
+      "leaveTypeId": 3,
+      "year": 2027,
+      "grantedDays": 6
+    }
+  ],
+  "maternityCases": [
+    {
+      "id": 1,
+      "employeeId": 3,
+      "caseNo": 1,
+      "maximumDays": 120
+    },
+    {
+      "id": 2,
+      "employeeId": 9,
+      "caseNo": 1,
+      "maximumDays": 120
+    }
+  ],
+  "requests": [
+    {
+      "id": 1001,
+      "employeeId": 1,
+      "leaveTypeId": 1,
+      "maternityCaseId": null,
+      "startDate": "2026-10-13",
+      "endDate": "2026-10-14",
+      "reason": "พักผ่อนกับครอบครัว",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Pending",
+      "duration": "Full",
+      "version": 1,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 1,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        }
+      ]
+    },
+    {
+      "id": 1002,
+      "employeeId": 2,
+      "leaveTypeId": 2,
+      "maternityCaseId": null,
+      "startDate": "2026-10-19",
+      "endDate": "2026-10-21",
+      "reason": "พักรักษาตัว (สถานการณ์จำลอง)",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Pending",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 2,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "ส่งปรึกษา HR",
+          "actorId": 4,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "ขอความเห็น HR เรื่องนโยบายและเอกสารตัวอย่าง"
+        }
+      ]
+    },
+    {
+      "id": 1003,
+      "employeeId": 3,
+      "leaveTypeId": 1,
+      "maternityCaseId": null,
+      "startDate": "2026-10-15",
+      "endDate": "2026-10-16",
+      "reason": "พักผ่อนประจำปี",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Approved",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 3,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "อนุมัติคำขอ",
+          "actorId": 4,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "อนุมัติตามสิทธิ์ตัวอย่าง"
+        }
+      ]
+    },
+    {
+      "id": 1004,
+      "employeeId": 6,
+      "leaveTypeId": 3,
+      "maternityCaseId": null,
+      "startDate": "2026-10-22",
+      "endDate": "2026-10-22",
+      "reason": "ติดต่อหน่วยงานราชการ",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Rejected",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 6,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "ไม่อนุมัติ",
+          "actorId": 7,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "มีงานของทีมในวันดังกล่าว กรุณาปรับช่วงวันลา"
+        }
+      ]
+    },
+    {
+      "id": 1005,
+      "employeeId": 8,
+      "leaveTypeId": 1,
+      "maternityCaseId": null,
+      "startDate": "2026-11-17",
+      "endDate": "2026-11-17",
+      "reason": "ลาครึ่งวันเช้า",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Approved",
+      "duration": "AM",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 8,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "อนุมัติคำขอ",
+          "actorId": 7,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "อนุมัติครึ่งวันเช้า"
+        }
+      ]
+    },
+    {
+      "id": 1006,
+      "employeeId": 8,
+      "leaveTypeId": 3,
+      "maternityCaseId": null,
+      "startDate": "2026-11-17",
+      "endDate": "2026-11-17",
+      "reason": "ลาครึ่งวันบ่าย",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Pending",
+      "duration": "PM",
+      "version": 1,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 8,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        }
+      ]
+    },
+    {
+      "id": 1007,
+      "employeeId": 9,
+      "leaveTypeId": 4,
+      "maternityCaseId": 2,
+      "startDate": "2026-12-01",
+      "endDate": "2026-12-20",
+      "reason": "ลาคลอดตามกรณีตัวอย่าง",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Approved",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 9,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "อนุมัติคำขอ",
+          "actorId": 7,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "อนุมัติตามกรณีลาคลอด"
+        }
+      ]
+    },
+    {
+      "id": 1008,
+      "employeeId": 10,
+      "leaveTypeId": 1,
+      "maternityCaseId": null,
+      "startDate": "2026-11-23",
+      "endDate": "2026-11-24",
+      "reason": "วางแผนพักผ่อน",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Withdrawn",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 10,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "ยกเลิกคำขอ",
+          "actorId": 10,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        }
+      ]
+    },
+    {
+      "id": 1009,
+      "employeeId": 1,
+      "leaveTypeId": 1,
+      "maternityCaseId": null,
+      "startDate": "2026-12-30",
+      "endDate": "2027-01-04",
+      "reason": "พักผ่อนข้ามปี โดยยกเว้นวันหยุดบริษัทตัวอย่าง",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Approved",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 1,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "อนุมัติคำขอ",
+          "actorId": 4,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "แบ่งโควตาตามปีของแต่ละวัน"
+        }
+      ]
+    },
+    {
+      "id": 1010,
+      "employeeId": 6,
+      "leaveTypeId": 2,
+      "maternityCaseId": null,
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-11",
+      "reason": "พักรักษาตัวพร้อมเอกสารจำลอง",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Pending",
+      "duration": "Full",
+      "version": 3,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 6,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "ส่งปรึกษา HR",
+          "actorId": 7,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "ขอความเห็น HR เรื่องนโยบายและเอกสารตัวอย่าง"
+        },
+        {
+          "action": "HR ส่งความเห็น",
+          "actorId": 5,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "ตรวจข้อมูลตัวอย่างแล้ว ผู้จัดการเป็นผู้ตัดสินผลสุดท้าย"
+        }
+      ]
+    },
+    {
+      "id": 1011,
+      "employeeId": 10,
+      "leaveTypeId": 2,
+      "maternityCaseId": null,
+      "startDate": "2026-11-02",
+      "endDate": "2026-11-04",
+      "reason": "พักรักษาตัว (ตัวอย่างครบขั้นตอน HR)",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Approved",
+      "duration": "Full",
+      "version": 4,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 10,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "ส่งปรึกษา HR",
+          "actorId": 4,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "ขอความเห็น HR เรื่องนโยบายและเอกสารตัวอย่าง"
+        },
+        {
+          "action": "HR ส่งความเห็น",
+          "actorId": 5,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "ตรวจข้อมูลตัวอย่างแล้ว ผู้จัดการเป็นผู้ตัดสินผลสุดท้าย"
+        },
+        {
+          "action": "อนุมัติคำขอ",
+          "actorId": 4,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "อนุมัติหลังได้รับความเห็น HR"
+        }
+      ]
+    },
+    {
+      "id": 1012,
+      "employeeId": 3,
+      "leaveTypeId": 4,
+      "maternityCaseId": 1,
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-15",
+      "reason": "ลาคลอดรอพิจารณา",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Pending",
+      "duration": "Full",
+      "version": 1,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 3,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        }
+      ]
+    },
+    {
+      "id": 1013,
+      "employeeId": 2,
+      "leaveTypeId": 3,
+      "maternityCaseId": null,
+      "startDate": "2026-11-05",
+      "endDate": "2026-11-09",
+      "reason": "ลากิจโดยยกเว้นวันหยุดบริษัทและวันเสาร์อาทิตย์",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Approved",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 2,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "อนุมัติคำขอ",
+          "actorId": 4,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": "นับเฉพาะวันทำงาน"
+        }
+      ]
+    },
+    {
+      "id": 1014,
+      "employeeId": 10,
+      "leaveTypeId": 3,
+      "maternityCaseId": null,
+      "startDate": "2026-12-09",
+      "endDate": "2026-12-09",
+      "reason": "ปรับวันนัดหมายแล้ว รอผู้จัดการพิจารณา",
+      "requestDate": "2026-10-10T05:00:00.000Z",
+      "status": "Pending",
+      "duration": "Full",
+      "version": 2,
+      "timeline": [
+        {
+          "action": "ยื่นคำขอ",
+          "actorId": 10,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        },
+        {
+          "action": "แก้ไขคำขอ / เริ่มพิจารณาใหม่",
+          "actorId": 10,
+          "at": "2026-10-10T05:00:00.000Z",
+          "comment": ""
+        }
+      ]
+    }
+  ],
+  "days": [
+    {
+      "date": "2026-10-13",
+      "units": 1,
+      "entitlementId": 1,
+      "id": 1,
+      "leaveId": 1001
+    },
+    {
+      "date": "2026-10-14",
+      "units": 1,
+      "entitlementId": 1,
+      "id": 2,
+      "leaveId": 1001
+    },
+    {
+      "date": "2026-10-19",
+      "units": 1,
+      "entitlementId": 9,
+      "id": 3,
+      "leaveId": 1002
+    },
+    {
+      "date": "2026-10-20",
+      "units": 1,
+      "entitlementId": 9,
+      "id": 4,
+      "leaveId": 1002
+    },
+    {
+      "date": "2026-10-21",
+      "units": 1,
+      "entitlementId": 9,
+      "id": 5,
+      "leaveId": 1002
+    },
+    {
+      "date": "2026-10-15",
+      "units": 1,
+      "entitlementId": 13,
+      "id": 6,
+      "leaveId": 1003
+    },
+    {
+      "date": "2026-10-16",
+      "units": 1,
+      "entitlementId": 13,
+      "id": 7,
+      "leaveId": 1003
+    },
+    {
+      "date": "2026-10-22",
+      "units": 1,
+      "entitlementId": 35,
+      "id": 8,
+      "leaveId": 1004
+    },
+    {
+      "date": "2026-11-17",
+      "units": 0.5,
+      "entitlementId": 43,
+      "id": 9,
+      "leaveId": 1005
+    },
+    {
+      "date": "2026-11-17",
+      "units": 0.5,
+      "entitlementId": 47,
+      "id": 10,
+      "leaveId": 1006
+    },
+    {
+      "date": "2026-12-01",
+      "units": 1,
+      "entitlementId": null,
+      "id": 11,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-02",
+      "units": 1,
+      "entitlementId": null,
+      "id": 12,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-03",
+      "units": 1,
+      "entitlementId": null,
+      "id": 13,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-04",
+      "units": 1,
+      "entitlementId": null,
+      "id": 14,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-05",
+      "units": 1,
+      "entitlementId": null,
+      "id": 15,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-06",
+      "units": 1,
+      "entitlementId": null,
+      "id": 16,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-07",
+      "units": 1,
+      "entitlementId": null,
+      "id": 17,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-08",
+      "units": 1,
+      "entitlementId": null,
+      "id": 18,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-09",
+      "units": 1,
+      "entitlementId": null,
+      "id": 19,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-10",
+      "units": 1,
+      "entitlementId": null,
+      "id": 20,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-11",
+      "units": 1,
+      "entitlementId": null,
+      "id": 21,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-12",
+      "units": 1,
+      "entitlementId": null,
+      "id": 22,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-13",
+      "units": 1,
+      "entitlementId": null,
+      "id": 23,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-14",
+      "units": 1,
+      "entitlementId": null,
+      "id": 24,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-15",
+      "units": 1,
+      "entitlementId": null,
+      "id": 25,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-16",
+      "units": 1,
+      "entitlementId": null,
+      "id": 26,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-17",
+      "units": 1,
+      "entitlementId": null,
+      "id": 27,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-18",
+      "units": 1,
+      "entitlementId": null,
+      "id": 28,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-19",
+      "units": 1,
+      "entitlementId": null,
+      "id": 29,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-12-20",
+      "units": 1,
+      "entitlementId": null,
+      "id": 30,
+      "leaveId": 1007
+    },
+    {
+      "date": "2026-11-23",
+      "units": 1,
+      "entitlementId": 55,
+      "id": 31,
+      "leaveId": 1008
+    },
+    {
+      "date": "2026-11-24",
+      "units": 1,
+      "entitlementId": 55,
+      "id": 32,
+      "leaveId": 1008
+    },
+    {
+      "date": "2026-12-30",
+      "units": 1,
+      "entitlementId": 1,
+      "id": 33,
+      "leaveId": 1009
+    },
+    {
+      "date": "2027-01-04",
+      "units": 1,
+      "entitlementId": 2,
+      "id": 34,
+      "leaveId": 1009
+    },
+    {
+      "date": "2026-11-09",
+      "units": 1,
+      "entitlementId": 33,
+      "id": 35,
+      "leaveId": 1010
+    },
+    {
+      "date": "2026-11-10",
+      "units": 1,
+      "entitlementId": 33,
+      "id": 36,
+      "leaveId": 1010
+    },
+    {
+      "date": "2026-11-11",
+      "units": 1,
+      "entitlementId": 33,
+      "id": 37,
+      "leaveId": 1010
+    },
+    {
+      "date": "2026-11-02",
+      "units": 1,
+      "entitlementId": 57,
+      "id": 38,
+      "leaveId": 1011
+    },
+    {
+      "date": "2026-11-03",
+      "units": 1,
+      "entitlementId": 57,
+      "id": 39,
+      "leaveId": 1011
+    },
+    {
+      "date": "2026-11-04",
+      "units": 1,
+      "entitlementId": 57,
+      "id": 40,
+      "leaveId": 1011
+    },
+    {
+      "date": "2026-11-01",
+      "units": 1,
+      "entitlementId": null,
+      "id": 41,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-02",
+      "units": 1,
+      "entitlementId": null,
+      "id": 42,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-03",
+      "units": 1,
+      "entitlementId": null,
+      "id": 43,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-04",
+      "units": 1,
+      "entitlementId": null,
+      "id": 44,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-05",
+      "units": 1,
+      "entitlementId": null,
+      "id": 45,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-06",
+      "units": 1,
+      "entitlementId": null,
+      "id": 46,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-07",
+      "units": 1,
+      "entitlementId": null,
+      "id": 47,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-08",
+      "units": 1,
+      "entitlementId": null,
+      "id": 48,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-09",
+      "units": 1,
+      "entitlementId": null,
+      "id": 49,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-10",
+      "units": 1,
+      "entitlementId": null,
+      "id": 50,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-11",
+      "units": 1,
+      "entitlementId": null,
+      "id": 51,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-12",
+      "units": 1,
+      "entitlementId": null,
+      "id": 52,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-13",
+      "units": 1,
+      "entitlementId": null,
+      "id": 53,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-14",
+      "units": 1,
+      "entitlementId": null,
+      "id": 54,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-15",
+      "units": 1,
+      "entitlementId": null,
+      "id": 55,
+      "leaveId": 1012
+    },
+    {
+      "date": "2026-11-05",
+      "units": 1,
+      "entitlementId": 11,
+      "id": 56,
+      "leaveId": 1013
+    },
+    {
+      "date": "2026-11-09",
+      "units": 1,
+      "entitlementId": 11,
+      "id": 57,
+      "leaveId": 1013
+    },
+    {
+      "date": "2026-12-09",
+      "units": 1,
+      "entitlementId": 59,
+      "id": 58,
+      "leaveId": 1014
+    }
+  ],
+  "documents": [
+    {
+      "id": 1,
+      "leaveId": 1002,
+      "documentType": "Medical Certificate",
+      "fileName": "DEMO_PLACEHOLDER_NOT_A_MEDICAL_CERTIFICATE.png",
+      "fileType": "image/png",
+      "fileSize": 68,
+      "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+      "storageKey": "mock/1002/DEMO_PLACEHOLDER_NOT_A_MEDICAL_CERTIFICATE.png",
+      "uploadedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "leaveId": 1010,
+      "documentType": "Medical Certificate",
+      "fileName": "DEMO_PLACEHOLDER_NOT_A_MEDICAL_CERTIFICATE.png",
+      "fileType": "image/png",
+      "fileSize": 68,
+      "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+      "storageKey": "mock/1010/DEMO_PLACEHOLDER_NOT_A_MEDICAL_CERTIFICATE.png",
+      "uploadedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "leaveId": 1011,
+      "documentType": "Medical Certificate",
+      "fileName": "DEMO_PLACEHOLDER_NOT_A_MEDICAL_CERTIFICATE.png",
+      "fileType": "image/png",
+      "fileSize": 68,
+      "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+      "storageKey": "mock/1011/DEMO_PLACEHOLDER_NOT_A_MEDICAL_CERTIFICATE.png",
+      "uploadedAt": "2026-10-10T05:00:00.000Z"
+    }
+  ],
+  "approvals": [
+    {
+      "id": 1,
+      "leaveId": 1001,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null
+    },
+    {
+      "id": 2,
+      "leaveId": 1002,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null
+    },
+    {
+      "id": 3,
+      "leaveId": 1002,
+      "approverId": 5,
+      "stepNo": 2,
+      "reviewRole": "HR",
+      "reviewType": "Consultation",
+      "status": "Pending",
+      "comment": "ขอความเห็น HR เรื่องนโยบายและเอกสารตัวอย่าง",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null
+    },
+    {
+      "id": 4,
+      "leaveId": 1003,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Approved",
+      "comment": "อนุมัติตามสิทธิ์ตัวอย่าง",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "leaveId": 1004,
+      "approverId": 7,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Rejected",
+      "comment": "มีงานของทีมในวันดังกล่าว กรุณาปรับช่วงวันลา",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "leaveId": 1005,
+      "approverId": 7,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Approved",
+      "comment": "อนุมัติครึ่งวันเช้า",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 7,
+      "leaveId": 1006,
+      "approverId": 7,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null
+    },
+    {
+      "id": 8,
+      "leaveId": 1007,
+      "approverId": 7,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Approved",
+      "comment": "อนุมัติตามกรณีลาคลอด",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 9,
+      "leaveId": 1008,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null,
+      "cancelled": true
+    },
+    {
+      "id": 10,
+      "leaveId": 1009,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Approved",
+      "comment": "แบ่งโควตาตามปีของแต่ละวัน",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 11,
+      "leaveId": 1010,
+      "approverId": 7,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null
+    },
+    {
+      "id": 12,
+      "leaveId": 1010,
+      "approverId": 5,
+      "stepNo": 2,
+      "reviewRole": "HR",
+      "reviewType": "Consultation",
+      "status": "Completed",
+      "comment": "ตรวจข้อมูลตัวอย่างแล้ว ผู้จัดการเป็นผู้ตัดสินผลสุดท้าย",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 13,
+      "leaveId": 1011,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Approved",
+      "comment": "อนุมัติหลังได้รับความเห็น HR",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 14,
+      "leaveId": 1011,
+      "approverId": 5,
+      "stepNo": 2,
+      "reviewRole": "HR",
+      "reviewType": "Consultation",
+      "status": "Completed",
+      "comment": "ตรวจข้อมูลตัวอย่างแล้ว ผู้จัดการเป็นผู้ตัดสินผลสุดท้าย",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 15,
+      "leaveId": 1012,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null
+    },
+    {
+      "id": 16,
+      "leaveId": 1013,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Approved",
+      "comment": "นับเฉพาะวันทำงาน",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 17,
+      "leaveId": 1014,
+      "approverId": 4,
+      "stepNo": 1,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null,
+      "cancelled": true
+    },
+    {
+      "id": 18,
+      "leaveId": 1014,
+      "approverId": 4,
+      "stepNo": 2,
+      "reviewRole": "Manager",
+      "reviewType": "Decision",
+      "status": "Pending",
+      "comment": "",
+      "assignedAt": "2026-10-10T05:00:00.000Z",
+      "reviewedAt": null
+    }
+  ],
+  "workStatuses": [
+    {
+      "id": 1,
+      "employeeId": 1,
+      "date": "2026-10-09",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "employeeId": 1,
+      "date": "2026-10-12",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "employeeId": 2,
+      "date": "2026-10-09",
+      "statusType": "Outside",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "employeeId": 2,
+      "date": "2026-10-12",
+      "statusType": "Outside",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "employeeId": 3,
+      "date": "2026-10-09",
+      "statusType": "WFH",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "employeeId": 3,
+      "date": "2026-10-12",
+      "statusType": "WFH",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 7,
+      "employeeId": 4,
+      "date": "2026-10-09",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 8,
+      "employeeId": 4,
+      "date": "2026-10-12",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 9,
+      "employeeId": 5,
+      "date": "2026-10-09",
+      "statusType": "Outside",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 10,
+      "employeeId": 5,
+      "date": "2026-10-12",
+      "statusType": "Outside",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 11,
+      "employeeId": 6,
+      "date": "2026-10-09",
+      "statusType": "WFH",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 12,
+      "employeeId": 6,
+      "date": "2026-10-12",
+      "statusType": "WFH",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 13,
+      "employeeId": 7,
+      "date": "2026-10-09",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 14,
+      "employeeId": 7,
+      "date": "2026-10-12",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 15,
+      "employeeId": 8,
+      "date": "2026-10-09",
+      "statusType": "Outside",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 16,
+      "employeeId": 8,
+      "date": "2026-10-12",
+      "statusType": "Outside",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 17,
+      "employeeId": 9,
+      "date": "2026-10-09",
+      "statusType": "WFH",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 18,
+      "employeeId": 9,
+      "date": "2026-10-12",
+      "statusType": "WFH",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 19,
+      "employeeId": 10,
+      "date": "2026-10-09",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    },
+    {
+      "id": 20,
+      "employeeId": 10,
+      "date": "2026-10-12",
+      "statusType": "In-office",
+      "updatedAt": "2026-10-10T05:00:00.000Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "employeeId": 4,
+      "leaveId": 1001,
+      "text": "พิมพ์ชนก วัฒนกุลส่งคำขอ LR-2026-01001",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 2,
+      "employeeId": 1,
+      "leaveId": 1001,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 3,
+      "employeeId": 4,
+      "leaveId": 1002,
+      "text": "นัทธพงศ์ สุขใจส่งคำขอ LR-2026-01002",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 4,
+      "employeeId": 2,
+      "leaveId": 1002,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 5,
+      "employeeId": 5,
+      "leaveId": 1002,
+      "text": "ผู้จัดการขอความเห็นสำหรับ LR-2026-01002",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 6,
+      "employeeId": 4,
+      "leaveId": 1003,
+      "text": "อรทัย มั่นคงส่งคำขอ LR-2026-01003",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 7,
+      "employeeId": 3,
+      "leaveId": 1003,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 8,
+      "employeeId": 3,
+      "leaveId": 1003,
+      "text": "LR-2026-01003 ได้รับอนุมัติ · อนุมัติตามสิทธิ์ตัวอย่าง",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 9,
+      "employeeId": 7,
+      "leaveId": 1004,
+      "text": "กานต์ พรชัยส่งคำขอ LR-2026-01004",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 10,
+      "employeeId": 6,
+      "leaveId": 1004,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 11,
+      "employeeId": 6,
+      "leaveId": 1004,
+      "text": "LR-2026-01004 ไม่ได้รับอนุมัติ · มีงานของทีมในวันดังกล่าว กรุณาปรับช่วงวันลา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 12,
+      "employeeId": 7,
+      "leaveId": 1005,
+      "text": "ชุติมา แสงทองส่งคำขอ LR-2026-01005",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 13,
+      "employeeId": 8,
+      "leaveId": 1005,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 14,
+      "employeeId": 8,
+      "leaveId": 1005,
+      "text": "LR-2026-01005 ได้รับอนุมัติ · อนุมัติครึ่งวันเช้า",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 15,
+      "employeeId": 7,
+      "leaveId": 1006,
+      "text": "ชุติมา แสงทองส่งคำขอ LR-2026-01006",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 16,
+      "employeeId": 8,
+      "leaveId": 1006,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 17,
+      "employeeId": 7,
+      "leaveId": 1007,
+      "text": "มาลินี สุขสวัสดิ์ส่งคำขอ LR-2026-01007",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 18,
+      "employeeId": 9,
+      "leaveId": 1007,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 19,
+      "employeeId": 9,
+      "leaveId": 1007,
+      "text": "LR-2026-01007 ได้รับอนุมัติ · อนุมัติตามกรณีลาคลอด",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 20,
+      "employeeId": 4,
+      "leaveId": 1008,
+      "text": "วีรภัทร ตั้งใจส่งคำขอ LR-2026-01008",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 21,
+      "employeeId": 10,
+      "leaveId": 1008,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 22,
+      "employeeId": 4,
+      "leaveId": 1008,
+      "text": "วีรภัทร ตั้งใจยกเลิก LR-2026-01008",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 23,
+      "employeeId": 4,
+      "leaveId": 1009,
+      "text": "พิมพ์ชนก วัฒนกุลส่งคำขอ LR-2026-01009",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 24,
+      "employeeId": 1,
+      "leaveId": 1009,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 25,
+      "employeeId": 1,
+      "leaveId": 1009,
+      "text": "LR-2026-01009 ได้รับอนุมัติ · แบ่งโควตาตามปีของแต่ละวัน",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 26,
+      "employeeId": 7,
+      "leaveId": 1010,
+      "text": "กานต์ พรชัยส่งคำขอ LR-2026-01010",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 27,
+      "employeeId": 6,
+      "leaveId": 1010,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 28,
+      "employeeId": 5,
+      "leaveId": 1010,
+      "text": "ผู้จัดการขอความเห็นสำหรับ LR-2026-01010",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 29,
+      "employeeId": 7,
+      "leaveId": 1010,
+      "text": "HR ส่งความเห็นสำหรับ LR-2026-01010 แล้ว",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 30,
+      "employeeId": 4,
+      "leaveId": 1011,
+      "text": "วีรภัทร ตั้งใจส่งคำขอ LR-2026-01011",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 31,
+      "employeeId": 10,
+      "leaveId": 1011,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 32,
+      "employeeId": 5,
+      "leaveId": 1011,
+      "text": "ผู้จัดการขอความเห็นสำหรับ LR-2026-01011",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 33,
+      "employeeId": 4,
+      "leaveId": 1011,
+      "text": "HR ส่งความเห็นสำหรับ LR-2026-01011 แล้ว",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 34,
+      "employeeId": 10,
+      "leaveId": 1011,
+      "text": "LR-2026-01011 ได้รับอนุมัติ · อนุมัติหลังได้รับความเห็น HR",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 35,
+      "employeeId": 4,
+      "leaveId": 1012,
+      "text": "อรทัย มั่นคงส่งคำขอ LR-2026-01012",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 36,
+      "employeeId": 3,
+      "leaveId": 1012,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 37,
+      "employeeId": 4,
+      "leaveId": 1013,
+      "text": "นัทธพงศ์ สุขใจส่งคำขอ LR-2026-01013",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 38,
+      "employeeId": 2,
+      "leaveId": 1013,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 39,
+      "employeeId": 2,
+      "leaveId": 1013,
+      "text": "LR-2026-01013 ได้รับอนุมัติ · นับเฉพาะวันทำงาน",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 40,
+      "employeeId": 4,
+      "leaveId": 1014,
+      "text": "วีรภัทร ตั้งใจส่งคำขอ LR-2026-01014",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 41,
+      "employeeId": 10,
+      "leaveId": 1014,
+      "text": "ส่งคำขอแล้ว รอผู้จัดการพิจารณา",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 42,
+      "employeeId": 4,
+      "leaveId": 1014,
+      "text": "วีรภัทร ตั้งใจแก้ไขคำขอ LR-2026-01014",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    },
+    {
+      "id": 43,
+      "employeeId": 10,
+      "leaveId": 1014,
+      "text": "แก้ไขคำขอแล้ว และเริ่มพิจารณาใหม่",
+      "createdAt": "2026-10-10T05:00:00.000Z",
+      "read": false
+    }
+  ],
+  "holidays": [
+    {
+      "date": "2026-11-06",
+      "name": "วันหยุดบริษัท (ข้อมูลสมมติสำหรับทดสอบ)"
+    },
+    {
+      "date": "2026-12-31",
+      "name": "วันหยุดบริษัท (ข้อมูลสมมติสำหรับทดสอบ)"
+    },
+    {
+      "date": "2027-01-01",
+      "name": "วันหยุดบริษัท (ข้อมูลสมมติสำหรับทดสอบ)"
+    }
+  ]
+}

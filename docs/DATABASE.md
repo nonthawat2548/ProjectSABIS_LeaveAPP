@@ -1,0 +1,84 @@
+# Data Dictionary → โครงสร้างในแอป
+
+ใช้ตารางหลัก **9 ตาราง** ตามไฟล์ Data Dictionary เดิม มีส่วนเพิ่มสำหรับฟังก์ชันจาก Navigation Flow ตารางนี้แสดงชื่อฐานข้อมูลกับ array ใน snapshot / mock JSON database
+
+| Table Name เดิม | Array ในแอป | หน้าที่ |
+| --- | --- | --- |
+| Employee | employees | บัญชีพนักงาน บทบาท ผู้จัดการ |
+| Leave_Type | leaveTypes | ประเภทลา นโยบาย เกณฑ์เอกสาร |
+| Leave_Entitlement | entitlements | สิทธิ์รายปี |
+| Maternity_Case | maternityCases | สิทธิ์ต่อกรณีลาคลอด |
+| Leave_Request | requests | คำขอลา วันที่ เหตุผล สถานะ |
+| Leave_Day | days | แต่ละวันที่นับเป็นวันลาและปีของสิทธิ์ |
+| Leave_Document | documents | เอกสารประกอบ |
+| Leave_Approval | approvals | การตัดสินของผู้จัดการและการปรึกษา HR |
+| Work_Status | workStatuses | สถานะการทำงานที่ผู้ใช้บันทึก |
+
+`src/domain/types.ts` เป็น schema ฝั่ง TypeScript; `database/schema.sql` เป็น SQL สำหรับ SQLite ชุด 10 คนที่แอปใช้เริ่มต้นอยู่ใน `src/data/leave-management-10-people.json` โดย `createDemoDatabase()` ใน `src/data/demoDatabase.ts` clone ข้อมูลสำหรับ repository ทั้งสองโหมด `database/mock.sqlite` และ `database/mock-db.json` เป็นข้อมูลตัวอย่างเดิม **server เวอร์ชันนี้ใช้ JSON ไม่ได้เชื่อม SQLite โดยอัตโนมัติ**
+
+## แหล่งข้อมูลที่ใช้งานจริงในโหมดจำลอง
+
+- โหมดเบราว์เซอร์: IndexedDB `leave-management-10-people-v1` เริ่มต้นด้วยชุด 10 คนและเก็บการทำรายการต่อในเบราว์เซอร์ ฐานเดิม `leave-management-v1` ถูกเก็บไว้
+- โหมด API: อ่าน/เขียน `server/data/leave-management-10-people.json` หรือพาธจาก `MOCK_DATA_FILE` หากยังไม่มีไฟล์ให้เริ่มจากชุด JSON ต้นทาง เก็บ `server/data/db.json` เดิมไว้
+- ทั้งสองโหมดเก็บข้อมูลแยกกัน ไม่ซิงก์กัน และไม่เขียนการทำรายการกลับไปยัง `src/data/leave-management-10-people.json`, SQL หรือ SQLite
+- HR คืนค่าข้อมูลจำลองเป็นชุดต้นทาง 10 คนได้ในโหมดที่ใช้งานอยู่ การคืนค่าล้างการแก้ไขในฐาน runtime ของโหมดนั้น CLI `npm run seed -- --confirm` คืนค่าไฟล์ของโหมด API
+- ตัวสร้าง `src/data/generate.ts` และ `src/data/build-sqlite.py` สร้างไฟล์ source/ส่งออกใน `src/data/` เท่านั้น ไม่แก้ฐาน runtime หากต้องการใช้ source ใหม่กับข้อมูลที่มีอยู่แล้ว ต้องเรียกการคืนค่าของ HR
+
+ชุด 10 คนมีสิทธิ์รายปี ค.ศ. 2026 และ 2027; ปีอื่นต้องให้ HR จัดสรร รายละเอียดบัญชีและสถานการณ์ตัวอย่างอยู่ใน [src/data/README.md](../src/data/README.md)
+
+## Field mapping
+
+| Table | SQL / Data Dictionary | TypeScript / JSON |
+| --- | --- | --- |
+| Employee | Employee_id, Name, Gender, Email, Phone, Position, Role, Manager_id | id, name, gender, email, phone, position, role, managerId |
+| Leave_Type | Leave_type_id, Leave_type_name, Quota_scope, Default_quota_days, Day_count_basis | id, name, quotaScope, defaultQuotaDays, dayCountBasis |
+| Leave_Type | Advance_notice_days, Document_required_from_days, Required_document_type, Eligible_gender | advanceNoticeDays, documentRequiredFromDays, requiredDocumentType, eligibleGender |
+| Leave_Entitlement | Entitlement_id, Employee_id, Leave_type_id, Entitlement_year, Granted_days | id, employeeId, leaveTypeId, year, grantedDays |
+| Maternity_Case | Maternity_case_id, Employee_id, Case_no, Maximum_days | id, employeeId, caseNo, maximumDays |
+| Leave_Request | Leave_id, Employee_id, Leave_type_id, Maternity_case_id, Start_date, End_date, Reason, Request_date, Status | id, employeeId, leaveTypeId, maternityCaseId, startDate, endDate, reason, requestDate, status |
+| Leave_Day | Leave_day_id, Leave_id, Leave_date, Entitlement_id | id, leaveId, date, entitlementId |
+| Leave_Document | Document_id, Leave_id, Document_type, File_name, Storage_key, File_type, File_size, Uploaded_at | id, leaveId, documentType, fileName, storageKey, fileType, fileSize, uploadedAt |
+| Leave_Approval | Approval_id, Leave_id, Approver_id, Step_no, Review_role, Review_type, Status, Comment, Assigned_at, Reviewed_at | id, leaveId, approverId, stepNo, reviewRole, reviewType, status, comment, assignedAt, reviewedAt |
+| Work_Status | Work_status_id, Employee_id, Status_date, Status_type, Leave_id, Updated_at | id, employeeId, date, statusType, (derived leave link), updatedAt |
+
+## Derived fields
+
+- `Leave_Request.Total_days` = SUM(Leave_Day.Units)
+- `Leave_Entitlement.Used_days` = วันที่เชื่อมสิทธิ์นี้และคำขอ Approved
+- `Remaining_days` = Granted_days − Used_days
+- `Pending_days` = วันจากคำขอ Pending (แยกจาก Used_days)
+- ลาคลอดใช้วันที่ของคำขอที่เชื่อม Maternity_case_id และ Approved
+- วันลาอนุมัติจะทำให้สถานะทำงานแสดง `Leave`; ครึ่งวันแสดงสถานะเวลาที่เหลือร่วมกับ Leave
+
+ใน SQL มี views `Leave_Request_Summary`, `Leave_Entitlement_Balance`, `Maternity_Case_Balance` จึงไม่ต้องบันทึกค่าคำนวณซ้ำ
+
+## ส่วนเพิ่มจาก dictionary
+
+| ส่วนเพิ่ม | เหตุผล |
+| --- | --- |
+| Employee.Department / Active | แสดงฝ่ายและบัญชีที่ใช้งาน |
+| Leave_Request.Duration (`Full`,`AM`,`PM`) | ลาครึ่งวันตามต้นแบบหน้าจอ |
+| Leave_Day.Units และ Granted_days แบบ NUMERIC | รองรับ 0.5 วันแทน INT |
+| Leave_Request.Status = `Withdrawn` | ยกเลิกคำขอโดยรักษาประวัติ |
+| Leave_Request.Version | ป้องกันบันทึกทับข้อมูลเก่า/อนุมัติซ้ำ |
+| Leave_Request.Timeline_json | ลำดับการดำเนินการใน demo |
+| Leave_Approval.Status = `Completed` สำหรับ Consultation | HR ให้ความเห็นโดยไม่อนุมัติคำขอ |
+| Leave_Approval.Cancelled | ไม่ใช้การพิจารณาเดิมหลังแก้ไข/ยกเลิก |
+| Leave_Document.Data_url | เก็บเอกสารจริงใน demo; หลังบ้านจริงใช้ storage key |
+| App_Notification / notifications | การแจ้งเตือนจาก Navigation Flow |
+| App_Holiday / holidays | ยกเว้นวันหยุดในการนับวันทำงาน |
+| schemaVersion | เวอร์ชันรูปแบบ JSON ที่ repository รองรับ |
+
+ตารางสนับสนุนสองตารางไม่ถูกนับรวมใน 9 ตารางหลัก และไม่ได้แอบแก้ไฟล์ Data Dictionary ต้นฉบับ
+
+## เปิดฐานข้อมูลตัวอย่าง
+
+เปิดชุด 10 คน `src/data/leave-management-10-people.sqlite` ด้วยเครื่องมือ SQLite ที่คุณใช้อยู่ หรือนำเข้า `src/data/leave-management-10-people.sql` ในฐานใหม่ที่ว่าง ไฟล์เหล่านี้เป็นสำเนาส่งออก ไม่ใช่ฐานที่แอปอ่าน/เขียนขณะทำรายการ ตัวอย่างเดิมยังอยู่ใน `database/mock.sqlite`, `database/schema.sql` และ `database/seed.sql`
+
+```sql
+SELECT * FROM Leave_Entitlement_Balance;
+SELECT Leave_id, Status, Total_days FROM Leave_Request_Summary;
+SELECT * FROM Maternity_Case_Balance;
+```
+
+วันที่ภายในฐานข้อมูลเป็น ค.ศ. ISO เช่น `2026-12-05` ส่วน UI แปลงเป็น `5/12/2569` ชื่อและข้อมูลทุกแถวเป็นข้อมูลสมมติ
