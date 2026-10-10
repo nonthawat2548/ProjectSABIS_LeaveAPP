@@ -16,7 +16,7 @@ test('All role screens render and visible dates use Buddhist Era d/m/yyyy', () =
     for (const id of [1, 4, 5]) { const db = visibleSnapshot(full, id), actor = full.employees.find(e => e.id === id)!; const props = { db, actor, run, reload }; const screens = [Dashboard, Requests, WorkPage, NotificationsPage, ...(id === 1 ? [LeaveForm, Quotas] : [CalendarPage]), ...(id === 5 ? [AdminPage, SettingsPage] : [])]; for (const Screen of screens) { const html = renderToStaticMarkup(createElement(Screen, props)); assert(html.includes('<')); assert(!html.includes('type="date"')); assert(!html.includes('undefined')); } const html = renderToStaticMarkup(createElement(RequestDetail, { ...props, id: 1001 })); assert(html.includes('13/10/2569')); }
     const login = renderToStaticMarkup(createElement(Login, { onLogin: async () => { }, initialError: '', theme: 'light', onToggleTheme: () => { } }));
     assert(/autocomplete="username"/i.test(login) && /autocomplete="current-password"/i.test(login));
-    assert(login.includes('aria-label="แสดงรหัสผ่าน"') && login.includes('aria-pressed="true"'));
+    assert(login.includes('aria-label="แสดงรหัสผ่าน"') && login.includes('aria-pressed="false"'));
     const darkButton = renderToStaticMarkup(createElement(ThemeButton, { theme: 'dark', onToggle: () => { } }));
     assert(darkButton.includes('aria-label="เปลี่ยนเป็นธีมสว่าง"'));
 });
@@ -65,29 +65,22 @@ test('Connected ten-person dataset renders HR accounts and the second manager te
     assert(!detail.includes('undefined'));
 });
 
-test('Login lets users choose all ten demo accounts in both themes', () => {
+test('Login asks for a role before listing demo accounts in both themes', () => {
     const accounts = createDemoDatabase().employees.filter(employee => employee.active);
     assert.equal(accounts.length, 10);
     for (const theme of ['light', 'dark'] as const) {
         const html = renderToStaticMarkup(createElement(Login, { onLogin: async () => { }, initialError: '', theme, onToggleTheme: () => { } }));
         const select = html.match(/<select\b([^>]*)>([\s\S]*?)<\/select>/);
-        assert(select, 'Login must expose an account selector beyond the three role shortcuts');
+        assert(select, 'Login must expose an account selector after role selection');
         const id = select[1].match(/\bid="([^"]+)"/)?.[1];
         assert(id && html.includes(`for="${id}"`), 'The account selector must have a linked visible label');
         assert(html.includes('เลือกบัญชีทดลอง'));
         for (const count of [7, 2, 1]) assert(html.includes(`${count} บัญชี`));
         const options = [...select[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/g)].filter(option => !/value=""/.test(option[1]));
-        assert.equal(options.length, accounts.length);
-        for (const account of accounts) {
-            const option = options.find(option => option[2].includes(account.email));
-            assert(option, `${account.email} must be selectable`);
-            assert(option[2].includes(account.name), `${account.email} must show the actual account name`);
-        }
-        const groups = [...select[2].matchAll(/<optgroup\b[^>]*>([\s\S]*?)<\/optgroup>/g)];
-        assert.deepEqual(groups.map(group => [...group[1].matchAll(/<option\b/g)].length), [7, 2, 1]);
-        const selected = options.filter(option => /\bselected(?:="[^"]*")?/.test(option[1]));
-        assert.equal(selected.length, 1);
-        assert(selected[0][2].includes('employee@demo.local'));
-        assert(/<input\b[^>]*id="login-email"[^>]*value="employee@demo\.local"/.test(html));
+        assert.equal(options.length, 0, 'Accounts from all three roles must not be shown together');
+        assert(/\bdisabled(?:="[^"]*")?/.test(select[1]));
+        assert(select[2].includes('เลือกบทบาทด้านบนก่อน'));
+        assert(!html.includes('aria-pressed="true"'));
+        assert(/<input\b[^>]*id="login-email"[^>]*value=""/.test(html));
     }
 });

@@ -45,6 +45,10 @@ API และ IndexedDB ของโหมดเบราว์เซอร์�
 
 `duration`: `Full`, `AM`, `PM` · เอกสาร: `{fileName,fileType,fileSize,dataUrl}` โดย mock ใช้ base64 สำหรับ PDF/PNG/JPEG ไม่เกิน 2 MiB หลังบ้านจริงควรเปลี่ยนเป็น multipart upload/object storage แล้วคืน document ID หรือ storage key โดยปรับ adapter และ contract พร้อมกัน
 
+ลาคลอด (`quotaScope = Pregnancy`) ต้องส่ง `maternityCaseId` ที่ HR เปิดให้เจ้าของคำขอ และ `duration = Full` ระบบอ่าน `Employee.gender` จากฐานข้อมูลหลังตรวจสิทธิ์ แล้วตรวจกรณี ผู้จัดการ วันที่ เหตุผล/นโยบาย/เอกสาร วันลาซ้อน และโควตาตามลำดับ `gender`, `employeeId`, `actorId` หรือ role ที่แทรกใน body ไม่เปลี่ยนเจ้าของคำขอหรือสิทธิ์นี้ กฎเดียวกันทำงานเมื่อ submit/edit และตรวจข้อมูลเจ้าของคำขอล่าสุดเมื่อ approve
+
+กรณีไม่ผ่านเพศ กรณี หรือเงื่อนไขยื่นคำขอคืน 400 `VALIDATION` พร้อมข้อความเฉพาะ; session/สิทธิ์ยังใช้ 401/403 ตามเดิม หากโควตากรณีไม่พอก่อนอนุมัติคืน 409 `CONFLICT` และไม่เปลี่ยนสถานะ/หักยอด ใช้ `maximumDays` ต่อกรณีรวมข้ามปี คำขอที่ Pending กันสิทธิ์ไว้แยกจากยอด Approved
+
 ## Commands อื่น
 
 | type | Fields ที่ต้องส่งเพิ่มเติม | สิทธิ์ |

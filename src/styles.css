@@ -34,83 +34,104 @@
 :root {
     color-scheme: light;
     font-family: 'Plex Thai', Tahoma, sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.7;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
-    --bg: #f4f6f2;
+    --bg: #f0fcf7;
     --surface: #fff;
-    --surface-soft: #f8faf7;
-    --surface-inset: #eef2ec;
-    --ink: #253a34;
-    --muted: #627267;
-    --subtle: #657469;
-    --border: #e4ebe2;
-    --primary: #167561;
-    --primary-hover: #0f6250;
-    --soft: #edf6ee;
+    --surface-soft: #f5fdf9;
+    --surface-inset: #e0f2e8;
+    --ink: #163d35;
+    --muted: #365d53;
+    --subtle: #43675d;
+    --border: #bedfcd;
+    --control-border: #6c8f80;
+    --primary: #06715a;
+    --primary-hover: #05644e;
+    --soft: #e1f8ec;
     --on-primary: #fff;
-    --mint: #e5f4e6;
-    --mint-ink: #346e50;
-    --purple: #efeafb;
-    --purple-ink: #756193;
-    --peach: #fff0de;
-    --peach-ink: #95632e;
-    --sky: #eaf2fc;
-    --sky-ink: #466c8b;
-    --red: #b24452;
-    --red-bg: #fff0f2;
-    --red-border: #edcad1;
-    --hero: #e7f2e5;
-    --hero-ink: #254c35;
-    --hero-muted: #526b57;
-    --sidebar: #18332e;
-    --sidebar-ink: #f4f8f5;
-    --sidebar-muted: #cbded5;
-    --sidebar-line: #ffffff26;
-    --sidebar-link: #e7f0e9;
-    --sidebar-accent: #d4efa9;
-    --sidebar-panel: #ffffff09;
-    --sidebar-hover: #ffffff14;
-    --shadow: 0 4px 18px #24392e04;
-    --shadow-overlay: 0 16px 60px #172f2924;
+    --mint: #cdf6e2;
+    --mint-ink: #126344;
+    --purple: #e9ddff;
+    --purple-ink: #6036a3;
+    --peach: #ffe6c8;
+    --peach-ink: #8b4a13;
+    --sky: #d6edff;
+    --sky-ink: #235f9a;
+    --red: #b62b47;
+    --red-bg: #ffe5ec;
+    --red-border: #efb0bf;
+    --hero: #c4f6df;
+    --hero-glow: #f1ffcf;
+    --hero-ink: #145342;
+    --hero-muted: #365f49;
+    --sidebar: #e3f4ed;
+    --sidebar-ink: #173e32;
+    --sidebar-muted: #2f5346;
+    --sidebar-line: #a7ccbb;
+    --sidebar-link: #173e32;
+    --sidebar-accent: #0c725b;
+    --sidebar-accent-ink: #fff;
+    --sidebar-panel: #f5fcf8;
+    --sidebar-hover: #cce8da;
+    --sidebar-active: #087a63;
+    --sidebar-active-ink: #fff;
+    --sidebar-danger: #9d2942;
+    --scrim: #10192370;
+    --notification: #b23946;
+    --on-notification: #fff;
+    --shadow: 0 4px 18px #1263440d;
+    --shadow-overlay: 0 16px 60px #10192330;
     background: var(--bg);
     color: var(--ink)
 }
 
 :root[data-theme='dark'] {
     color-scheme: dark;
-    --bg: #15231f;
-    --surface: #20332c;
-    --surface-soft: #263b32;
-    --surface-inset: #1b2c25;
-    --ink: #e0e9de;
-    --muted: #9cab9f;
-    --subtle: #9aab9e;
-    --border: #34483c;
-    --primary: #91d6b0;
-    --primary-hover: #ade5c0;
-    --soft: #2b4133;
-    --on-primary: #143b2b;
-    --mint: #2d4735;
-    --mint-ink: #a5d7b1;
-    --purple: #39334a;
-    --purple-ink: #c6b7e6;
-    --peach: #483d2b;
-    --peach-ink: #e8c38e;
-    --sky: #2b3b4e;
-    --sky-ink: #b3cce6;
-    --red: #ef9ba6;
-    --red-bg: #442f35;
-    --red-border: #65434c;
-    --hero: #2c4432;
-    --hero-ink: #d4ecd0;
-    --hero-muted: #a8bfac;
-    --sidebar: #10241e;
-    --sidebar-muted: #cbded5;
-    --sidebar-line: #ffffff26;
-    --shadow: 0 4px 18px #0000000a;
-    --shadow-overlay: 0 16px 60px #00000050
+    --bg: #1a1d23;
+    --surface: #282d36;
+    --surface-soft: #323944;
+    --surface-inset: #21262f;
+    --ink: #e6eaf0;
+    --muted: #c2cbd7;
+    --subtle: #b5c1d0;
+    --border: #4e5b6e;
+    --control-border: #8b9aaf;
+    --primary: #9cbfe8;
+    --primary-hover: #b1cdec;
+    --soft: #2b3e57;
+    --on-primary: #182d48;
+    --mint: #2d4338;
+    --mint-ink: #b1d5bf;
+    --purple: #42394f;
+    --purple-ink: #d0c0e2;
+    --peach: #4e422f;
+    --peach-ink: #e3ca9f;
+    --sky: #2c4058;
+    --sky-ink: #bbd5f0;
+    --red: #edb7c4;
+    --red-bg: #513640;
+    --red-border: #98697a;
+    --hero: #2c3a50;
+    --hero-glow: #293442;
+    --hero-ink: #e2eaf5;
+    --hero-muted: #c0cede;
+    --sidebar: #222833;
+    --sidebar-ink: #e4ebf5;
+    --sidebar-muted: #bfcbdc;
+    --sidebar-line: #4a596f;
+    --sidebar-link: #d5deeb;
+    --sidebar-accent: #9cbfe8;
+    --sidebar-accent-ink: #182d48;
+    --sidebar-panel: #2c3543;
+    --sidebar-hover: #364358;
+    --sidebar-active: #355477;
+    --sidebar-active-ink: #e8f0fb;
+    --sidebar-danger: #edbac9;
+    --scrim: #090d16b3;
+    --shadow: 0 4px 18px #00000018;
+    --shadow-overlay: 0 16px 60px #00000066
 }
 
 * {
@@ -140,7 +161,7 @@ button {
 }
 
 button:disabled {
-    opacity: .5;
+    opacity: 1;
     cursor: not-allowed
 }
 
@@ -187,7 +208,7 @@ strong {
 }
 
 small {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted)
 }
 
@@ -206,7 +227,7 @@ code {
 }
 
 kbd {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--subtle)
 }
 
@@ -216,7 +237,7 @@ textarea {
     width: 100%;
     min-width: 0;
     min-height: 46px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--control-border);
     border-radius: 10px;
     background: var(--surface-soft);
     color: var(--ink);
@@ -238,7 +259,7 @@ input:focus,
 select:focus,
 textarea:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
     background: var(--surface)
 }
 
@@ -290,7 +311,7 @@ summary:focus-visible {
     flex-direction: column;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: #466357 transparent;
+    scrollbar-color: var(--sidebar-line) transparent;
     margin-bottom: 14px
 }
 
@@ -311,8 +332,8 @@ summary:focus-visible {
     display: grid;
     place-items: center;
     border-radius: 12px;
-    background: #c3e99e;
-    color: #173a2c
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-ink)
 }
 
 .brand>span svg {
@@ -321,12 +342,12 @@ summary:focus-visible {
 }
 
 .brand-dot {
-    color: #c3e99e
+    color: var(--sidebar-accent)
 }
 
 .brand small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400;
     letter-spacing: .6px;
     color: var(--sidebar-muted);
@@ -355,20 +376,21 @@ summary:focus-visible {
 
 .workspace-card strong {
     display: block;
-    font-size: 12px;
-    font-weight: 500
+    font-size: 13px;
+    font-weight: 600
 }
 
 .workspace-card small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--sidebar-muted);
     margin-top: 3px
 }
 
 .sidebar-label {
     color: var(--sidebar-muted);
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 500;
     letter-spacing: 1.7px;
     padding: 27px 12px 12px
 }
@@ -386,15 +408,16 @@ summary:focus-visible {
     padding: 11px 13px;
     border-radius: 11px;
     color: var(--sidebar-link);
-    font-size: 12px;
+    font-size: 14px;
+    font-weight: 500;
     min-height: 44px;
     transition: background .15s, color .15s
 }
 
 .nav-link svg {
-    width: 18px;
-    height: 18px;
-    stroke-width: 1.7
+    width: 20px;
+    height: 20px;
+    stroke-width: 2
 }
 
 .nav-link:hover {
@@ -408,8 +431,8 @@ summary:focus-visible {
 }
 
 .nav-link.active {
-    background: #d9edca;
-    color: #1d4130;
+    background: var(--sidebar-active);
+    color: var(--sidebar-active-ink);
     font-weight: 600;
     box-shadow: 0 3px 10px #00000008
 }
@@ -422,13 +445,13 @@ summary:focus-visible {
     display: grid;
     place-items: center;
     background: var(--sidebar-accent);
-    color: #1d4130;
-    font-size: 11px;
+    color: var(--sidebar-accent-ink);
+    font-size: 12px;
     font-weight: 500
 }
 
 .nav-link.active b {
-    background: #1e4c3412;
+    background: var(--sidebar-active);
     color: inherit
 }
 
@@ -444,13 +467,13 @@ summary:focus-visible {
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--sidebar-ink)
 }
 
 .sidebar-note>p {
     margin-top: 8px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--sidebar-muted);
     line-height: 1.8
 }
@@ -459,7 +482,7 @@ summary:focus-visible {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--sidebar-accent);
     margin-top: 13px
 }
@@ -471,17 +494,17 @@ summary:focus-visible {
     border-top: 1px solid var(--sidebar-line);
     padding: 19px 9px 9px;
     margin-top: auto;
-    font-size: 11px
+    font-size: 12px
 }
 
 .sidebar-person strong {
     display: block;
-    font-weight: 500
+    font-weight: 600
 }
 
 .sidebar-person small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--sidebar-muted)
 }
 
@@ -492,7 +515,8 @@ summary:focus-visible {
     border: 0;
     background: transparent;
     text-align: left;
-    font-size: 11px;
+    font-size: 13px;
+    font-weight: 500;
     padding: 11px 13px;
     border-radius: 10px;
     color: var(--sidebar-muted)
@@ -500,7 +524,7 @@ summary:focus-visible {
 
 .logout:hover {
     background: var(--sidebar-hover);
-    color: #ffd4d8
+    color: var(--sidebar-danger)
 }
 
 .app-body {
@@ -520,13 +544,13 @@ summary:focus-visible {
     display: flex;
     gap: 10px;
     align-items: center;
-    font-size: 12px;
+    font-size: 13px;
     white-space: nowrap
 }
 
 .breadcrumb-root {
     color: var(--subtle);
-    font-size: 11px
+    font-size: 12px
 }
 
 .breadcrumb-chevron {
@@ -574,13 +598,13 @@ summary:focus-visible {
     height: 36px;
     padding: 8px 10px;
     color: var(--subtle);
-    font-size: 11px;
+    font-size: 12px;
     margin-right: 4px
 }
 
 .header-search kbd {
     margin-left: auto;
-    font-size: 11px;
+    font-size: 12px;
     padding: 2px 4px;
     border: 1px solid var(--border);
     border-radius: 4px
@@ -604,10 +628,10 @@ summary:focus-visible {
     height: 14px;
     line-height: 14px;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 12px;
     text-align: center;
-    background: #b94c3b;
-    color: white
+    background: var(--notification);
+    color: var(--on-notification)
 }
 
 .mobile-toggle {
@@ -628,7 +652,7 @@ summary:focus-visible {
     gap: 16px;
     padding: 0 27px 13px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4
 }
 
@@ -663,7 +687,7 @@ main {
     max-width: 1580px;
     margin: 0 auto;
     min-height: calc(100vh - 174px);
-    animation: page-enter .22s ease-out
+    animation: page-enter .23s ease-out
 }
 
 .back-row:empty {
@@ -671,12 +695,12 @@ main {
 }
 
 .back-row {
-    font-size: 11px;
+    font-size: 12px;
     margin-bottom: 18px
 }
 
 .back-row .text-link {
-    font-size: 11px
+    font-size: 12px
 }
 
 .app-body>footer {
@@ -685,7 +709,7 @@ main {
     gap: 16px;
     padding: 0 27px 23px;
     color: var(--subtle);
-    font-size: 11px
+    font-size: 12px
 }
 
 .app-body>footer>span:first-child {
@@ -737,7 +761,7 @@ main {
     border-radius: 11px;
     background: var(--surface);
     padding: 10px 15px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.5;
     max-width: 100%;
     transition: background .15s, border-color .15s, transform .15s
@@ -775,10 +799,26 @@ main {
 }
 
 .btn.small {
-    font-size: 11px;
+    font-size: 12px;
     min-height: 34px;
     padding: 7px 10px;
     border-radius: 8px
+}
+
+.btn:disabled {
+    background: var(--surface-inset);
+    border-color: var(--control-border);
+    color: var(--muted);
+    box-shadow: none
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+    background: var(--surface-inset);
+    color: var(--muted);
+    opacity: 1;
+    cursor: not-allowed
 }
 
 .text-link {
@@ -789,7 +829,7 @@ main {
     padding: 0;
     background: transparent;
     color: var(--primary);
-    font-size: 11px
+    font-size: 12px
 }
 
 .text-link:hover {
@@ -879,7 +919,7 @@ main {
 
 .field>label {
     display: block;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     margin-bottom: 8px
 }
@@ -887,7 +927,7 @@ main {
 .field>small {
     display: block;
     margin-top: 6px;
-    font-size: 11px
+    font-size: 12px
 }
 
 .required {
@@ -906,7 +946,7 @@ main {
 }
 
 .tiny {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin-top: 14px;
     line-height: 1.85
@@ -990,11 +1030,11 @@ table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 12px
+    font-size: 13px
 }
 
 th {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--muted);
     white-space: nowrap;
@@ -1011,7 +1051,7 @@ td {
 
 td small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 5px;
     color: var(--subtle)
 }
@@ -1027,7 +1067,7 @@ tbody tr:hover {
 .code-link {
     color: var(--ink);
     font-family: Consolas, monospace;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     white-space: nowrap
 }
@@ -1038,7 +1078,7 @@ tbody tr:hover {
 
 .nowrap {
     white-space: nowrap;
-    font-size: 11px
+    font-size: 13px
 }
 
 .days-number {
@@ -1047,7 +1087,7 @@ tbody tr:hover {
 }
 
 .leave-type-tag {
-    font-size: 11px;
+    font-size: 13px;
     white-space: nowrap;
     display: flex;
     gap: 7px;
@@ -1079,7 +1119,7 @@ tbody tr:hover {
     display: flex;
     gap: 8px;
     align-items: center;
-    font-size: 11px;
+    font-size: 12px;
     min-width: 130px
 }
 
@@ -1110,7 +1150,7 @@ tbody tr:hover {
     gap: 5px;
     padding: 4px 9px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.65;
     white-space: nowrap;
     font-weight: 500
@@ -1173,28 +1213,28 @@ tbody tr:hover {
 }
 
 .avatar-color-0 {
-    background: #ebdfcb;
-    color: #715b3a
+    background: var(--peach);
+    color: var(--peach-ink)
 }
 
 .avatar-color-1 {
-    background: #e2ecce;
-    color: #53713e
+    background: var(--mint);
+    color: var(--mint-ink)
 }
 
 .avatar-color-2 {
-    background: #e7dff2;
-    color: #735b8c
+    background: var(--purple);
+    color: var(--purple-ink)
 }
 
 .avatar-color-3 {
-    background: #f3e0d3;
-    color: #845635
+    background: var(--sky);
+    color: var(--sky-ink)
 }
 
 .avatar-color-4 {
-    background: #d4e9e2;
-    color: #3b7661
+    background: var(--soft);
+    color: var(--primary)
 }
 
 .empty {
@@ -1228,6 +1268,7 @@ tbody tr:hover {
     min-height: 227px;
     overflow: hidden;
     background: var(--hero);
+    background-image: linear-gradient(110deg, var(--hero), var(--hero-glow));
     border: 1px solid color-mix(in srgb, var(--hero-ink) 5%, transparent);
     border-radius: 20px;
     margin-bottom: 25px
@@ -1241,7 +1282,7 @@ tbody tr:hover {
 }
 
 .hero-eyebrow {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     letter-spacing: 1.7px;
     color: var(--hero-muted);
@@ -1253,7 +1294,7 @@ tbody tr:hover {
 .pulse-dot {
     width: 6px;
     height: 6px;
-    background: #7eac5c;
+    background: var(--primary);
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0
@@ -1268,13 +1309,13 @@ tbody tr:hover {
 
 .greeting-mark {
     font-size: 23px;
-    color: #98ad72;
+    color: var(--primary);
     margin-left: 10px
 }
 
 .welcome-copy>p {
     color: var(--hero-muted);
-    font-size: 12px;
+    font-size: 13px;
     margin-top: 6px
 }
 
@@ -1287,16 +1328,17 @@ tbody tr:hover {
 }
 
 .hero-actions>.btn {
-    font-size: 11px;
+    font-size: 12px;
     min-height: 41px;
     padding: 10px 14px;
-    background: #206249;
-    border-color: #206249;
-    color: #fff
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary)
 }
 
 .hero-actions>.btn:hover {
-    background: #194e3a
+    background: var(--primary-hover);
+    border-color: var(--primary-hover)
 }
 
 .hero-date {
@@ -1304,7 +1346,7 @@ tbody tr:hover {
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 11px
+    font-size: 12px
 }
 
 .hero-date i {
@@ -1335,13 +1377,12 @@ tbody tr:hover {
     position: absolute;
     bottom: 20px;
     left: 10%;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: .3px;
-    color: #457653;
-    background: #ffffffa8;
-    backdrop-filter: blur(8px);
+    color: var(--mint-ink);
+    background: var(--mint);
     padding: 5px 10px;
-    border: 1px solid #ffffff80;
+    border: 1px solid var(--border);
     border-radius: 18px;
     display: flex;
     align-items: center;
@@ -1358,7 +1399,7 @@ tbody tr:hover {
 }
 
 .dashboard-section-label>span:last-child {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--subtle);
     font-weight: 400
 }
@@ -1375,6 +1416,7 @@ tbody tr:hover {
     isolation: isolate;
     overflow: hidden;
     border: 1px solid var(--border);
+    border-top: 3px solid var(--tone-ink);
     border-radius: 16px;
     background: var(--surface);
     padding: 18px 20px;
@@ -1412,15 +1454,16 @@ tbody tr:hover {
     justify-content: space-between;
     gap: 7px;
     align-items: center;
-    font-size: 11px;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--muted);
     position: relative;
     z-index: 1
 }
 
 .stat-icon {
-    width: 33px;
-    height: 33px;
+    width: 38px;
+    height: 38px;
     border-radius: 11px;
     background: var(--tone-bg);
     color: var(--tone-ink);
@@ -1446,7 +1489,7 @@ tbody tr:hover {
 }
 
 .stat-value small {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400;
     letter-spacing: 0;
     margin-left: 7px;
@@ -1454,7 +1497,7 @@ tbody tr:hover {
 }
 
 .stat>p {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--subtle);
     position: relative;
     z-index: 1
@@ -1467,9 +1510,18 @@ tbody tr:hover {
     width: 120px;
     height: 120px;
     background: var(--tone-bg);
-    opacity: .5;
+    opacity: .9;
     border-radius: 50%;
     z-index: 0
+}
+
+/* Keep decorative accents quieter than the information in dark mode. */
+:root[data-theme='dark'] .stat {
+    border-top-color: color-mix(in srgb, var(--tone-ink) 35%, var(--surface))
+}
+
+:root[data-theme='dark'] .stat-corner {
+    opacity: .4
 }
 
 .work-stat {
@@ -1521,7 +1573,7 @@ tbody tr:hover {
 
 .card-subtitle {
     display: block;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--subtle);
     margin-bottom: 22px
 }
@@ -1535,7 +1587,8 @@ tbody tr:hover {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
-    font-size: 11px
+    font-size: 13px;
+    font-weight: 500
 }
 
 .quota-line strong {
@@ -1544,14 +1597,14 @@ tbody tr:hover {
 }
 
 .quota-line strong small {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400;
     color: var(--subtle)
 }
 
 .quota-track {
     display: flex;
-    height: 5px;
+    height: 7px;
     background: var(--surface-inset);
     border-radius: 4px;
     overflow: hidden
@@ -1564,14 +1617,13 @@ tbody tr:hover {
 }
 
 .quota-track>b {
-    background: var(--peach-ink);
-    opacity: .4;
+    background: repeating-linear-gradient(135deg, var(--peach-ink) 0 3px, var(--peach) 3px 6px);
     display: block
 }
 
 .quota-line>small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 7px;
     color: var(--subtle)
 }
@@ -1587,7 +1639,7 @@ tbody tr:hover {
 }
 
 .quota-foot p {
-    font-size: 11px
+    font-size: 12px
 }
 
 .quota-foot svg {
@@ -1612,7 +1664,7 @@ tbody tr:hover {
 
 .section-eyebrow {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 1.5px;
     color: var(--subtle);
     margin-bottom: 7px
@@ -1643,7 +1695,7 @@ tbody tr:hover {
 }
 
 .week-strip small {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted)
 }
 
@@ -1675,7 +1727,7 @@ tbody tr:hover {
 
 .week-caption {
     display: none;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--subtle)
 }
 
@@ -1712,7 +1764,7 @@ tbody tr:hover {
 
 .dashboard-tips p {
     color: var(--muted);
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 3px
 }
 
@@ -1748,17 +1800,17 @@ tbody tr:hover {
 
 .upcoming-date small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 2px
 }
 
 .upcoming-date .badge {
-    font-size: 11px;
+    font-size: 12px;
     padding: 4px 6px
 }
 
 .upcoming-card .card-body>p {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin: 15px 0 13px
 }
@@ -1772,7 +1824,7 @@ tbody tr:hover {
 }
 
 .quiet-note p {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin: 10px 0 12px
 }
@@ -1791,12 +1843,12 @@ tbody tr:hover {
 }
 
 .team-person strong {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500
 }
 
 .team-person small {
-    font-size: 11px;
+    font-size: 12px;
     display: block;
     white-space: nowrap;
     overflow: hidden;
@@ -1804,7 +1856,7 @@ tbody tr:hover {
 }
 
 .team-status {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     max-width: 70px;
     overflow-wrap: anywhere
@@ -1818,7 +1870,7 @@ tbody tr:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--primary);
     background: var(--soft);
     padding: 12px;
@@ -1845,7 +1897,7 @@ tbody tr:hover {
     display: flex;
     gap: 9px;
     align-items: center;
-    font-size: 11px
+    font-size: 12px
 }
 
 .form-stepper li:not(:last-child):after {
@@ -1864,13 +1916,13 @@ tbody tr:hover {
     place-items: center;
     border-radius: 9px;
     border: 1px solid var(--border);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     background: var(--surface)
 }
 
 .form-stepper li strong {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400
 }
 
@@ -1895,7 +1947,7 @@ tbody tr:hover {
 }
 
 .policy-list {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     padding-left: 18px;
     line-height: 1.9;
@@ -1924,7 +1976,7 @@ tbody tr:hover {
 }
 
 .upload-box p {
-    font-size: 11px;
+    font-size: 12px;
     margin: 13px 0 10px
 }
 
@@ -1932,7 +1984,7 @@ tbody tr:hover {
     border: 0;
     padding: 6px;
     min-height: 35px;
-    font-size: 11px;
+    font-size: 12px;
     width: 100%;
     overflow: hidden;
     background: transparent
@@ -1957,7 +2009,7 @@ tbody tr:hover {
 .file-info {
     flex: 1;
     min-width: 110px;
-    font-size: 11px;
+    font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap
@@ -1973,7 +2025,7 @@ tbody tr:hover {
 
 .file-info small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 4px
 }
 
@@ -2020,7 +2072,7 @@ tbody tr:hover {
 
 .person small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 4px
 }
 
@@ -2032,7 +2084,7 @@ tbody tr:hover {
 }
 
 .detail-grid dt {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--subtle);
     margin-bottom: 6px
 }
@@ -2092,12 +2144,12 @@ tbody tr:hover {
 
 .timeline small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 4px
 }
 
 .timeline p {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin-top: 9px;
     white-space: pre-wrap;
@@ -2218,7 +2270,7 @@ tbody tr:hover {
 }
 
 .quota-ring small {
-    font-size: 11px
+    font-size: 12px
 }
 
 .meter {
@@ -2265,7 +2317,7 @@ tbody tr:hover {
     border-top: 1px solid var(--border);
     padding-top: 15px;
     margin-top: 18px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted)
 }
 
@@ -2279,7 +2331,7 @@ tbody tr:hover {
 }
 
 .list-count {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin: 23px 0 13px
 }
@@ -2294,7 +2346,7 @@ tbody tr:hover {
     background: var(--sky);
     color: var(--sky-ink);
     padding: 5px 10px;
-    font-size: 11px
+    font-size: 12px
 }
 
 .work-badge.leave {
@@ -2321,7 +2373,7 @@ tbody tr:hover {
 .calendar-controls select {
     width: 180px;
     min-height: 37px;
-    font-size: 11px;
+    font-size: 12px;
     padding: 8px 10px;
     background: var(--surface-soft)
 }
@@ -2330,7 +2382,7 @@ tbody tr:hover {
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 11px;
+    font-size: 12px;
     cursor: pointer
 }
 
@@ -2360,7 +2412,7 @@ tbody tr:hover {
     background: var(--surface);
     min-height: 114px;
     padding: 10px;
-    font-size: 11px;
+    font-size: 12px;
     min-width: 0
 }
 
@@ -2370,7 +2422,7 @@ tbody tr:hover {
     color: var(--muted);
     min-height: 0;
     padding: 13px 7px;
-    font-size: 11px
+    font-size: 12px
 }
 
 .calendar-day.empty {
@@ -2383,7 +2435,7 @@ tbody tr:hover {
     justify-content: center;
     width: 24px;
     height: 24px;
-    font-size: 11px
+    font-size: 12px
 }
 
 .calendar-day.today>.day-number {
@@ -2394,7 +2446,7 @@ tbody tr:hover {
 
 .calendar-event {
     display: block;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1.5;
     padding: 5px 7px;
     border-radius: 5px;
@@ -2414,12 +2466,14 @@ tbody tr:hover {
 }
 
 .calendar-event:hover {
-    opacity: .8
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    box-shadow: inset 0 0 0 1px currentColor
 }
 
 .holiday-label {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--red);
     line-height: 1.6;
     margin-top: 5px
@@ -2429,7 +2483,7 @@ tbody tr:hover {
     display: flex;
     flex-wrap: wrap;
     gap: 22px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin-top: 19px
 }
@@ -2491,7 +2545,7 @@ tbody tr:hover {
 
 .notification small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 6px
 }
 
@@ -2521,7 +2575,7 @@ tbody tr:hover {
 
 .case-row span {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     margin-top: 6px
 }
@@ -2556,7 +2610,7 @@ tbody tr:hover {
     justify-content: space-between;
     gap: 12px;
     padding: 12px 0;
-    font-size: 11px
+    font-size: 12px
 }
 
 .holiday-list small {
@@ -2634,7 +2688,7 @@ tbody tr:hover {
     min-width: 0;
     padding: 3px 1px;
     min-height: 31px;
-    font-size: 11px;
+    font-size: 12px;
     border: 0;
     background: var(--surface);
     box-shadow: none
@@ -2652,7 +2706,7 @@ tbody tr:hover {
 }
 
 .picker-grid>span {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--subtle);
     padding: 5px 0
 }
@@ -2690,7 +2744,7 @@ tbody tr:hover {
     background: transparent;
     border: 0;
     color: var(--primary);
-    font-size: 11px;
+    font-size: 12px;
     padding: 3px 7px
 }
 
@@ -2699,7 +2753,7 @@ tbody tr:hover {
     position: fixed;
     inset: 0;
     z-index: 50;
-    background: #102c235c;
+    background: var(--scrim);
     backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
@@ -2800,7 +2854,7 @@ tbody tr:hover {
 
 .command-results>small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 1px;
     margin: 12px 7px 5px;
     color: var(--subtle)
@@ -2829,11 +2883,11 @@ tbody tr:hover {
 
 .command-results>a strong {
     font-family: Consolas, monospace;
-    font-size: 11px
+    font-size: 12px
 }
 
 .command-results>a>div>span {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted)
 }
 
@@ -2842,7 +2896,7 @@ tbody tr:hover {
     padding-top: 13px;
     margin-top: 17px;
     color: var(--subtle);
-    font-size: 11px
+    font-size: 12px
 }
 
 .command-hint kbd {
@@ -2886,6 +2940,7 @@ tbody tr:hover {
     display: flex;
     flex-direction: column;
     background: var(--hero);
+    background-image: linear-gradient(145deg, var(--hero), var(--hero-glow));
     border-radius: 24px;
     padding: 32px 49px 29px;
     overflow: hidden
@@ -2907,8 +2962,8 @@ tbody tr:hover {
     place-items: center;
     width: 38px;
     height: 41px;
-    background: #c3e99e;
-    color: #173a2c;
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-ink);
     border-radius: 12px
 }
 
@@ -2919,7 +2974,7 @@ tbody tr:hover {
 
 .intro-brand .brand-dot {
     margin-left: -10px;
-    color: #6b915d
+    color: var(--primary)
 }
 
 .login-story {
@@ -2932,7 +2987,7 @@ tbody tr:hover {
     display: flex;
     gap: 9px;
     align-items: center;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 1.7px;
     font-weight: 500;
     color: var(--hero-muted)
@@ -2949,13 +3004,13 @@ tbody tr:hover {
 }
 
 .login-story h1>span:not(.story-star) {
-    color: #5c9161
+    color: var(--primary)
 }
 
 .story-star {
     position: absolute;
     font-size: 44px;
-    color: #89aa6b;
+    color: var(--primary);
     margin-left: 8px;
     transform: rotate(15deg)
 }
@@ -2983,17 +3038,22 @@ tbody tr:hover {
     left: -3%
 }
 
+:root[data-theme='dark'] .welcome-art>img,
+:root[data-theme='dark'] .login-illustration>img {
+    filter: brightness(.78) saturate(.62)
+}
+
 .floating-feature {
     position: absolute;
     display: flex;
     align-items: center;
     gap: 9px;
     border: 1px solid color-mix(in srgb, var(--hero-ink) 7%, transparent);
-    background: color-mix(in srgb, var(--surface) 91%, transparent);
+    background: var(--surface);
     backdrop-filter: blur(8px);
     padding: 12px 14px;
     border-radius: 12px;
-    box-shadow: 0 6px 22px #365d3820;
+    box-shadow: var(--shadow);
     z-index: 1
 }
 
@@ -3009,13 +3069,13 @@ tbody tr:hover {
 
 .floating-feature strong {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500
 }
 
 .floating-feature small {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 2px
 }
 
@@ -3044,7 +3104,7 @@ tbody tr:hover {
     padding-top: 22px;
     margin-top: 10px;
     color: var(--hero-muted);
-    font-size: 11px
+    font-size: 12px
 }
 
 .login-benefits>span {
@@ -3066,7 +3126,7 @@ tbody tr:hover {
     justify-content: space-between;
     align-items: center;
     color: var(--subtle);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 1.6px;
     margin-bottom: 38px
 }
@@ -3078,7 +3138,7 @@ tbody tr:hover {
 }
 
 .login-kicker {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
     display: flex;
     gap: 7px;
@@ -3095,7 +3155,7 @@ tbody tr:hover {
 
 .login-card h2>span {
     font-size: 21px;
-    color: #9bb580
+    color: var(--primary)
 }
 
 .login-card>p {
@@ -3105,7 +3165,7 @@ tbody tr:hover {
 }
 
 .demo-label {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--subtle);
     margin-top: 29px
 }
@@ -3128,7 +3188,7 @@ tbody tr:hover {
     background: var(--surface);
     padding: 13px;
     border-radius: 13px;
-    font-size: 11px;
+    font-size: 12px;
     transition: background .15s, border-color .15s
 }
 
@@ -3139,11 +3199,11 @@ tbody tr:hover {
 
 .demo-accounts strong {
     font-weight: 500;
-    font-size: 11px
+    font-size: 13px
 }
 
 .demo-accounts small {
-    font-size: 11px
+    font-size: 12px
 }
 
 .demo-accounts>button.selected {
@@ -3211,14 +3271,14 @@ tbody tr:hover {
 }
 
 .login-note strong {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--muted)
 }
 
 .login-note p {
     color: var(--subtle);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.8;
     margin-top: 4px
 }
@@ -3228,14 +3288,14 @@ tbody tr:hover {
     color: var(--muted);
     border-radius: 4px;
     padding: 2px 5px;
-    font-size: 11px
+    font-size: 12px
 }
 
 .login-bottom {
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--subtle);
     margin-top: 45px;
     padding-top: 15px;
@@ -3357,7 +3417,7 @@ tbody tr:hover {
     }
 
     .hero-date {
-        font-size: 11px
+        font-size: 12px
     }
 
     .dashboard-grid {
@@ -3380,7 +3440,7 @@ tbody tr:hover {
     }
 
     .stat-head {
-        font-size: 11px
+        font-size: 13px
     }
 
     .work-stat {
@@ -3392,7 +3452,7 @@ tbody tr:hover {
     }
 
     .stat>p {
-        font-size: 11px
+        font-size: 13px
     }
 
     .card-body {
@@ -3446,7 +3506,7 @@ tbody tr:hover {
     }
 
     .login-benefits {
-        font-size: 11px
+        font-size: 12px
     }
 
     .floating-feature {
@@ -3507,11 +3567,11 @@ tbody tr:hover {
     }
 
     .stat-head {
-        font-size: 11px
+        font-size: 13px
     }
 
     .stat>p {
-        font-size: 11px
+        font-size: 13px
     }
 
     .stat-value {
@@ -3582,7 +3642,7 @@ tbody tr:hover {
     }
 
     .quota-grid .key-row {
-        font-size: 11px
+        font-size: 12px
     }
 
     .quota-ring {
@@ -3622,11 +3682,11 @@ tbody tr:hover {
     }
 
     .floating-feature strong {
-        font-size: 11px
+        font-size: 12px
     }
 
     .floating-feature small {
-        font-size: 11px
+        font-size: 12px
     }
 
     .floating-feature>span {
@@ -3714,14 +3774,14 @@ tbody tr:hover {
         position: absolute;
         right: 17px;
         top: 24px;
-        font-size: 11px;
+        font-size: 12px;
         max-width: 100px;
         gap: 5px;
         padding: 7px
     }
 
     .sidebar .nav-link {
-        font-size: 11px
+        font-size: 12px
     }
 
     .topbar {
@@ -3737,7 +3797,7 @@ tbody tr:hover {
 
     .topbar-title {
         gap: 7px;
-        font-size: 11px
+        font-size: 12px
     }
 
     .mobile-toggle {
@@ -3755,11 +3815,11 @@ tbody tr:hover {
 
     .mode-bar {
         padding: 13px 20px 3px;
-        font-size: 11px
+        font-size: 12px
     }
 
     .mode-bar>span:last-child {
-        font-size: 11px
+        font-size: 12px
     }
 
     .topbar-actions>.icon-btn[aria-label='รีเฟรชข้อมูล'] {
@@ -3772,7 +3832,7 @@ tbody tr:hover {
 
     .app-body>footer {
         padding: 0 20px 21px;
-        font-size: 11px
+        font-size: 12px
     }
 
     .app-body>footer>span:last-child {
@@ -3795,12 +3855,12 @@ tbody tr:hover {
     }
 
     .welcome-copy>p {
-        font-size: 11px;
+        font-size: 13px;
         max-width: 220px
     }
 
     .hero-eyebrow {
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: 1px
     }
 
@@ -3818,7 +3878,7 @@ tbody tr:hover {
     }
 
     .art-note {
-        font-size: 11px;
+        font-size: 12px;
         left: -5%;
         bottom: 22px;
         padding: 5px 8px
@@ -3913,7 +3973,7 @@ tbody tr:hover {
     }
 
     .form-stepper li strong {
-        font-size: 11px
+        font-size: 12px
     }
 
     .form-stepper li {
@@ -3945,7 +4005,7 @@ tbody tr:hover {
     }
 
     .login-story .eyebrow {
-        font-size: 11px
+        font-size: 12px
     }
 
     .login-story h1 {
@@ -3966,7 +4026,7 @@ tbody tr:hover {
     }
 
     .login-story>p {
-        font-size: 11px;
+        font-size: 12px;
         margin-top: 12px;
         max-width: 260px
     }
@@ -3994,7 +4054,7 @@ tbody tr:hover {
     .login-benefits {
         padding-top: 19px;
         margin-top: 23px;
-        font-size: 11px;
+        font-size: 12px;
         gap: 15px
     }
 
@@ -4016,7 +4076,7 @@ tbody tr:hover {
 
     .login-bottom {
         margin-top: 30px;
-        font-size: 11px
+        font-size: 12px
     }
 
     .login-note {
@@ -4040,7 +4100,7 @@ tbody tr:hover {
     }
 
     .welcome-copy>p {
-        font-size: 11px;
+        font-size: 13px;
         max-width: 175px
     }
 
@@ -4069,13 +4129,13 @@ tbody tr:hover {
     }
 
     .welcome-copy .hero-eyebrow {
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: .8px
     }
 
     .welcome-copy .hero-actions .btn {
         min-height: 39px;
-        font-size: 11px;
+        font-size: 12px;
         gap: 6px;
         padding: 9px 11px
     }
@@ -4089,11 +4149,11 @@ tbody tr:hover {
     }
 
     .dashboard-section-label {
-        font-size: 11px
+        font-size: 12px
     }
 
     .dashboard-section-label>span:last-child {
-        font-size: 11px
+        font-size: 12px
     }
 
     .stat {
@@ -4102,7 +4162,7 @@ tbody tr:hover {
     }
 
     .stat-head {
-        font-size: 11px;
+        font-size: 13px;
         gap: 5px
     }
 
@@ -4122,12 +4182,12 @@ tbody tr:hover {
     }
 
     .stat-value small {
-        font-size: 11px;
+        font-size: 12px;
         margin-left: 5px
     }
 
     .stat>p {
-        font-size: 11px;
+        font-size: 13px;
         line-height: 1.7;
         max-width: 135px
     }
@@ -4168,11 +4228,11 @@ tbody tr:hover {
 
     .weekly-overview .section-eyebrow {
         margin: 0;
-        font-size: 11px
+        font-size: 12px
     }
 
     .weekly-overview>div:first-child strong {
-        font-size: 11px
+        font-size: 12px
     }
 
     .week-strip {
@@ -4189,7 +4249,7 @@ tbody tr:hover {
         justify-content: flex-end;
         gap: 6px;
         margin-top: 12px;
-        font-size: 11px
+        font-size: 12px
     }
 
     .week-caption>i {
@@ -4205,11 +4265,11 @@ tbody tr:hover {
     }
 
     .dashboard-tips strong {
-        font-size: 11px
+        font-size: 12px
     }
 
     .dashboard-tips p {
-        font-size: 11px;
+        font-size: 12px;
         line-height: 1.8
     }
 
@@ -4244,7 +4304,7 @@ tbody tr:hover {
     }
 
     .card-head .text-link {
-        font-size: 11px
+        font-size: 12px
     }
 
     .form-grid,
@@ -4280,11 +4340,11 @@ tbody tr:hover {
     }
 
     .page-heading p {
-        font-size: 11px
+        font-size: 12px
     }
 
     .page-heading>.btn {
-        font-size: 11px
+        font-size: 12px
     }
 
     .notification {
@@ -4298,7 +4358,7 @@ tbody tr:hover {
     }
 
     .notification p {
-        font-size: 11px
+        font-size: 12px
     }
 
     .detail-grid {
@@ -4358,11 +4418,11 @@ tbody tr:hover {
         width: 23px;
         height: 23px;
         border-radius: 7px;
-        font-size: 11px
+        font-size: 12px
     }
 
     .form-stepper li strong {
-        font-size: 11px
+        font-size: 12px
     }
 
     .form-stepper li {
@@ -4420,14 +4480,14 @@ tbody tr:hover {
     }
 
     .login-story>p {
-        font-size: 11px;
+        font-size: 12px;
         max-width: 205px;
         position: relative;
         z-index: 1
     }
 
     .login-story .eyebrow {
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: 1.2px;
         position: relative;
         z-index: 1
@@ -4435,7 +4495,7 @@ tbody tr:hover {
 
     .login-benefits {
         gap: 12px;
-        font-size: 11px
+        font-size: 12px
     }
 
     .login-benefits svg {
@@ -4451,7 +4511,7 @@ tbody tr:hover {
     }
 
     .login-card>p {
-        font-size: 11px
+        font-size: 12px
     }
 
     .demo-accounts {
@@ -4463,17 +4523,17 @@ tbody tr:hover {
     }
 
     .demo-accounts strong {
-        font-size: 11px
+        font-size: 13px
     }
 
     .login-topline {
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: 1.2px;
         margin-bottom: 25px
     }
 
     .login-bottom {
-        font-size: 11px;
+        font-size: 12px;
         gap: 12px
     }
 
@@ -4529,6 +4589,7 @@ tbody tr:hover {
 
 /* Phone layout: navigation overlays the page, and lists keep every field visible. */
 @media(max-width:760px) {
+
     .app-shell,
     .login-page {
         min-height: 100dvh
@@ -4558,7 +4619,7 @@ tbody tr:hover {
         inset: 0;
         z-index: 45;
         border: 0;
-        background: #071a14a6;
+        background: var(--scrim);
         touch-action: none
     }
 
@@ -4585,7 +4646,7 @@ tbody tr:hover {
 
     .sidebar .nav-link {
         min-height: 46px;
-        font-size: 13px
+        font-size: 14px
     }
 
     .sidebar-person {
@@ -4945,15 +5006,376 @@ tbody tr:hover {
     }
 }
 
+.hr-contact {
+    display: grid;
+    gap: 6px;
+    margin-top: 10px;
+    overflow-wrap: anywhere
+}
+
+.hr-contact a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 3px
+}
+
+/* Short, purposeful motion: containers only fade, so fixed pickers stay anchored. */
+:root {
+    --motion-ease: cubic-bezier(.22, 1, .36, 1);
+    transition: background-color .16s ease, color .16s ease
+}
+
+.app-shell {
+    animation: fade-in .32s ease-out
+}
+
+.sidebar,
+.card,
+.login-panel,
+.login-intro {
+    transition: background-color .16s ease, border-color .16s ease
+}
+
+.login-card {
+    animation: content-reveal .36s var(--motion-ease) backwards
+}
+
+.login-illustration>.floating-feature {
+    animation: content-reveal .42s var(--motion-ease) .08s backwards
+}
+
+.login-illustration>.feature-balance {
+    animation-delay: .15s
+}
+
+.demo-accounts>button {
+    transition: background-color .16s ease, border-color .16s ease, transform .16s var(--motion-ease)
+}
+
+.demo-accounts>button:active:not(:disabled) {
+    transform: scale(.97)
+}
+
+.account-check {
+    animation: state-pop .22s var(--motion-ease) backwards
+}
+
+.icon-btn,
+.header-search,
+.nav-link,
+.logout {
+    transition: background-color .16s ease, color .16s ease, transform .16s var(--motion-ease)
+}
+
+.icon-btn:active:not(:disabled),
+.header-search:active,
+.nav-link:active,
+.logout:active {
+    transform: scale(.97)
+}
+
+.login-submit {
+    transition: background-color .16s ease, border-color .16s ease, transform .16s var(--motion-ease), box-shadow .16s ease
+}
+
+.login-submit>svg:not(.button-spinner) {
+    transition: transform .18s var(--motion-ease)
+}
+
+.login-submit.is-busy {
+    opacity: 1;
+    cursor: progress
+}
+
+.button-spinner {
+    flex-shrink: 0;
+    animation: spinner-turn .9s linear infinite
+}
+
+.dashboard-page>.welcome-hero,
+.dashboard-page>.stats>.stat,
+.dashboard-main>.card,
+.dashboard-main>.weekly-overview,
+.dashboard-main>.dashboard-tips,
+.dashboard-side>.card {
+    animation: content-reveal .26s var(--motion-ease) backwards
+}
+
+.dashboard-page>.stats>.stat:nth-child(2) {
+    animation-delay: .035s
+}
+
+.dashboard-page>.stats>.stat:nth-child(3) {
+    animation-delay: .07s
+}
+
+.dashboard-page>.stats>.stat:nth-child(4) {
+    animation-delay: .105s
+}
+
+.dashboard-main>.card,
+.dashboard-side>.card:first-child {
+    animation-delay: .07s
+}
+
+.dashboard-main>.weekly-overview,
+.dashboard-side>.card:nth-child(2) {
+    animation-delay: .105s
+}
+
+.dashboard-main>.dashboard-tips {
+    animation-delay: .14s
+}
+
+.dialog {
+    animation: content-reveal .22s var(--motion-ease) backwards
+}
+
+.toast {
+    animation: content-reveal .25s var(--motion-ease) backwards
+}
+
+.entry-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+    background: var(--bg);
+    color: var(--ink);
+    text-align: center;
+    animation: fade-in .16s ease-out
+}
+
+.entry-transition>strong {
+    font-size: 22px;
+    line-height: 1.6
+}
+
+.entry-transition>p {
+    max-width: 320px;
+    font-size: 13px;
+    color: var(--muted)
+}
+
+.entry-orbit {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 112px;
+    height: 112px;
+    margin-bottom: 10px
+}
+
+.entry-orbit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid color-mix(in srgb, var(--primary) 14%, transparent);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spinner-turn 1.4s linear infinite
+}
+
+.entry-brand {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    border: 1px solid color-mix(in srgb, var(--primary) 15%, var(--border));
+    border-radius: 24px;
+    background: var(--soft);
+    color: var(--primary)
+}
+
+.entry-brand>svg {
+    width: 46px;
+    height: 46px
+}
+
+.entry-state-icon {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--bg);
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--on-primary)
+}
+
+.entry-state-icon>svg {
+    width: 16px;
+    height: 16px
+}
+
+.phase-checking .entry-state-icon>svg {
+    animation: spinner-turn .9s linear infinite
+}
+
+.entry-dots {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 18px;
+    margin-top: 6px
+}
+
+.entry-dots>i {
+    width: 5px;
+    height: 5px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: entry-dot 1s ease-in-out infinite
+}
+
+.entry-dots>i:nth-child(2) {
+    animation-delay: .13s
+}
+
+.entry-dots>i:nth-child(3) {
+    animation-delay: .26s
+}
+
+.phase-ready .entry-orbit::before,
+.phase-leaving .entry-orbit::before {
+    animation: none;
+    border-color: color-mix(in srgb, var(--primary) 28%, transparent)
+}
+
+.phase-ready .entry-state-icon {
+    animation: state-pop .28s var(--motion-ease) backwards
+}
+
+.phase-ready .entry-dots>i,
+.phase-leaving .entry-dots>i {
+    animation: none
+}
+
+.entry-transition.phase-leaving {
+    animation: fade-out .2s ease-in forwards;
+    pointer-events: none
+}
+
+@media(hover:hover) {
+    .demo-accounts>button:hover:not(:disabled) {
+        border-color: var(--primary);
+        transform: translateY(-2px)
+    }
+
+    .login-submit:hover:not(:disabled)>svg:not(.button-spinner) {
+        transform: translateX(3px)
+    }
+}
+
+@media(max-width:760px) {
+    .sidebar.mobile-open {
+        animation: drawer-in .22s var(--motion-ease) backwards
+    }
+
+    .sidebar.mobile-closing {
+        display: flex;
+        animation: drawer-out .18s ease-in forwards;
+        pointer-events: none
+    }
+
+    .mobile-menu-backdrop {
+        animation: fade-in .18s ease-out
+    }
+
+    .mobile-menu-backdrop.is-closing {
+        animation: fade-out .18s ease-in forwards;
+        pointer-events: none
+    }
+
+    .entry-transition>strong {
+        font-size: 20px
+    }
+}
+
 @keyframes page-enter {
     from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+@keyframes content-reveal {
+    from {
         opacity: 0;
-        transform: translateY(6px)
+        transform: translateY(8px)
     }
 
     to {
         opacity: 1;
         transform: translateY(0)
+    }
+}
+
+@keyframes state-pop {
+    from {
+        opacity: 0;
+        transform: scale(.7)
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1)
+    }
+}
+
+@keyframes spinner-turn {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes entry-dot {
+
+    0%,
+    80%,
+    100% {
+        opacity: .4;
+        transform: translateY(0)
+    }
+
+    40% {
+        opacity: 1;
+        transform: translateY(-3px)
+    }
+}
+
+@keyframes drawer-in {
+    from {
+        opacity: .5;
+        transform: translateX(calc(-100% - 24px))
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0)
+    }
+}
+
+@keyframes drawer-out {
+    from {
+        opacity: 1;
+        transform: translateX(0)
+    }
+
+    to {
+        opacity: .5;
+        transform: translateX(calc(-100% - 24px))
     }
 }
 
@@ -4967,6 +5389,16 @@ tbody tr:hover {
     }
 }
 
+@keyframes fade-out {
+    from {
+        opacity: 1
+    }
+
+    to {
+        opacity: 0
+    }
+}
+
 @media(prefers-reduced-motion:reduce) {
 
     *,
@@ -4977,7 +5409,15 @@ tbody tr:hover {
         scroll-behavior: auto !important
     }
 
-    .stat:hover {
+    .stat:hover,
+    .demo-accounts>button:hover:not(:disabled),
+    .demo-accounts>button:active:not(:disabled),
+    .icon-btn:active:not(:disabled),
+    .header-search:active,
+    .nav-link:active,
+    .logout:active,
+    .btn:active:not(:disabled),
+    .login-submit:hover:not(:disabled)>svg:not(.button-spinner) {
         transform: none
     }
 }

@@ -1,8 +1,9 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowUpRight, LogOut, Sparkles, Users, X } from 'lucide-react';
 import type { Employee } from './domain/types';
 import { roleLabels } from './components';
 import { Avatar, BrandMark } from './ui';
+import { ENTRY_TIMING, motionDelay, prefersReducedMotion } from './motion';
 
 export interface WorkspaceMenu { path: string; label: string; icon: ReactNode }
 
@@ -17,6 +18,24 @@ export function WorkspaceNavigation({ actor, menus, unread, route, open, onClose
 }) {
     const panel = useRef<HTMLElement>(null);
     const closeButton = useRef<HTMLButtonElement>(null);
+    const [closing, setClosing] = useState(false);
+    const wasOpen = useRef(open);
+    useEffect(() => {
+        const viewport = window.matchMedia?.('(max-width: 760px)');
+        if (!viewport) return;
+        const restoreOnDesktop = () => { if (!viewport.matches) setClosing(false) };
+        viewport.addEventListener('change', restoreOnDesktop);
+        return () => viewport.removeEventListener('change', restoreOnDesktop);
+    }, []);
+    useLayoutEffect(() => {
+        const shouldAnimate = !open && wasOpen.current && window.matchMedia?.('(max-width: 760px)').matches && !prefersReducedMotion();
+        wasOpen.current = open;
+        if (!shouldAnimate) { setClosing(false); return }
+        const controller = new AbortController();
+        setClosing(true);
+        void motionDelay(ENTRY_TIMING.menuClose, controller.signal).then(completed => { if (completed) setClosing(false) });
+        return () => controller.abort();
+    }, [open]);
     useEffect(() => {
         if (!open) return;
         const previousFocus = document.activeElement as HTMLElement | null;
@@ -30,8 +49,8 @@ export function WorkspaceNavigation({ actor, menus, unread, route, open, onClose
     }, [open]);
 
     return <>
-        {open && <button type="button" className="mobile-menu-backdrop" tabIndex={-1} aria-label="ปิดเมนูพื้นที่ทำงาน" onClick={onClose} />}
-        <aside id="workspace-navigation" className={'sidebar ' + (open ? 'mobile-open' : '')} ref={panel}
+        {(open || closing) && <button type="button" className={'mobile-menu-backdrop' + (closing ? ' is-closing' : '')} tabIndex={-1} aria-hidden={closing || undefined} disabled={closing} aria-label="ปิดเมนูพื้นที่ทำงาน" onClick={onClose} />}
+        <aside id="workspace-navigation" className={'sidebar ' + (open ? 'mobile-open' : closing ? 'mobile-closing' : '')} ref={panel} inert={closing} aria-hidden={closing || undefined}
             role={open ? 'dialog' : undefined} aria-modal={open ? true : undefined} aria-label="เมนูพื้นที่ทำงาน"
             onKeyDown={event => {
                 if (!open) return;
