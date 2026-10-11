@@ -29,6 +29,8 @@ npm run dev:cloud
 
 บน Vercel ใช้ `api/go.go` และ rewrite ใน `vercel.json` ซึ่งชี้ `/api/*` ไป Go function ใช้ PostgreSQL เท่านั้น ค่า environment เดิมยังใช้ได้ และตรวจ TLS certificate ตามเดิม `POSTGRES_LOCAL=true` ยอมปิด TLS ได้เฉพาะฐาน loopback ที่ไม่ได้รันบน Vercel เพื่อทดสอบในเครื่อง ห้ามใช้กับฐาน cloud
 
+`api/go.go` เรียก public package `serverless/handler.go` ซึ่งเริ่ม cloud handler จาก `internal/app` อีกที ต้องไม่ import `leave-management/internal/...` โดยตรงจากไฟล์ API เพราะ [ตัว build ของ Vercel](https://github.com/vercel/vercel/blob/main/packages/go/src/index.ts) เขียน module wrapper ตามชื่อ package ของ handler ทำให้ Go ปฏิเสธการนำเข้า internal จากขอบเขตนั้น กฎ สิทธิ์และ repository ยังคงอยู่ใน `internal/` เดิม
+
 รอบนี้เตรียมโค้ดและ config สำหรับ deploy แต่ยังไม่ได้เผยแพร่ไป Vercel หรือทำรายการกับ Supabase ที่ใช้อยู่ หากต้องการกลับ Node ชั่วคราวต้องเปลี่ยน config อย่างชัดเจน ไม่มีการสลับ backend หรือรีเซ็ตข้อมูลเอง
 
 ## โครงสร้างที่ควรเริ่มอ่าน
@@ -46,6 +48,7 @@ npm run dev:cloud
 | `internal/service/scope.go` | จำกัดข้อมูลตามสิทธิ์และคำนวณโควตา | Authorization / calculation |
 | `internal/repository/` | Transaction และอ่าน/เขียน JSON หรือ PostgreSQL | Repository |
 | `api/go.go` | ใช้ Handler เดียวกันบน Vercel | Deployment entrypoint |
+| `serverless/handler.go` | เริ่ม cloud handler ครั้งเดียวผ่าน public package | จุดเชื่อม Vercel กับ internal application |
 | `docs/openapi.yaml` | สัญญา API ที่ frontend ใช้ | OpenAPI |
 
 ตัวอย่างเมื่อกด **ยื่นคำขอลา**:
@@ -65,6 +68,7 @@ npm test
 npm run typecheck
 npm run build
 npm run test:go
+npm run test:go:vercel
 npm run vet:go
 npm run test:parity
 npm run test:go:postgres
@@ -72,6 +76,8 @@ npm run build:go
 ```
 
 Go tests ใช้ `testing` และ `httptest` ตามมาตรฐาน Go เทียบกับ JavaScript domain ผ่าน test-only stdin/stdout bridge โดยไม่ทำสำเนาข้อมูล seed อีกชุด PostgreSQL integration ใช้ PGlite ผ่าน PostgreSQL wire protocol ใน memory สร้าง schema ในฐานทดสอบใหม่ทุกครั้ง ไม่อ่าน `.env` และไม่แตะ Supabase จริง GitHub Actions รันตรวจทั้งสองฝั่ง
+
+`test:go:vercel` จำลองการเขียน module wrapper และเปลี่ยนชื่อ Handler ของ `@vercel/go` ในโฟลเดอร์ชั่วคราว ตรวจว่า fixture ที่ import internal โดยตรงเกิด `use of internal package ... not allowed` ตาม log ก่อน แล้วตรวจว่า entrypoint ปัจจุบัน compile เป็น Linux/amd64 ได้ เพื่อให้แน่ใจว่าชุดทดสอบจับข้อผิดพลาดนี้ได้ การ build Go ปกติไม่พบปัญหานี้ ไม่คัดลอก `.env` หรือฐาน runtime และไม่เชื่อม Supabase การตรวจนี้ตรวจการ compile ของ wrapper ไม่ใช่การ deploy หรือทดสอบ Lambda บน Vercel จริง
 
 ผลตรวจในเครื่อง 11/10/2569: ชุดทดสอบเดิม 174 รายการ, Go tests, vet, typecheck, build ทั้ง frontend/Go, format และ data:check ผ่าน ตรวจเทียบ Go/TypeScript ผ่าน 94 กรณี และ PostgreSQL integration ผ่าน OpenAPI ผ่านการตรวจ schema และ references ตรวจ Edge headless 122 สถานะ ครอบคลุมสามบทบาท สองธีม และจอ 390/1440px โดยข้อความ/โครงสร้างหน้าจอตรงกับเดิม ภาพ 114 ภาพตรงทุกพิกเซล อีก 8 ภาพต่างเฉพาะจุดเล็กน้อยไม่เกิน 0.028% ของพิกเซลและค่าสีต่างสูงสุด 4/255 ทดสอบยื่นลาพร้อม PDF บนมือถือ แก้ไข อนุมัติจากเซสชันผู้จัดการ ดาวน์โหลดเอกสารเดิม และตรวจสถานะผ่าน HR สำเร็จ ไม่พบ page error การตรวจทั้งหมดใช้ฐานทดสอบแยก ยังไม่ได้ตรวจ deployment Go บน Vercel
 

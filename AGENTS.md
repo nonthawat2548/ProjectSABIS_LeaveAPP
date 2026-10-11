@@ -12,6 +12,8 @@
 
 ## ภาพรวมและเทคโนโลยี
 
+- แก้ Vercel build 11/10/2569: `api/go.go` ต้องเรียก public package `leave-management/serverless` ไม่ import `leave-management/internal/...` โดยตรง เพราะ @vercel/go สร้าง module wrapper ต่างขอบเขต `serverless/handler.go` เริ่ม `internal/app.NewCloud` ครั้งเดียวและบังคับ PostgreSQL ตามเดิม รักษากฎ/สิทธิ์/transaction ใน internal เพิ่ม `npm run test:go:vercel` จำลอง module rewrite/handler rename และ compile Linux/amd64 ในโฟลเดอร์ชั่วคราวโดยไม่อ่าน .env/ฐานจริง; CI ต้องรันเพิ่มจาก Go build ปกติ เมื่อ deploy ต้องรวมไฟล์ใหม่ใน serverless/ ด้วย
+
 - ตามคำขอย้าย frontend ให้ตรงกับที่เรียน 11/10/2569: runtime ใน `src/` ใช้ React + JavaScript (`.jsx`/`.js`) + Vite; `src/routes.jsx` ใช้ React Router แบบ HashRouter เพื่อรักษา URL `#/...` และ back/forward/deep link เดิม ห้ามเชื่อ role จากหมวด Login หรือการซ่อน route เป็นการตรวจสิทธิ์ ใช้ Tailwind theme/utilities สำหรับ layout ใน `src/tailwind.css` โดยไม่โหลด Preflight; สี ธีม animation และ responsive rules เดิมอยู่ `src/styles.css` หน้าตา ข้อความและขั้นตอนเว็บต้องคงเดิม เก็บ `.d.ts` เป็นสัญญาให้ tools/tests/Node legacy ไม่ใช่ runtime ซ้ำ ใช้ Jest + React Testing Library ใน `tests/ui/` และรักษาชุดทดสอบกฎ/repository/API เดิม `npm test` รันทั้งสองชุด; `npm run lint` ตรวจ JS/JSX ส่วน typecheck ตรวจ declarations/TypeScript ที่ยังใช้ ไม่ตรวจ JavaScript ทุกบรรทัด อ่าน `docs/FRONTEND.md` ก่อนเปลี่ยนโครงสร้าง frontend
 
 - ตามคำขอทดลองแนวที่เรียน 11/10/2569 Backend หลักเปลี่ยนเป็น Go + Gin ใน internal/httpapi/, internal/service/, internal/repository/ และ internal/model/ ใช้ cmd/server/main.go สำหรับ local และ api/go.go สำหรับ Vercel อ่าน docs/GO_BACKEND.md และ docs/openapi.yaml ก่อนแก้ backend หน้า React/ข้อความ/หน้าตาและ contract เดิมคงอยู่ npm run dev:api ใช้ Go JSON runtime แยกที่ server/data/leave-management-go.json; dev:cloud ใช้ PostgreSQL schema/session/upload เดิม ไม่ย้าย/รีเซ็ตฐานจริง ไม่มี fallback เมื่อ cloud ขัดข้อง โค้ด Node ใน server/*.ts เก็บสำหรับโหมด legacy และตรวจ parity ระหว่างย้าย JavaScript domain ยังใช้ preview/IndexedDB ต้องรักษากฎให้ตรงกับ Go ผ่าน npm run test:parity และตรวจ npm run test:go/test:go:postgres/vet:go/build:go เพิ่มจาก checks เดิม วันที่ เพศ โควตา การตรวจ session/สิทธิ์ lock/delta และไฟล์ 25 MiB คงเดิม รหัส demo 1234 ยังเป็นนโยบายเดิม ไม่ได้เพิ่ม WebSocket หรือเปลี่ยนระบบยืนยันตัวตนจริงในรอบนี้ ใช้ gofmt กับไฟล์ Go และไม่แก้ go.mod/go.sum ด้วย formatter ฝั่ง JavaScript
@@ -69,6 +71,7 @@
 | `server/index.ts` | Mock REST API และ cookie session |
 | `server/store.ts` | อ่าน/เขียน JSON แบบ serialized และ atomic rename |
 | `api/go.go`, `internal/httpapi/` | Go + Gin PostgreSQL REST API บน Vercel ตรวจ session/สิทธิ์และส่งเอกสารเป็น parts |
+| `serverless/handler.go` | public cloud entrypoint เชื่อม module wrapper ของ Vercel กับ internal application |
 | `cmd/server/main.go`, `internal/app/` | เปิด Go server และประกอบ repository/handler |
 | `internal/model/`, `internal/service/`, `internal/repository/` | JSON structs, กฎการลา และ transaction ของ Go |
 | `server/referenceHandler.ts`, `server/cloudApi.ts` | Node reference/legacy และ parity/boot tests ระหว่างย้าย |
@@ -175,6 +178,7 @@ npm run typecheck
 npm run build
 npm run preview
 npm run test:go
+npm run test:go:vercel
 npm run vet:go
 npm run test:parity
 npm run test:go:postgres
@@ -184,6 +188,8 @@ npm run build:go
 `npm run dev` ไม่เปิด API server เอง หากเปิดสอง terminal ให้ตั้ง `VITE_DATA_MODE=api` แล้วใช้ `npm run go:server` ร่วมกับ `npm run dev` ดู proxy/port ใน `vite.config.js` และ README
 
 ## การตรวจสอบและรายงานผล
+
+- ตรวจ log Vercel 11/10/2569 ของ commit 2597f3a: frontend build ผ่าน แต่ Go API import internal โดยตรงและ compile ไม่ผ่าน ชุดแก้ในเครื่องใช้ public serverless entrypoint; test:go:vercel ตรวจซ้ำว่าแบบเดิมเกิด error เดียวกันและแบบแก้ compile Linux/amd64 ผ่าน รวม Go tests/vet และ frontend build/format ผ่าน การเผยแพร่ต้อง commit/push รวม serverless/ และ deploy commit ใหม่ ไม่ใช่ redeploy commit 2597f3a เดิม ยังไม่ได้เผยแพร่หรือแก้ฐานจริงในการตรวจนี้
 
 - รอบย้าย frontend 11/10/2569: runtime React JavaScript + React Router + Tailwind ผ่าน lint/typecheck/build/format; npm test 189 รายการ (เดิม 174 + Jest/RTL 15), Go tests/vet/build, parity Go/JavaScript 94 กรณี, PostgreSQL wire integration และ data:check ผ่าน ตรวจ Edge 122 สถานะสามบทบาทสองธีม 390/1440px ไม่พบ page error/horizontal overflow ขนาดภาพเดิมทุกภาพ และภาพต่างเพียงจุดเล็กน้อยไม่เกิน 0.033%/RGB 4 จาก 255 ทดสอบ deep link/reload/back/forward/เมนูมือถือ และ PDF–ยื่น–แก้ไข–ผู้จัดการอนุมัติ–ดาวน์โหลด–HR ตรวจสถานะผ่าน Go API สำเร็จ ใช้ฐานแยก ไม่แตะ Supabase จริง และยังไม่ได้ deploy ชุดนี้ ดู docs/FRONTEND.md
 

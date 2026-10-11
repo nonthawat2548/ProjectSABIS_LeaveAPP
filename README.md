@@ -188,6 +188,7 @@ internal/
   repository/             JSON / PostgreSQL และ transaction
   model/                  structs และ DTO ของ API
 api/go.go                 Go function สำหรับ Vercel
+serverless/handler.go      public entrypoint สำหรับตัวครอบ Go ของ Vercel
 server/                   Node เดิมสำหรับ dev:legacy และตรวจเทียบระหว่างย้าย
   index.ts                REST API ของโหมด legacy
   store.ts                JSON store ของโหมด legacy
@@ -214,6 +215,7 @@ npm run typecheck
 npm run build
 npm run preview
 npm run test:go
+npm run test:go:vercel
 npm run vet:go
 npm run test:parity
 npm run test:go:postgres

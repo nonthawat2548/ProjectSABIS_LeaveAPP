@@ -25,6 +25,7 @@ jobs:
         env:
           VERCEL: '1'
       - run: npm run test:go
+      - run: npm run test:go:vercel
       - run: npm run vet:go
       - run: npm run test:parity
       - run: npm run test:go:postgres

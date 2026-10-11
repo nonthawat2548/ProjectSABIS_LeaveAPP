@@ -1,5 +1,7 @@
 # ใช้ฐานกลาง Supabase สำหรับ Vercel
 
+จุดเชื่อม Go บน Vercel เรียกผ่าน `serverless/handler.go` เพื่อรักษาขอบเขต `internal/` เมื่อ Vercel สร้าง module wrapper ตรวจการ compile แบบนี้ด้วย `npm run test:go:vercel` หากแก้โค้ดในเครื่อง ต้อง commit/push รวมโฟลเดอร์ `serverless/` ก่อน deploy ใหม่ การ redeploy commit เดิมยังใช้โค้ดเดิม ไม่ต้องล้างฐานหรือเปลี่ยนค่าการเชื่อมต่อสำหรับการแก้นี้
+
 มี PostgreSQL API ด้วย Go + Gin ใน `api/go.go` แล้ว ใช้ React + Vite และ ApiRepository เดิม หลังตั้ง environment/migration และ deploy โค้ดใหม่ทุกเครื่องใช้ฐานกลาง โค้ด Node เดิมเก็บไว้เทียบในช่วงย้าย ดู [GO_BACKEND.md](GO_BACKEND.md) การเปลี่ยนภาษา backend ไม่ต้องรัน setup ซ้ำ ไม่ย้ายข้อมูลจากอุปกรณ์/JSON ขึ้น Supabase อัตโนมัติ
 
 ## นำเข้าฐานใหม่
