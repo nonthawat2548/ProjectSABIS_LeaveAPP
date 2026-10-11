@@ -3246,6 +3246,89 @@ tbody tr:hover {
   animation: page-enter 0.2s ease-out;
 }
 
+.toast-region {
+  position: fixed;
+  bottom: max(25px, env(safe-area-inset-bottom));
+  right: max(28px, env(safe-area-inset-right));
+  z-index: 60;
+  width: min(380px, calc(100% - 36px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast-region > .toast {
+  position: relative;
+  inset: auto;
+  align-self: flex-end;
+  max-width: 100%;
+  pointer-events: auto;
+}
+
+.notification-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-overlay);
+  pointer-events: auto;
+  animation: notification-reveal 0.18s ease-out;
+}
+
+.notification-toast-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--primary);
+}
+
+.notification-toast-copy {
+  min-width: 0;
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.notification-toast-copy strong {
+  font-weight: 600;
+}
+
+.notification-toast-copy p {
+  margin: 4px 0;
+  color: var(--muted);
+}
+
+.notification-toast-copy a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.notification-toast > .icon-btn {
+  flex-shrink: 0;
+  margin: -6px -6px 0 0;
+}
+
+@media (max-width: 760px) {
+  .toast-region {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    width: min(380px, calc(100% - 32px));
+  }
+}
+
 .toast-icon {
   width: 28px;
   height: 28px;

@@ -23,6 +23,7 @@ npm run dev:api
 | `src/App.jsx` | บัญชีที่เข้าสู่ระบบ โหลดข้อมูล และ layout หลัก |
 | `src/routes.jsx` | เส้นทางกับหน้าจอของแต่ละบทบาท |
 | `src/Login.jsx` | `useState`, event และการกรอกบัญชีทดลอง |
+| `src/NotificationToasts.jsx` | เทียบแจ้งเตือนใหม่ของบัญชี คิวป๊อปอัป 3 วินาที และ cleanup timer |
 | `src/pages/LeaveForm.jsx` | state ของฟอร์ม ตรวจข้อมูล และตรวจสอบก่อนส่ง |
 | `src/data/apiRepository.js` | `fetch`, JSON, cookie และการเรียก API |
 | `src/domain/service.js` | กฎที่ฟอร์มใช้ตรวจเบื้องต้น และโหมด IndexedDB |

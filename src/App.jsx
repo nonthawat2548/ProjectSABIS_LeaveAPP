@@ -28,6 +28,7 @@ import { WorkspaceNavigation } from './Navigation';
 import { EntryTransition } from './EntryTransition';
 import { ENTRY_TIMING, motionDelay } from './motion';
 import { NotificationPopover } from './NotificationPopover';
+import { NotificationToasts } from './NotificationToasts';
 import { Login } from './Login';
 import { ThemeButton } from './ThemeButton';
 
@@ -451,17 +452,27 @@ function Workspace() {
             <span>ข้อมูลและนโยบายตัวอย่าง</span>
           </footer>
         </div>
-        {toast && (
-          <div className="toast" role="status">
-            <span className="toast-icon">
-              <Check size={17} />
-            </span>
-            {toast}
-            <button onClick={() => setToast('')} aria-label="ปิดแจ้งเตือน">
-              <X size={15} />
-            </button>
-          </div>
-        )}
+        <div className="toast-region">
+          {toast && (
+            <div className="toast" role="status">
+              <span className="toast-icon">
+                <Check size={17} />
+              </span>
+              {toast}
+              <button onClick={() => setToast('')} aria-label="ปิดแจ้งเตือน">
+                <X size={15} />
+              </button>
+            </div>
+          )}
+          {entry?.action !== 'logout' && (
+            <NotificationToasts
+              key={actor.id + ':' + sessionVersion.current}
+              notifications={db.notifications}
+              employeeId={actor.id}
+              paused={mobile || commandOpen || !!entry}
+            />
+          )}
+        </div>
         {commandOpen && <CommandMenu menus={menus} db={db} onClose={() => setCommandOpen(false)} />}
       </div>
       {entry && <EntryTransition {...entry} />}

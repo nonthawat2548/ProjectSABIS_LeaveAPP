@@ -12,6 +12,8 @@
 
 ## ภาพรวมและเทคโนโลยี
 
+- ป๊อปอัปคำขอใหม่อยู่ใน `src/NotificationToasts.jsx` มุมขวาล่าง 3 วินาทีต่อรายการ เริ่มจาก snapshot แรกเป็น baseline ไม่เด้งประวัติเก่าตอน login ใช้เฉพาะบัญชีที่ยืนยันและแจ้งเตือน unread ที่มี leaveId กันซ้ำด้วย id+createdAt เพื่อรองรับล้างประวัติแล้วใช้ id ใหม่ ไม่แก้สถานะอ่านเมื่อแสดง/ปิด/เปิดคำขอ คิวและ timer ต้องหายเมื่อ logout/unmount และไม่ทับ toast ผลคำสั่งเดิม พักเมื่อ hover/focus/drawer/search/transition รองรับสองธีม จอเล็กและ Reduce Motion คง refresh API 15 วินาที/BroadcastChannel เดิม ไม่เพิ่ม WebSocket หรือขยายสิทธิ์ผู้รับ
+
 - Go PostgreSQL ใช้ pgx simple protocol และปิด statement/description cache เพื่อรองรับ Supabase Transaction pooler ให้ pgx จัดการพารามิเตอร์ ไม่ต่อค่าผู้ใช้เป็น SQL และรักษา TLS/transaction/lock เดิม `npm run test:go:postgres` ต้องตรวจทั้ง HTTP flow และจำลองการทิ้ง prepared statements ระหว่าง transaction โดยโหมดเดิมเกิด SQLSTATE 26000 และโหมดแอปผ่าน Logs บันทึกเฉพาะชนิด error/SQLSTATE/method/route ไม่บันทึก SQL ค่าพารามิเตอร์ PgError.Message/Detail หรือ secret ไม่สรุปสาเหตุ production จาก PgError ชนิดเดียว
 
 - ตามคำขอ 11/10/2569 ออกจากระบบใช้ EntryTransition action="logout" และจังหวะ checking/ready/leaving เดียวกับ Login ต้องรอ repository.logout สำเร็จก่อนแสดงยืนยัน ป้องกันส่งซ้ำด้วย controller และ disabled ปิด overlay/เมนูมือถือและทำพื้นหลัง inert ระหว่างดำเนินการ หยุด refresh และใช้ sessionVersion ป้องกัน snapshot เก่าตอบกลับหลังเริ่มออกจากระบบ เมื่อสำเร็จล้าง actor/snapshot กลับ Login ช่องว่างและโฟกัสชื่อผู้ใช้; หากล้มเหลวคืน workspace/error/โฟกัสปุ่มออกจากระบบ หรือปุ่มเปิดเมนูบนมือถือที่มองเห็นได้ คืน scroll เสมอและลองใหม่ได้ รักษา timer cleanup/unmount และ Reduce Motion ที่ข้ามเวลารอแสดงผลแต่ยังรอ repository จริง

@@ -122,6 +122,36 @@ async function openWorkspace(id = 1, path = '/dashboard') {
   await waitFor(() => expect(document.querySelector('.app-shell')).toBeInTheDocument());
 }
 
+test('A manager receives a new request popup through the existing API refresh and logout removes it', async () => {
+  motionTimers();
+  await openWorkspace(4);
+  expect(screen.queryByRole('region', { name: 'การแจ้งเตือนคำขอใหม่' })).not.toBeInTheDocument();
+  applyCommand(
+    database,
+    1,
+    {
+      type: 'submit',
+      input: {
+        leaveTypeId: 1,
+        startDate: '2026-12-07',
+        endDate: '2026-12-07',
+        duration: 'Full',
+        reason: 'ทดสอบแจ้งเตือนผู้จัดการ',
+      },
+    },
+    now,
+  );
+  await advanceMotion(15000);
+  const popup = screen.getByRole('region', { name: 'การแจ้งเตือนคำขอใหม่' });
+  expect(popup).toHaveTextContent('พิมพ์ชนก');
+  expect(popup).toHaveTextContent('ส่งคำขอ');
+  expect(screen.getByRole('button', { name: /^การแจ้งเตือน \d+ รายการใหม่/ })).toHaveTextContent(
+    /\d/,
+  );
+  await clickLogout();
+  expect(screen.queryByRole('region', { name: 'การแจ้งเตือนคำขอใหม่' })).not.toBeInTheDocument();
+});
+
 test('logout waits for the server, prevents duplicate calls and reveals login after confirmation', async () => {
   motionTimers();
   const pending = deferred();
