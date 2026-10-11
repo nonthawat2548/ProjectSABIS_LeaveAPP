@@ -7,7 +7,11 @@ import { dirname, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { createDemoDatabase } from '../src/data/demoDatabase';
 import { addDays, today, workingDates } from '../src/domain/date';
-import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_BASE64_LENGTH, MAX_COMMAND_BODY_BYTES } from '../src/domain/attachments';
+import {
+  MAX_ATTACHMENT_BYTES,
+  MAX_ATTACHMENT_BASE64_LENGTH,
+  MAX_COMMAND_BODY_BYTES,
+} from '../src/domain/attachments';
 import type { AttachmentInput, Database, RequestInput } from '../src/domain/types';
 
 const dataPrefix = 'data:application/pdf;base64,';
@@ -16,71 +20,129 @@ const zeroChunk = 'A'.repeat(64 * 1024);
 
 /** Streams a canonical large PDF fixture without creating a second 25 MiB client Buffer. */
 function* encodedPdf(size: number) {
-    yield pdfHeader;
-    let remaining = Math.floor((size - 9) / 3) * 4;
-    while (remaining > 0) {
-        const length = Math.min(remaining, zeroChunk.length);
-        yield zeroChunk.slice(0, length);
-        remaining -= length;
-    }
-    const tail = (size - 9) % 3;
-    if (tail) yield tail === 1 ? 'AA==' : 'AAA=';
+  yield pdfHeader;
+  let remaining = Math.floor((size - 9) / 3) * 4;
+  while (remaining > 0) {
+    const length = Math.min(remaining, zeroChunk.length);
+    yield zeroChunk.slice(0, length);
+    remaining -= length;
+  }
+  const tail = (size - 9) % 3;
+  if (tail) yield tail === 1 ? 'AA==' : 'AAA=';
 }
 
 function* streamedCommand(input: RequestInput, size: number) {
-    const empty = JSON.stringify({ type: 'submit', input });
-    const split = empty.indexOf(dataPrefix) + dataPrefix.length;
-    assert(split >= dataPrefix.length);
-    yield empty.slice(0, split);
-    yield* encodedPdf(size);
-    yield empty.slice(split);
+  const empty = JSON.stringify({ type: 'submit', input });
+  const split = empty.indexOf(dataPrefix) + dataPrefix.length;
+  assert(split >= dataPrefix.length);
+  yield empty.slice(0, split);
+  yield* encodedPdf(size);
+  yield empty.slice(split);
 }
 
-test('HTTP attachments: 25 MiB persistence, direct validation and bounded JSON request bodies', { timeout: 120000 }, async t => {
+test(
+  'HTTP attachments: 25 MiB persistence, direct validation and bounded JSON request bodies',
+  { timeout: 120000 },
+  async (t) => {
     const folder = await mkdtemp(join(tmpdir(), 'leave-upload-api-'));
     const file = join(folder, 'db.json');
     const date = workingDates(addDays(today(), 14), addDays(today(), 21), [])[0];
     const fixture = createDemoDatabase();
-    fixture.requests = []; fixture.days = []; fixture.documents = []; fixture.approvals = []; fixture.notifications = [];
-    fixture.entitlements.find(e => e.employeeId === 1 && e.leaveTypeId === 1)!.year = Number(date.slice(0, 4));
+    fixture.requests = [];
+    fixture.days = [];
+    fixture.documents = [];
+    fixture.approvals = [];
+    fixture.notifications = [];
+    fixture.entitlements.find((e) => e.employeeId === 1 && e.leaveTypeId === 1)!.year = Number(
+      date.slice(0, 4),
+    );
     await writeFile(file, JSON.stringify(fixture));
     const child = spawn(process.execPath, ['--import', 'tsx', 'server/index.ts'], {
-        cwd: process.cwd(), env: { ...process.env, MOCK_PORT: '0', MOCK_HOST: '127.0.0.1', MOCK_DATA_FILE: file },
-        stdio: ['ignore', 'pipe', 'pipe'],
+      cwd: process.cwd(),
+      env: { ...process.env, MOCK_PORT: '0', MOCK_HOST: '127.0.0.1', MOCK_DATA_FILE: file },
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
     t.after(async () => {
-        if (child.exitCode === null && child.signalCode === null) {
-            const stopped = new Promise<void>(accept => child.once('exit', () => accept()));
-            child.kill('SIGTERM'); await stopped;
-        }
-        assert.equal(dirname(resolve(folder)), resolve(tmpdir()));
-        await rm(folder, { recursive: true, force: true });
+      if (child.exitCode === null && child.signalCode === null) {
+        const stopped = new Promise<void>((accept) => child.once('exit', () => accept()));
+        child.kill('SIGTERM');
+        await stopped;
+      }
+      assert.equal(dirname(resolve(folder)), resolve(tmpdir()));
+      await rm(folder, { recursive: true, force: true });
     });
     const base = await new Promise<string>((accept, reject) => {
-        let output = '', errors = '';
-        const timer = setTimeout(() => { child.kill('SIGTERM'); reject(new Error('Upload API startup timed out: ' + errors)) }, 10000);
-        child.stderr.on('data', chunk => { errors += String(chunk) });
-        child.stdout.on('data', chunk => {
-            output += String(chunk); const match = output.match(/Mock API: (http:\/\/127\.0\.0\.1:\d+\/api)/);
-            if (match) { clearTimeout(timer); accept(match[1]) }
-        });
-        child.once('error', error => { clearTimeout(timer); reject(error) });
-        child.once('exit', code => { clearTimeout(timer); reject(new Error('Upload API exited: ' + code + ': ' + errors)) });
+      let output = '',
+        errors = '';
+      const timer = setTimeout(() => {
+        child.kill('SIGTERM');
+        reject(new Error('Upload API startup timed out: ' + errors));
+      }, 10000);
+      child.stderr.on('data', (chunk) => {
+        errors += String(chunk);
+      });
+      child.stdout.on('data', (chunk) => {
+        output += String(chunk);
+        const match = output.match(/Mock API: (http:\/\/127\.0\.0\.1:\d+\/api)/);
+        if (match) {
+          clearTimeout(timer);
+          accept(match[1]);
+        }
+      });
+      child.once('error', (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+      child.once('exit', (code) => {
+        clearTimeout(timer);
+        reject(new Error('Upload API exited: ' + code + ': ' + errors));
+      });
     });
-    const login = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'employee@demo.local', password: '1234' }) });
+    const login = await fetch(base + '/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'employee@demo.local', password: '1234' }),
+    });
     assert.equal(login.status, 200);
     const cookie = login.headers.get('set-cookie')!.split(';')[0];
-    const attachment = (fileSize: number): AttachmentInput => ({ fileName: 'large.pdf', fileType: 'application/pdf', fileSize, dataUrl: dataPrefix });
-    const input = (a: AttachmentInput): RequestInput => ({ leaveTypeId: 1, maternityCaseId: null, startDate: date, endDate: date, duration: 'Full', reason: 'เอกสารทดสอบขนาดใหญ่', attachment: a });
-    const send = (command: unknown) => fetch(base + '/commands', { method: 'POST', headers: { Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify(command) });
+    const attachment = (fileSize: number): AttachmentInput => ({
+      fileName: 'large.pdf',
+      fileType: 'application/pdf',
+      fileSize,
+      dataUrl: dataPrefix,
+    });
+    const input = (a: AttachmentInput): RequestInput => ({
+      leaveTypeId: 1,
+      maternityCaseId: null,
+      startDate: date,
+      endDate: date,
+      duration: 'Full',
+      reason: 'เอกสารทดสอบขนาดใหญ่',
+      attachment: a,
+    });
+    const send = (command: unknown) =>
+      fetch(base + '/commands', {
+        method: 'POST',
+        headers: { Cookie: cookie, 'Content-Type': 'application/json' },
+        body: JSON.stringify(command),
+      });
     const stream = (chunks: Iterable<string>, session = cookie, path = '/commands') => {
-        const options: RequestInit & { duplex: 'half' } = { method: 'POST', headers: { 'Content-Type': 'application/json', ...(session ? { Cookie: session } : {}) }, body: Readable.toWeb(Readable.from(chunks)) as ReadableStream, duplex: 'half' };
-        return fetch(base + path, options);
+      const options: RequestInit & { duplex: 'half' } = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(session ? { Cookie: session } : {}) },
+        body: Readable.toWeb(Readable.from(chunks)) as ReadableStream,
+        duplex: 'half',
+      };
+      return fetch(base + path, options);
     };
     const read = async (): Promise<Database> => JSON.parse(await readFile(file, 'utf8'));
 
-    await t.test('A real 25 MiB PDF reaches command validation and is persisted unchanged', async () => {
-        const response = await stream(streamedCommand(input(attachment(MAX_ATTACHMENT_BYTES)), MAX_ATTACHMENT_BYTES));
+    await t.test(
+      'A real 25 MiB PDF reaches command validation and is persisted unchanged',
+      async () => {
+        const response = await stream(
+          streamedCommand(input(attachment(MAX_ATTACHMENT_BYTES)), MAX_ATTACHMENT_BYTES),
+        );
         assert.equal(response.status, 200, await response.text());
         assert((await stat(file)).size > MAX_ATTACHMENT_BASE64_LENGTH);
         const db = await read();
@@ -88,46 +150,77 @@ test('HTTP attachments: 25 MiB persistence, direct validation and bounded JSON r
         const document = db.documents[0];
         assert.equal(document.fileSize, MAX_ATTACHMENT_BYTES);
         assert.equal(document.dataUrl.length, dataPrefix.length + MAX_ATTACHMENT_BASE64_LENGTH);
-        assert.equal(document.dataUrl.slice(0, dataPrefix.length + pdfHeader.length), dataPrefix + pdfHeader);
+        assert.equal(
+          document.dataUrl.slice(0, dataPrefix.length + pdfHeader.length),
+          dataPrefix + pdfHeader,
+        );
         assert.equal(document.dataUrl.slice(-4), 'AA==');
-        assert.equal(db.requests.find(r => r.id === document.leaveId)!.employeeId, 1);
+        assert.equal(db.requests.find((r) => r.id === document.leaveId)!.employeeId, 1);
         await writeFile(file, JSON.stringify(fixture));
-    });
+      },
+    );
 
-    await t.test('The encoded payload cannot bypass 25 MiB by claiming a smaller fileSize', async () => {
-        const response = await stream(streamedCommand(input(attachment(MAX_ATTACHMENT_BYTES)), MAX_ATTACHMENT_BYTES + 1));
+    await t.test(
+      'The encoded payload cannot bypass 25 MiB by claiming a smaller fileSize',
+      async () => {
+        const response = await stream(
+          streamedCommand(input(attachment(MAX_ATTACHMENT_BYTES)), MAX_ATTACHMENT_BYTES + 1),
+        );
         assert.equal(response.status, 400);
         assert.match((await response.json()).message, /25 MB|ขนาดเอกสาร/);
         assert.deepEqual(await read(), fixture);
-    });
+      },
+    );
 
-    await t.test('Direct API requests reject declared oversize, malformed size and mismatched data', async () => {
+    await t.test(
+      'Direct API requests reject declared oversize, malformed size and mismatched data',
+      async () => {
         const validSmall = dataPrefix + Buffer.from('%PDF-1.7\n').toString('base64');
         for (const fileSize of [MAX_ATTACHMENT_BYTES + 1, -1, 0, 1.5, '9', null]) {
-            const response = await send({ type: 'submit', input: input({ ...attachment(9), fileSize, dataUrl: validSmall } as AttachmentInput) });
-            assert.equal(response.status, 400);
-            assert.match((await response.json()).message, /25 MB|ข้อมูลเอกสาร|ขนาดเอกสาร/);
+          const response = await send({
+            type: 'submit',
+            input: input({ ...attachment(9), fileSize, dataUrl: validSmall } as AttachmentInput),
+          });
+          assert.equal(response.status, 400);
+          assert.match((await response.json()).message, /25 MB|ข้อมูลเอกสาร|ขนาดเอกสาร/);
         }
-        const mismatch = await send({ type: 'submit', input: input({ ...attachment(8), dataUrl: validSmall }) });
+        const mismatch = await send({
+          type: 'submit',
+          input: input({ ...attachment(8), dataUrl: validSmall }),
+        });
         assert.equal(mismatch.status, 400);
         assert.match((await mismatch.json()).message, /ขนาดเอกสาร/);
         assert.deepEqual(await read(), fixture);
-    });
+      },
+    );
 
-    await t.test('Chunked command bodies exceeding the base64 allowance return readable JSON 413', async () => {
+    await t.test(
+      'Chunked command bodies exceeding the base64 allowance return readable JSON 413',
+      async () => {
         function* tooLarge() {
-            let remaining = MAX_COMMAND_BODY_BYTES + 1;
-            while (remaining > 0) { const length = Math.min(remaining, zeroChunk.length); yield zeroChunk.slice(0, length); remaining -= length }
+          let remaining = MAX_COMMAND_BODY_BYTES + 1;
+          while (remaining > 0) {
+            const length = Math.min(remaining, zeroChunk.length);
+            yield zeroChunk.slice(0, length);
+            remaining -= length;
+          }
         }
         const response = await stream(tooLarge());
         assert.equal(response.status, 413);
         assert.equal((await response.json()).code, 'PAYLOAD_TOO_LARGE');
         assert.deepEqual(await read(), fixture);
         assert.equal((await fetch(base + '/health')).status, 200);
-    });
+      },
+    );
 
-    await t.test('Login retains a small body limit and commands authenticate before reading large bodies', async () => {
-        const declaredLength = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: 'x'.repeat(64 * 1024 + 1) });
+    await t.test(
+      'Login retains a small body limit and commands authenticate before reading large bodies',
+      async () => {
+        const declaredLength = await fetch(base + '/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: 'x'.repeat(64 * 1024 + 1),
+        });
         assert.equal(declaredLength.status, 413);
         assert.equal((await declaredLength.json()).code, 'PAYLOAD_TOO_LARGE');
         const loginResponse = await stream(['x'.repeat(64 * 1024 + 1)], '', '/session');
@@ -137,5 +230,7 @@ test('HTTP attachments: 25 MiB persistence, direct validation and bounded JSON r
         assert.equal(unauthenticated.status, 401);
         assert.equal((await unauthenticated.json()).code, 'UNAUTHENTICATED');
         assert.deepEqual(await read(), fixture);
-    });
-});
+      },
+    );
+  },
+);

@@ -1,0 +1,400 @@
+openapi: 3.0.3
+info:
+  title: Leave Management API
+  version: 1.0.0
+  description: >-
+    Go + Gin backend for the existing React application. Dates are Gregorian ISO
+    YYYY-MM-DD; timestamps are UTC ISO 8601. Employee roles and maternity gender
+    come from stored data, never from the request body. Quota is derived from days.
+servers:
+  - url: /api
+security:
+  - sessionCookie: []
+paths:
+  /health:
+    get:
+      summary: Check repository availability
+      security: []
+      responses:
+        '200':
+          description: Repository ready
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, mode, backend, documentTransport, partCharacters]
+                properties:
+                  status: { type: string, enum: [ok] }
+                  mode: { type: string, enum: [go-json, cloud-postgres] }
+                  backend: { type: string, enum: [go-gin] }
+                  documentTransport: { type: string, enum: [parts-v1] }
+                  partCharacters: { type: integer, enum: [2097152] }
+        '503': { $ref: '#/components/responses/Error' }
+  /session:
+    post:
+      summary: Sign in to an explicitly enabled demo account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  maxLength: 255
+                  description: Personal username or full email; field name retained for compatibility.
+                  example: pimchanok.w
+                password: { type: string, example: '1234' }
+      responses:
+        '200':
+          description: Signed in; HttpOnly SameSite=Lax cookie, Secure on HTTPS, expires in 8 hours
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  employee: { $ref: '#/components/schemas/Employee' }
+        '401': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+    get:
+      summary: Get the current active account
+      responses:
+        '200':
+          description: Current account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  employee: { $ref: '#/components/schemas/Employee' }
+        '401': { $ref: '#/components/responses/Error' }
+    delete:
+      summary: Sign out this device
+      security: []
+      responses:
+        '200': { $ref: '#/components/responses/Result' }
+  /snapshot:
+    get:
+      summary: Read data scoped by the current account role and manager assignment
+      responses:
+        '200':
+          description: Database JSON matching src/domain/types.ts; documents contain metadata only
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [schemaVersion, employees, leaveTypes, entitlements, maternityCases, requests, days, documents, approvals, workStatuses, notifications, holidays]
+                properties:
+                  schemaVersion: { type: integer, enum: [1] }
+                  employees: { type: array, items: { $ref: '#/components/schemas/Employee' } }
+                  leaveTypes: { type: array, items: { $ref: '#/components/schemas/Policy' } }
+                  entitlements: { type: array, items: { type: object } }
+                  maternityCases: { type: array, items: { type: object } }
+                  requests: { type: array, items: { type: object } }
+                  days: { type: array, items: { type: object } }
+                  documents: { type: array, items: { $ref: '#/components/schemas/Document' } }
+                  approvals: { type: array, items: { type: object } }
+                  workStatuses: { type: array, items: { type: object } }
+                  notifications: { type: array, items: { type: object } }
+                  holidays: { type: array, items: { type: object } }
+        '401': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+  /colleagues:
+    get:
+      summary: Read basic work availability of all active employees; no private leave details
+      parameters:
+        - in: query
+          name: query
+          schema: { type: string, maxLength: 100, default: '' }
+          description: Partial name, numeric employee ID, or EMP-00001. Empty means everyone.
+        - in: query
+          name: date
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Basic availability, sorted by Thai name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [employeeId, name, position, department, date, workStatus, leaveDuration, updatedAt]
+                  properties:
+                    employeeId: { type: integer }
+                    name: { type: string }
+                    position: { type: string }
+                    department: { type: string }
+                    date: { type: string, format: date }
+                    workStatus: { type: string, nullable: true, enum: [In-office, WFH, Outside, null] }
+                    leaveDuration: { type: string, nullable: true, enum: [Full, AM, PM, null] }
+                    updatedAt: { type: string, format: date-time, nullable: true }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+  /commands:
+    post:
+      summary: Apply one business command atomically using the authenticated actor
+      description: >-
+        Actor/role/gender in a body are not identity evidence. Editing and reviewing
+        require the latest request version. HR consultation is not final approval.
+        Maternity checks stored owner gender before case, manager, dates, policy,
+        overlap and per-case quota, including before approval.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Command' }
+      responses:
+        '200': { $ref: '#/components/responses/Result' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+  /demo/reset:
+    post:
+      summary: HR only; replace the selected runtime with the canonical ten-person demo
+      description: In PostgreSQL mode this affects all connected devices. Never invoke as a health check.
+      responses:
+        '200': { $ref: '#/components/responses/Result' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /uploads:
+    post:
+      summary: Employee only; create a staged upload (25 MiB maximum, three pending uploads)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileName, fileType, fileSize, encodedLength]
+              properties:
+                fileName: { type: string, minLength: 1, maxLength: 255 }
+                fileType: { type: string, enum: [application/pdf, image/jpeg, image/png] }
+                fileSize: { type: integer, minimum: 1, maximum: 26214400 }
+                encodedLength: { type: integer, description: '4 * ceil(fileSize / 3)' }
+      responses:
+        '200':
+          description: Upload staging expires after one hour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploadId: { type: string, format: uuid }
+                  partCharacters: { type: integer, enum: [2097152] }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /uploads/{id}:
+    parameters:
+      - $ref: '#/components/parameters/UploadID'
+    delete:
+      summary: Delete the current account's staged upload
+      responses:
+        '200': { $ref: '#/components/responses/Result' }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /uploads/{id}/parts/{part}:
+    parameters:
+      - $ref: '#/components/parameters/UploadID'
+      - $ref: '#/components/parameters/Part'
+    put:
+      summary: Replace one base64 part of an owned staged upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data]
+              properties:
+                data: { type: string, maxLength: 2097152 }
+      responses:
+        '200':
+          description: Part stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  part: { type: integer }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+  /documents/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DocumentID'
+    get:
+      summary: Read document metadata after checking request visibility
+      responses:
+        '200':
+          description: Document metadata plus download lengths
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Document'
+                  - type: object
+                    properties:
+                      totalCharacters: { type: integer }
+                      partCharacters: { type: integer, enum: [2097152] }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /documents/{id}/parts/{part}:
+    parameters:
+      - $ref: '#/components/parameters/DocumentID'
+      - $ref: '#/components/parameters/Part'
+    get:
+      summary: Download one stored data URL part; permissions checked again for every part
+      responses:
+        '200':
+          description: Data URL part (legacy documents up to 100 MiB remain downloadable)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  part: { type: integer }
+                  data: { type: string, maxLength: 2097152 }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: leave_session
+  parameters:
+    UploadID:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+    DocumentID:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer, minimum: 1 }
+    Part:
+      in: path
+      name: part
+      required: true
+      schema: { type: integer, minimum: 0, maximum: 67 }
+  responses:
+    Result:
+      description: Operation completed
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties:
+              id: { type: integer }
+              message: { type: string }
+    Error:
+      description: Thai user-facing error; no server configuration or secret values
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message, code]
+            properties:
+              message: { type: string }
+              code: { type: string, enum: [VALIDATION, UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, CONFLICT, PAYLOAD_TOO_LARGE, UNAVAILABLE, SERVER] }
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        gender: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        position: { type: string }
+        role: { type: string, enum: [Employee, Manager, HR] }
+        managerId: { type: integer, nullable: true }
+        department: { type: string }
+        active: { type: boolean }
+    Policy:
+      type: object
+      required: [id, name, quotaScope, defaultQuotaDays, dayCountBasis, advanceNoticeDays, documentRequiredFromDays, requiredDocumentType, eligibleGender]
+      properties:
+        id: { type: integer }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        quotaScope: { type: string, enum: [Annual, Pregnancy] }
+        defaultQuotaDays: { type: integer, minimum: 0, maximum: 999 }
+        dayCountBasis: { type: string, enum: [Working Days, Calendar Days] }
+        advanceNoticeDays: { type: integer, minimum: 0, maximum: 999 }
+        documentRequiredFromDays: { type: integer, nullable: true, minimum: 1, maximum: 999 }
+        requiredDocumentType: { type: string, nullable: true }
+        eligibleGender: { type: string, nullable: true }
+    Document:
+      type: object
+      properties:
+        id: { type: integer }
+        leaveId: { type: integer }
+        documentType: { type: string }
+        fileName: { type: string }
+        storageKey: { type: string }
+        fileType: { type: string }
+        fileSize: { type: integer }
+        uploadedAt: { type: string, format: date-time }
+        dataUrl: { type: string, enum: [''] }
+        remote: { type: boolean, enum: [true] }
+    RequestInput:
+      type: object
+      required: [leaveTypeId, maternityCaseId, startDate, endDate, duration, reason]
+      properties:
+        leaveTypeId: { type: integer }
+        maternityCaseId: { type: integer, nullable: true }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        duration: { type: string, enum: [Full, AM, PM] }
+        reason: { type: string, minLength: 1, maxLength: 500 }
+        attachment:
+          type: object
+          nullable: true
+          properties:
+            uploadId: { type: string, format: uuid }
+        keepDocument: { type: boolean, default: true }
+    Command:
+      type: object
+      required: [type]
+      description: >-
+        submit/edit require input; edit/withdraw/approve/reject/refer/consult require
+        id and version. reject/refer/consult require comment; refer also hrId.
+        work requires date/statusType. entitlement requires employeeId/leaveTypeId/
+        year/grantedDays. maternity requires employeeId/maximumDays. holiday
+        requires date and name unless remove=true. policy requires policy.
+      properties:
+        type: { type: string, enum: [submit, edit, withdraw, approve, reject, refer, consult, work, readNotifications, entitlement, maternity, holiday, policy] }
+        input: { $ref: '#/components/schemas/RequestInput' }
+        id: { type: integer }
+        version: { type: integer }
+        comment: { type: string, maxLength: 500 }
+        hrId: { type: integer }
+        date: { type: string, format: date }
+        statusType: { type: string, enum: [In-office, WFH, Outside] }
+        employeeId: { type: integer }
+        leaveTypeId: { type: integer }
+        year: { type: integer, minimum: 1900, maximum: 2200 }
+        grantedDays: { type: number, minimum: 0, maximum: 999, multipleOf: 0.5 }
+        maximumDays: { type: integer, minimum: 1, maximum: 999 }
+        name: { type: string, maxLength: 100 }
+        remove: { type: boolean }
+        policy: { $ref: '#/components/schemas/Policy' }

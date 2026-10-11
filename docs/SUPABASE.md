@@ -1,6 +1,6 @@
 # ใช้ฐานกลาง Supabase สำหรับ Vercel
 
-มี PostgreSQL API ใน `api/router.ts` แล้ว ใช้ React + Vite เดิม ไม่ต้องสร้าง Next.js ใหม่ หน้าเว็บใช้ ApiRepository กับ backend กลางหลังตั้ง environment/migration และ deploy โค้ดใหม่ ตัวเลือก IndexedDB (`mock`) และ mock JSON API (`api`) ยังใช้พัฒนาแยกได้ ข้อมูลในอุปกรณ์/ไฟล์ JSON เดิมไม่ย้ายขึ้น Supabase อัตโนมัติ
+มี PostgreSQL API ด้วย Go + Gin ใน `api/go.go` แล้ว ใช้ React + Vite และ ApiRepository เดิม หลังตั้ง environment/migration และ deploy โค้ดใหม่ทุกเครื่องใช้ฐานกลาง โค้ด Node เดิมเก็บไว้เทียบในช่วงย้าย ดู [GO_BACKEND.md](GO_BACKEND.md) การเปลี่ยนภาษา backend ไม่ต้องรัน setup ซ้ำ ไม่ย้ายข้อมูลจากอุปกรณ์/JSON ขึ้น Supabase อัตโนมัติ
 
 ## นำเข้าฐานใหม่
 
@@ -20,11 +20,11 @@
 
 ## สิทธิ์และ session
 
-ตารางอยู่ใน schema `leave_app` เปิด RLS และถอนสิทธิ์ schema/tables/views ของ PUBLIC/anon/authenticated ไม่มี policy ให้เบราว์เซอร์เข้าถึงโดยตรง API ฝั่ง server ตรวจ session, role, manager assignment และใช้กฎ `src/domain/service.ts` ภายใน transaction ทุก mutation ใช้ advisory transaction lock ร่วมทุก instance และ SELECT FOR UPDATE ก่อนตรวจสิทธิ์/โควตา/version เขียนเฉพาะแถวที่เปลี่ยนด้วย connection เดียวตั้งแต่ BEGIN ถึง COMMIT; error rollback ทุกส่วน อ่าน snapshot ด้วย repeatable read ข้อมูลลาคลอด/วันที่/HR consultation ใช้ domain เดิม
+ตารางอยู่ใน schema `leave_app` เปิด RLS และถอนสิทธิ์ schema/tables/views ของ PUBLIC/anon/authenticated ไม่มี policy ให้เบราว์เซอร์เข้าถึงโดยตรง API ฝั่ง server ตรวจ session, role, manager assignment และใช้กฎ `src/domain/service.js` ภายใน transaction ทุก mutation ใช้ advisory transaction lock ร่วมทุก instance และ SELECT FOR UPDATE ก่อนตรวจสิทธิ์/โควตา/version เขียนเฉพาะแถวที่เปลี่ยนด้วย connection เดียวตั้งแต่ BEGIN ถึง COMMIT; error rollback ทุกส่วน อ่าน snapshot ด้วย repeatable read ข้อมูลลาคลอด/วันที่/HR consultation ใช้ domain เดิม
 
 API ใช้ HttpOnly, SameSite=Lax cookie (Secure เมื่อ HTTPS) token สุ่ม 256 บิต เก็บเฉพาะ SHA-256 ใน App_Session อายุ 8 ชั่วโมง คงอยู่ข้าม cold start ตรวจ session/บัญชี active ใหม่ทุก endpoint และ write transaction ปฏิเสธ mutation ข้าม origin logout ล้างเฉพาะ session ของเครื่องนั้น ไม่เชื่อ actorId/role/gender จาก body
 
-บัญชี Employee ใน seed ยังเป็นข้อมูลทดลอง รหัส `1234` เปิดใช้ผ่าน `ENABLE_DEMO_LOGIN=true` เท่านั้น Login รับชื่อผู้ใช้เฉพาะบุคคล เช่น `pimchanok.w`/`thanawat.k` จาก mapping ใน `src/domain/auth.ts` หรืออีเมลเต็ม ไม่ต้องสร้างคอลัมน์เพิ่มหรือ reset ฐาน การเปลี่ยนชื่อผู้ใช้/รหัสทดลองมีผลเมื่อ deploy โค้ดใหม่ **ยังไม่ใช่ระบบยืนยันตัวตนสำหรับข้อมูลพนักงานจริง** ก่อนใช้จริงต้องเปลี่ยน login/session และการจัดการบัญชีเป็นระบบองค์กรหรือ Supabase Auth integration นี้ไม่ได้สร้าง Supabase Auth users และไม่บันทึกรหัส demo ลงฐาน
+บัญชี Employee ใน seed ยังเป็นข้อมูลทดลอง รหัส `1234` เปิดใช้ผ่าน `ENABLE_DEMO_LOGIN=true` เท่านั้น Login รับชื่อผู้ใช้เฉพาะบุคคล เช่น `pimchanok.w`/`thanawat.k` จาก mapping ใน `src/domain/auth.js` หรืออีเมลเต็ม ไม่ต้องสร้างคอลัมน์เพิ่มหรือ reset ฐาน การเปลี่ยนชื่อผู้ใช้/รหัสทดลองมีผลเมื่อ deploy โค้ดใหม่ **ยังไม่ใช่ระบบยืนยันตัวตนสำหรับข้อมูลพนักงานจริง** ก่อนใช้จริงต้องเปลี่ยน login/session และการจัดการบัญชีเป็นระบบองค์กรหรือ Supabase Auth integration นี้ไม่ได้สร้าง Supabase Auth users และไม่บันทึกรหัส demo ลงฐาน
 
 ## เปิดใช้งานบน Vercel
 
@@ -64,12 +64,11 @@ Cloud snapshot คืน metadata เอกสาร `remote:true,dataUrl:''` (r
 ```bash
 node scripts/generate-supabase.mjs
 npm run dev:cloud
-npm run cloud:server
 ```
 
 อ่าน schema อ้างอิงและ source JSON ปัจจุบันเพื่อสร้าง SQL เท่านั้น ไม่เชื่อม network หรือแตะ runtime database หลังแก้ source ให้สร้างไฟล์นี้ใหม่ แต่การสร้างไฟล์ไม่อัปเดตข้อมูลบน Supabase ที่นำเข้าแล้ว
 
-dev:cloud เปิด frontend และ PostgreSQL API โดยอ่าน POSTGRES_URL/ENABLE_DEMO_LOGIN จาก `.env` ที่ git ignore; cloud:server เปิด API แยก Vite proxy มี forwarded host เพื่อรักษา same-origin ใน localhost ส่วน production ใช้ Web Request ของ Vercel โดยตรง CLI seed เดิมยังคืนค่าเฉพาะ mock JSON; ปุ่มคืนค่าของ HR ใน cloud ล้างข้อมูลธุรกิจฐานกลางเป็น source 10 คน **มีผลทุกเครื่อง** ต้องใช้ตามขอบเขตที่ผู้ใช้สั่งเท่านั้น
+`dev:cloud` เปิด frontend และ Go PostgreSQL API โดยอ่าน POSTGRES_URL/ENABLE_DEMO_LOGIN จาก `.env` ที่ git ignore; เปิด Go API แยกด้วย `npm run go:server` และตั้ง `GO_DATA_MODE=postgres` ใน `.env` Vite proxy รักษา Host เดิมเพื่อให้ตรวจ same-origin ใน localhost ส่วน production ใช้ `net/http` ของ Go function บน Vercel `cloud:server` เป็น Node เดิมสำหรับอ้างอิง CLI seed เดิมยังคืนค่าเฉพาะ Node mock JSON; ปุ่มคืนค่าของ HR ใน cloud ล้างข้อมูลธุรกิจฐานกลางเป็น source 10 คน **มีผลทุกเครื่อง** ต้องใช้ตามขอบเขตที่ผู้ใช้สั่งเท่านั้น
 
 ผลตรวจวันที่ 10/10/2569: `npm test` ผ่าน 153 รายการ, `npm run typecheck` และ `npm run build` ผ่าน เพิ่ม `tests/supabase-schema.test.ts` 6 รายการ ใช้ PGlite (PostgreSQL แบบฝังตัว เป็น dev dependency สำหรับ tests เท่านั้น) ตรวจ SQL ทั้งไฟล์จริง ตาราง/seed/วันที่/timeline/เอกสาร/นโยบาย ยอดสิทธิ์เทียบ domain การปิดสิทธิ์ tables/views รวมกรณีให้ SELECT โดยพลาด การรันซ้ำไม่ทับข้อมูล และอักขระ quote/backslash ใช้ฐานในหน่วยความจำแยก ไม่ได้รัน SQL บน Supabase ของผู้ใช้หรือยืนยันการซิงก์ข้ามอุปกรณ์
 

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+server/data/
+database/
+src/data/leave-management-10-people.json
+package-lock.json
+public/
+docs/
+*.md

@@ -1,0 +1,427 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { HashRouter, Link, matchRoutes, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  FilePlus2,
+  ClipboardList,
+  Wallet,
+  CalendarDays,
+  Laptop,
+  Bell,
+  Settings,
+  Users,
+  ChevronLeft,
+  Menu,
+  RefreshCw,
+  Check,
+  X,
+  Search,
+} from 'lucide-react';
+
+import { dataMode, repository } from './data';
+import { DEMO_DATA_CHANNEL } from './data/demoDatabase';
+import { DomainError } from './domain/service';
+import { formatDate, today } from './domain/date';
+import { createWorkspaceRoutes, WorkspaceRoutes } from './routes';
+import { Avatar, BrandMark, CommandMenu } from './ui';
+import { WorkspaceNavigation } from './Navigation';
+import { EntryTransition } from './EntryTransition';
+import { ENTRY_TIMING, motionDelay } from './motion';
+import { NotificationPopover } from './NotificationPopover';
+import { Login } from './Login';
+import { ThemeButton } from './ThemeButton';
+
+export { Login } from './Login';
+export { ThemeButton } from './ThemeButton';
+
+export default function App() {
+  return (
+    <HashRouter>
+      <Workspace />
+    </HashRouter>
+  );
+}
+
+function Workspace() {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [actor, setActor] = useState(null),
+    [db, setDb] = useState(null),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(''),
+    [toast, setToast] = useState(''),
+    [mobile, setMobile] = useState(false),
+    [commandOpen, setCommandOpen] = useState(false);
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+  );
+  const route = pathname === '/' ? '/dashboard' : pathname;
+  const [entry, setEntry] = useState(null);
+  const entryController = useRef(null);
+  const main = useRef(null),
+    hadEntry = useRef(false);
+  useEffect(
+    () => () => {
+      const controller = entryController.current;
+      entryController.current = null;
+      controller?.abort();
+    },
+    [],
+  );
+  useEffect(() => {
+    if (entry) {
+      hadEntry.current = true;
+      return;
+    }
+    if (hadEntry.current) {
+      hadEntry.current = false;
+      main.current?.focus();
+    }
+  }, [entry]);
+  const closeMobile = useCallback(() => setMobile(false), []);
+  useEffect(() => {
+    const viewport = window.matchMedia('(max-width: 760px)');
+    const closeOnDesktop = () => {
+      if (!viewport.matches) setMobile(false);
+    };
+    viewport.addEventListener('change', closeOnDesktop);
+    closeOnDesktop();
+    return () => viewport.removeEventListener('change', closeOnDesktop);
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem('leave-ui-theme', theme);
+    } catch {
+      /* Theme still works when browser storage is unavailable. */
+    }
+  }, [theme]);
+  useEffect(() => {
+    const shortcut = (e) => {
+      if (actor && !entry && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', shortcut);
+    return () => window.removeEventListener('keydown', shortcut);
+  }, [actor, entry]);
+  const reload = useCallback(async () => {
+    setDb(await repository.snapshot());
+  }, []);
+  useEffect(() => {
+    let live = true;
+    repository
+      .session()
+      .then(async (e) => {
+        if (!live) return;
+        const d = e ? await repository.snapshot() : null;
+        if (live) {
+          setDb(d);
+          setActor(e);
+        }
+      })
+      .catch((e) => {
+        if (live) setError(e.message);
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!actor) return;
+    const refresh = () => {
+      void reload().catch((e) => {
+        if (e instanceof DomainError && e.code === 'UNAUTHENTICATED') {
+          setActor(null);
+          setDb(null);
+          setCommandOpen(false);
+          setToast('');
+        } else setError(e.message);
+      });
+    };
+    window.addEventListener('focus', refresh);
+    const ch =
+      typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(DEMO_DATA_CHANNEL) : null;
+    if (ch) ch.onmessage = refresh;
+    const timer = dataMode === 'api' ? setInterval(refresh, 15000) : null;
+    return () => {
+      window.removeEventListener('focus', refresh);
+      ch?.close();
+      if (timer) clearInterval(timer);
+    };
+  }, [actor, reload]);
+  useEffect(() => {
+    setMobile(false);
+    setError('');
+    window.scrollTo(0, 0);
+  }, [route]);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 5000);
+    return () => clearTimeout(t);
+  }, [toast]);
+  async function run(c) {
+    try {
+      const result = await repository.execute(c);
+      await reload();
+      setToast(result.message);
+      return result;
+    } catch (e) {
+      if (e instanceof DomainError && e.code === 'CONFLICT') await reload();
+      throw e;
+    }
+  }
+  async function login(email, password) {
+    entryController.current?.abort();
+    const controller = new AbortController();
+    entryController.current = controller;
+    const minimum = motionDelay(ENTRY_TIMING.checking, controller.signal);
+    let authenticated = false;
+    setCommandOpen(false);
+    setToast('');
+    setEntry({ phase: 'checking' });
+    try {
+      const employee = await repository.login(email, password);
+      authenticated = true;
+      if (controller.signal.aborted) return;
+      const snapshot = await repository.snapshot();
+      if (!(await minimum) || controller.signal.aborted) return;
+      setEntry({ phase: 'ready', name: employee.name });
+      if (!(await motionDelay(ENTRY_TIMING.ready, controller.signal))) return;
+      setDb(snapshot);
+      setActor(employee);
+      setError('');
+      navigate('/dashboard');
+      setEntry({ phase: 'leaving', name: employee.name });
+      if (await motionDelay(ENTRY_TIMING.leaving, controller.signal)) setEntry(null);
+    } catch (failure) {
+      if (controller.signal.aborted) return;
+      controller.abort();
+      if (authenticated) {
+        try {
+          await repository.logout();
+        } catch {
+          /* Preserve the original data-loading error. */
+        }
+      }
+      if (entryController.current === controller) setEntry(null);
+      throw failure;
+    } finally {
+      controller.abort();
+      if (entryController.current === controller) entryController.current = null;
+    }
+  }
+  async function logout() {
+    try {
+      await repository.logout();
+      setActor(null);
+      setDb(null);
+      setCommandOpen(false);
+      setToast('');
+      navigate('/dashboard');
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+  if (loading) return <EntryTransition phase="checking" title="กำลังโหลดข้อมูล" />;
+  if (!actor)
+    return (
+      <>
+        <div className="login-frame" inert={!!entry}>
+          <Login
+            onLogin={login}
+            initialError={error}
+            theme={theme}
+            onToggleTheme={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
+          />
+        </div>
+        {entry && <EntryTransition {...entry} />}
+      </>
+    );
+
+  if (!db)
+    return (
+      <div className="boot">
+        <p role="alert">{error || 'กำลังโหลดข้อมูล…'}</p>
+        <button className="btn" onClick={() => void reload().catch((e) => setError(e.message))}>
+          ลองอีกครั้ง
+        </button>
+        <button className="btn" onClick={() => void logout()}>
+          ออกจากระบบ
+        </button>
+      </div>
+    );
+
+  const menus = [{ path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> }];
+
+  if (actor.role === 'Employee')
+    menus.push(
+      { path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> },
+      { path: '/requests', label: 'ประวัติคำขอ', icon: <ClipboardList /> },
+      { path: '/quota', label: 'สิทธิ์และโควตา', icon: <Wallet /> },
+    );
+  else
+    menus.push(
+      {
+        path: '/requests',
+        label: actor.role === 'HR' ? 'คำขอปรึกษา HR' : 'รายการคำขอของทีม',
+        icon: <ClipboardList />,
+      },
+      { path: '/calendar', label: 'ปฏิทินการลา', icon: <CalendarDays /> },
+    );
+  menus.push(
+    { path: '/work', label: 'สถานะการทำงาน', icon: <Laptop /> },
+    { path: '/colleagues', label: 'สถานะเพื่อนร่วมงาน', icon: <Users /> },
+    { path: '/notifications', label: 'การแจ้งเตือน', icon: <Bell /> },
+  );
+  if (actor.role === 'HR')
+    menus.push(
+      { path: '/admin', label: 'ข้อมูลและสิทธิ์การลา', icon: <Users /> },
+      { path: '/settings', label: 'การตั้งค่า', icon: <Settings /> },
+    );
+  const props = { actor, db, run, reload };
+  const routes = createWorkspaceRoutes(props);
+  const matchedRoute = matchRoutes(routes, route)?.at(-1);
+  const invalidRequestId = matchedRoute?.params.id && !/^\d+$/.test(matchedRoute.params.id);
+  const title = invalidRequestId ? 'ไม่พบหน้า' : (matchedRoute?.route.title ?? 'ไม่พบหน้า');
+  const unread = db.notifications.filter((n) => !n.read).length;
+  const appleKeyboard = /Mac|iPhone|iPad|iPod/i.test(globalThis.navigator?.platform ?? '');
+  const searchShortcut = appleKeyboard ? '⌘ + K' : 'Ctrl + K';
+  return (
+    <>
+      <div className="app-shell" inert={!!entry} aria-busy={!!entry}>
+        <WorkspaceNavigation
+          actor={actor}
+          menus={menus}
+          unread={unread}
+          open={mobile}
+          onClose={closeMobile}
+          onLogout={() => void logout()}
+          route={route}
+        />
+
+        <div className="app-body" inert={mobile}>
+          <header className="topbar">
+            <div className="topbar-title flex items-center gap-[10px]">
+              <button
+                className="icon-btn mobile-toggle"
+                aria-label="เปิดหรือปิดเมนู"
+                aria-expanded={mobile}
+                aria-controls="workspace-navigation"
+                onClick={() => setMobile(!mobile)}
+              >
+                <Menu size={20} />
+              </button>
+              <Link to="/dashboard" className="breadcrumb-root">
+                พื้นที่ทำงาน
+              </Link>
+              <ChevronLeft className="flip breadcrumb-chevron" size={13} />
+              <span>{title}</span>
+            </div>
+            <div className="topbar-actions flex items-center gap-[8px]">
+              <button
+                className="header-search toolbar-hint"
+                data-tooltip={`ค้นหาเมนูหรือคำขอ (${searchShortcut})`}
+                aria-label="ค้นหาเมนูหรือคำขอ"
+                aria-keyshortcuts={appleKeyboard ? 'Meta+K' : 'Control+K'}
+                onClick={() => setCommandOpen(true)}
+              >
+                <Search size={20} aria-hidden="true" />
+                <span>ค้นหาเมนูหรือคำขอ</span>
+                <kbd lang="en" aria-hidden="true">
+                  {searchShortcut}
+                </kbd>
+              </button>
+              <ThemeButton
+                theme={theme}
+                onToggle={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
+              />
+
+              <button
+                className="icon-btn toolbar-hint"
+                data-tooltip="รีเฟรชข้อมูล"
+                aria-label="รีเฟรชข้อมูล"
+                onClick={() =>
+                  void reload()
+                    .then(() => setToast('ข้อมูลเป็นปัจจุบันแล้ว'))
+                    .catch((e) => setError(e.message))
+                }
+              >
+                <RefreshCw size={20} aria-hidden="true" />
+              </button>
+              <NotificationPopover
+                notifications={db.notifications}
+                employeeId={actor.id}
+                route={route}
+                disabled={mobile || commandOpen || !!entry}
+                onReadAll={() => run({ type: 'readNotifications' })}
+              />
+
+              <div className="header-avatar toolbar-hint" data-tooltip={actor.name} tabIndex={0}>
+                <Avatar person={actor} size="small" />
+              </div>
+            </div>
+          </header>
+          <div className="mode-bar flex items-center justify-between gap-[16px]">
+            <span className="flex items-center gap-[6px]">
+              <span className="status-dot" />
+              {'พื้นที่ทดลอง · '}
+              {dataMode === 'mock' ? 'ข้อมูลบันทึกในเบราว์เซอร์' : 'ข้อมูลจากระบบกลาง'}
+            </span>
+            <span className="flex items-center gap-[6px]">
+              <CalendarDays size={13} /> {formatDate(today())}
+              {' · พ.ศ.'}
+            </span>
+          </div>
+          <main key={route} ref={main} tabIndex={-1}>
+            <div className="back-row">
+              {route !== '/dashboard' && (
+                <Link to="/dashboard" className="text-link">
+                  <ChevronLeft size={14} />
+                  หน้าหลัก
+                </Link>
+              )}
+            </div>
+            {error && (
+              <div className="error" role="alert">
+                {error}
+                <button
+                  className="icon-btn"
+                  aria-label="ปิดข้อผิดพลาด"
+                  onClick={() => setError('')}
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            )}
+            <WorkspaceRoutes routes={routes} />
+          </main>
+          <footer className="flex justify-between gap-[16px]">
+            <span lang="en">
+              <BrandMark />
+              Leave Management
+            </span>
+            <span>ข้อมูลและนโยบายตัวอย่าง</span>
+          </footer>
+        </div>
+        {toast && (
+          <div className="toast" role="status">
+            <span className="toast-icon">
+              <Check size={17} />
+            </span>
+            {toast}
+            <button onClick={() => setToast('')} aria-label="ปิดแจ้งเตือน">
+              <X size={15} />
+            </button>
+          </div>
+        )}
+        {commandOpen && <CommandMenu menus={menus} db={db} onClose={() => setCommandOpen(false)} />}
+      </div>
+      {entry && <EntryTransition {...entry} />}
+    </>
+  );
+}

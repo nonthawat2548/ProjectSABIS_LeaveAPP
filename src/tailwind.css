@@ -1,0 +1,6 @@
+/* Keep the existing reset, fonts and theme tokens in styles.css.
+   Tailwind supplies layout utilities without changing browser defaults. */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@source './';

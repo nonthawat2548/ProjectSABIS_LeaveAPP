@@ -1,0 +1,391 @@
+import { EmployeeLabel } from './EmployeeLabel';
+import { useState } from 'react';
+import { ArrowUpRight, CalendarCheck2, Check, Search, Users, Wallet } from 'lucide-react';
+
+import { balance, effectiveWorkStatus, requestCode, totalDays } from './domain/service';
+import { addDays, formatDate, today } from './domain/date';
+import { Badge, Card, Dialog, Empty } from './components';
+import { formatWorkStatus } from './labels';
+export function BrandMark() {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path
+        d="M7 10h18v13a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V10Z"
+        stroke="currentColor"
+        strokeWidth="2.2"
+      />
+
+      <path
+        d="M7 15h18M12 6v6m8-6v6m-8 9 3 3 6-6"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+export function Avatar({ person, size = 'normal' }) {
+  const name = person.name.trim(),
+    initial = (
+      name.match(/[ก-ฮA-Za-z0-9]/u)?.[0] ??
+      Array.from(name)[0] ??
+      '?'
+    ).toLocaleUpperCase();
+  return (
+    <span
+      className={`avatar avatar-${size} avatar-color-${person.id % 5}`}
+      role="img"
+      aria-label={person.name}
+      title={person.name}
+    >
+      {initial}
+    </span>
+  );
+}
+export function Stepper({ step }) {
+  return (
+    <ol className="form-stepper" aria-label="ขั้นตอนคำขอ">
+      {['ข้อมูลการลา', 'ตรวจสอบคำขอ', 'ส่งคำขอ'].map((name, i) => (
+        <li
+          key={name}
+          className={i + 1 === step ? 'current' : i + 1 < step ? 'complete' : ''}
+          aria-current={i + 1 === step ? 'step' : undefined}
+        >
+          <span>{i + 1 < step ? <Check size={14} /> : String(i + 1).padStart(2, '0')}</span>
+          <strong>{name}</strong>
+        </li>
+      ))}
+    </ol>
+  );
+}
+export function WelcomeHero({ actor }) {
+  const employee = actor.role === 'Employee';
+  return (
+    <section className="welcome-hero">
+      <div className="welcome-copy">
+        <span className="hero-eyebrow">
+          <span className="pulse-dot" />{' '}
+          {employee
+            ? 'ข้อมูลการลา'
+            : actor.role === 'Manager'
+              ? 'คำขอลาของทีม'
+              : 'ข้อมูลสิทธิ์การลา'}
+        </span>
+        <h1>
+          สวัสดี คุณ{actor.name.split(' ')[0]}
+          <span className="greeting-mark">✦</span>
+        </h1>
+        <p>
+          {employee
+            ? 'ยื่นคำขอลา ตรวจสอบสิทธิ์ และติดตามผลการพิจารณา'
+            : actor.role === 'Manager'
+              ? 'ตรวจสอบและพิจารณาคำขอของพนักงานในทีม'
+              : 'ให้ความเห็นคำขอและจัดสรรสิทธิ์การลา'}
+        </p>
+        <div className="hero-actions flex flex-wrap items-center gap-[18px]">
+          <a href={employee ? '#/new' : '#/requests'} className="btn primary">
+            {employee ? <CalendarCheck2 size={18} /> : <Users size={18} />}{' '}
+            {employee ? 'ยื่นคำขอลา' : actor.role === 'HR' ? 'ดูคำขอปรึกษา' : 'พิจารณาคำขอ'}
+            <ArrowUpRight size={17} />
+          </a>
+          <span className="hero-date">
+            {formatDate(today())} <i /> <EmployeeLabel kind="department" value={actor.department} />
+          </span>
+        </div>
+      </div>
+      <div className="welcome-art" aria-hidden="true">
+        <img src="/art/leave-garden.svg" alt="" />
+        <span className="art-note">
+          <Check size={13} />
+          ตรวจสอบวันลาในปฏิทิน
+        </span>
+      </div>
+    </section>
+  );
+}
+export function QuotaOverview({ db, actor }) {
+  const year = Number(today().slice(0, 4));
+  return (
+    <Card
+      title="สิทธิ์วันลาคงเหลือ"
+      action={
+        <a href="#/quota" className="text-link">
+          ดูสิทธิ์
+          <ArrowUpRight size={14} />
+        </a>
+      }
+      className="quota-overview"
+    >
+      <span className="card-subtitle">
+        {'สิทธิ์วันลาประจำปี '}
+        {year + 543}
+      </span>
+      {db.leaveTypes
+        .filter((t) => t.quotaScope === 'Annual')
+        .map((t, i) => {
+          const q = balance(db, actor.id, t.id, year),
+            used = q.total ? (q.used / q.total) * 100 : 0,
+            pending = q.total ? (q.pending / q.total) * 100 : 0;
+          return (
+            <div className={'quota-line tone-' + ['mint', 'purple', 'peach'][i % 3]} key={t.id}>
+              <div>
+                <span>{t.name}</span>
+                <strong>
+                  {q.remaining}
+                  <small>
+                    {' / '}
+                    {q.total}
+                    {' วัน'}
+                  </small>
+                </strong>
+              </div>
+              <div
+                className="quota-track"
+                role="img"
+                aria-label={`${t.name} ใช้แล้ว ${q.used} วัน รอพิจารณา ${q.pending} วัน คงเหลือ ${q.remaining} วัน`}
+              >
+                <i style={{ width: Math.min(100, used) + '%' }} />
+                <b style={{ width: Math.max(0, Math.min(100 - used, pending)) + '%' }} />
+              </div>
+              <small>
+                {'ใช้แล้ว '}
+                {q.used}
+                {' วัน '}
+                {q.pending > 0 && (
+                  <>
+                    {'· รอพิจารณา '}
+                    {q.pending}
+                    {' วัน'}
+                  </>
+                )}
+              </small>
+            </div>
+          );
+        })}
+      <div className="quota-foot">
+        <Wallet size={14} />
+        <p>โควตาจะอัปเดตเมื่อคำขอได้รับอนุมัติ</p>
+      </div>
+    </Card>
+  );
+}
+export function TeamOverview({ db, actor }) {
+  const people = db.employees.filter(
+    (e) => e.active && (actor.role === 'HR' || e.managerId === actor.id),
+  );
+  const date = today();
+  return (
+    <Card
+      title="สถานะพนักงานวันนี้"
+      action={
+        <a href="#/work" className="text-link">
+          ดูทั้งหมด
+          <ArrowUpRight size={14} />
+        </a>
+      }
+      className="team-overview"
+    >
+      <span className="card-subtitle">
+        {formatDate(date)}
+        {' · '}
+        {people.length}
+        {' คน'}
+      </span>
+      {people.slice(0, 5).map((e) => (
+        <div className="team-person" key={e.id}>
+          <Avatar person={e} />
+          <div>
+            <strong>{e.name.split(' ')[0]}</strong>
+            <small>
+              <EmployeeLabel kind="position" value={e.position} />
+            </small>
+          </div>
+          <span
+            className={
+              'team-status ' +
+              (effectiveWorkStatus(db, e.id, date).includes('Leave') ? 'on-leave' : '')
+            }
+          >
+            {formatWorkStatus(effectiveWorkStatus(db, e.id, date))}
+          </span>
+        </div>
+      ))}
+      {!people.length && <Empty>ยังไม่มีพนักงานในทีม</Empty>}
+      <a href="#/calendar" className="team-calendar-link">
+        <CalendarCheck2 size={16} />
+        ดูปฏิทินการลา
+        <ArrowUpRight size={14} />
+      </a>
+    </Card>
+  );
+}
+export function UpcomingLeave({ db, actor, requests }) {
+  const upcoming = requests
+    .filter((r) => (r.status === 'Approved' || r.status === 'Pending') && r.endDate >= today())
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const next = upcoming[0];
+  return (
+    <Card
+      title={actor.role === 'Employee' ? 'การลาที่กำลังจะมาถึง' : 'คำขอที่ต้องติดตาม'}
+      className="upcoming-card"
+    >
+      {next ? (
+        <>
+          <div className="upcoming-date">
+            <CalendarCheck2 size={24} />
+            <div>
+              <strong>{formatDate(next.startDate)}</strong>
+              <small>
+                {next.startDate !== next.endDate
+                  ? 'ถึง ' + formatDate(next.endDate)
+                  : 'ลา' + (next.duration === 'Full' ? 'เต็มวัน' : 'ครึ่งวัน')}
+              </small>
+            </div>
+            <Badge status={next.status} />
+          </div>
+          <p>
+            {db.leaveTypes.find((t) => t.id === next.leaveTypeId)?.name}
+            {' · '}
+            {totalDays(db, next.id)}
+            {' วัน'}
+          </p>
+          <a href={'#/request/' + next.id} className="text-link">
+            ติดตามคำขอ
+            <ArrowUpRight size={15} />
+          </a>
+        </>
+      ) : (
+        <div className="quiet-note">
+          <CalendarCheck2 size={24} />
+          <p>ยังไม่มีคำขอที่กำลังจะมาถึง</p>
+          <a href={actor.role === 'Employee' ? '#/new' : '#/calendar'} className="text-link">
+            {actor.role === 'Employee' ? 'ยื่นคำขอลา' : 'เปิดปฏิทิน'}
+            <ArrowUpRight size={14} />
+          </a>
+        </div>
+      )}
+    </Card>
+  );
+}
+export function WeeklyOverview({ db, actor }) {
+  const weekdays = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+  return (
+    <div className="weekly-overview">
+      <div>
+        <span className="section-eyebrow">7 วันข้างหน้า</span>
+        <strong>{actor.role === 'Employee' ? 'วันลาใน 7 วันข้างหน้า' : 'ภาพรวมวันลาของทีม'}</strong>
+      </div>
+      <div className="week-strip">
+        {Array.from({ length: 7 }, (_, i) => {
+          const date = addDays(today(), i),
+            day = new Date(date + 'T00:00:00Z'),
+            rows = db.requests.filter(
+              (r) =>
+                (actor.role === 'Employee'
+                  ? r.employeeId === actor.id
+                  : actor.role === 'HR' ||
+                    db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) &&
+                r.status === 'Approved' &&
+                db.days.some((d) => d.leaveId === r.id && d.date === date),
+            );
+          return (
+            <div
+              key={date}
+              className={i === 0 ? 'today' : ''}
+              title={`${formatDate(date)} · ${new Set(rows.map((r) => r.employeeId)).size} คนลา`}
+            >
+              <small>{weekdays[day.getUTCDay()]}</small>
+              <strong>{day.getUTCDate()}</strong>
+              <span className={rows.length ? 'has-leave' : ''}>
+                {rows.length > 0 ? <i /> : <span />}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <span className="week-caption">
+        <i />
+        วันลาที่อนุมัติ
+      </span>
+    </div>
+  );
+}
+/**
+ * @param {{path: string, label: string}[]} menus
+ * @param {import('./domain/types').Database} db
+ * @param {string} query
+ */
+export function searchWorkspace(menus, db, query) {
+  const keyword = query.trim().toLowerCase();
+  return {
+    pages: menus.filter((m) => m.label.toLowerCase().includes(keyword)),
+    requests: keyword
+      ? db.requests
+          .filter((r) =>
+            `${requestCode(r)} ${r.reason} ${db.employees.find((e) => e.id === r.employeeId)?.name ?? ''}`
+              .toLowerCase()
+              .includes(keyword),
+          )
+          .slice(0, 5)
+      : [],
+  };
+}
+export function CommandMenu({ menus, db, onClose }) {
+  const [query, setQuery] = useState('');
+  const { pages, requests } = searchWorkspace(menus, db, query);
+  return (
+    <Dialog title="ค้นหาเมนูหรือคำขอ" onClose={onClose}>
+      <div className="command-search">
+        <Search size={19} />
+        <input
+          aria-label="ค้นหาเมนูหรือคำขอ"
+          autoFocus
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="ชื่อเมนู / เลขคำขอ / ชื่อพนักงาน"
+        />
+      </div>
+      <div className="command-results">
+        <small>เมนู</small>
+        {pages.map((m) => (
+          <a key={m.path} href={'#' + m.path} onClick={onClose}>
+            <span>{m.label}</span>
+            <ArrowUpRight size={16} />
+          </a>
+        ))}
+        {requests.length > 0 && <small>คำขอ</small>}
+        {requests.map((r) => (
+          <a key={r.id} href={'#/request/' + r.id} onClick={onClose}>
+            <div>
+              <strong>{requestCode(r)}</strong>
+              <span>{db.employees.find((e) => e.id === r.employeeId)?.name}</span>
+            </div>
+            <Badge status={r.status} />
+          </a>
+        ))}
+        {!pages.length && !requests.length && <Empty>ไม่พบผลลัพธ์</Empty>}
+      </div>
+      <div className="command-hint">
+        <kbd>Esc</kbd>
+        {' ปิดการค้นหา'}
+      </div>
+    </Dialog>
+  );
+}
+export function QuotaRing({ remaining, total }) {
+  const p = total ? Math.max(0, Math.min(100, (remaining / total) * 100)) : 0;
+  return (
+    <div
+      className="quota-ring"
+      style={{ '--quota-percent': `${p}%` }}
+      role="img"
+      aria-label={`คงเหลือ ${remaining} จาก ${total} วัน`}
+    >
+      <div>
+        <strong>{remaining}</strong>
+        <small>วันคงเหลือ</small>
+      </div>
+    </div>
+  );
+}

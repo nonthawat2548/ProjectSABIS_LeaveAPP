@@ -1,8 +1,8 @@
 # REST API contract
 
-ตัวอย่าง implementation: `server/index.ts` · frontend adapter: `src/data/apiRepository.ts`
+Implementation ปัจจุบัน: `internal/httpapi/` (Go + Gin) · frontend adapter: `src/data/apiRepository.js` · สัญญา [OpenAPI](openapi.yaml) · วิธีรันและลำดับอ่านโค้ด [GO_BACKEND.md](GO_BACKEND.md)
 
-บน Vercel ใช้ api/router.ts → server/cloudApi.ts → server/postgresStore.ts เชื่อม PostgreSQL private schema leave_app ใช้ business commands เดิมและ session ฝั่ง server ไม่ใช้ไฟล์ JSON/session ใน memory ดู [SUPABASE.md](SUPABASE.md) API mode ไม่ fallback บันทึกลง IndexedDB เมื่อ backend ขัดข้อง
+บน Vercel ใช้ api/go.go → internal/httpapi/ → internal/service/ และ internal/repository/postgres.go เชื่อม PostgreSQL private schema leave_app ใช้ business commands และ cookie contract เดิม ไม่ใช้ไฟล์ JSON/session ใน memory ดู [SUPABASE.md](SUPABASE.md) ไม่มี fallback ไป IndexedDB ส่วน Node ใน server/*.ts เป็น reference/โหมด legacy สำหรับเทียบระหว่างย้ายระบบ
 
 ## Cloud transport เพิ่มเติม
 
@@ -23,13 +23,13 @@ Cloud จำกัด body command/part 3 MiB, login/metadata 64 KiB; base64 ไ
 
 Cloud snapshot คืน documents ตามสิทธิ์ด้วย remote:true/dataUrl:'' ไม่ส่งเอกสารใหญ่ตอน Login/ทุก 15 วินาที downloadDocument ของ adapter โหลด parts เมื่อกดดาวน์โหลดและตรวจขนาด Blob เทียบ fileSize ไฟล์เก็บ base64 ใน PostgreSQL ใช้พื้นที่ฐานร่วมกัน; ไม่ใช่ object storage การส่งออก JSON จาก HR ใน cloud จึงไม่รวมเนื้อไฟล์ remote
 
-API คืน JSON ทุก response วันที่ของข้อมูลเป็น ISO **ค.ศ. `YYYY-MM-DD`** และ timestamp เป็น UTC ISO 8601 ช่องกรอก/ข้อความบนหน้าจอเป็น **พ.ศ. `d/m/yyyy`** โดยแปลงใน `src/domain/date.ts`
+API คืน JSON ทุก response วันที่ของข้อมูลเป็น ISO **ค.ศ. `YYYY-MM-DD`** และ timestamp เป็น UTC ISO 8601 ช่องกรอก/ข้อความบนหน้าจอเป็น **พ.ศ. `d/m/yyyy`** โดยแปลงใน `src/domain/date.js`
 
 ## Endpoints
 
 | Method | Path | Input | Output |
 | --- | --- | --- | --- |
-| GET | `/api/health` | — | `{status:"ok", mode:"mock-json"}` |
+| GET | `/api/health` | — | `{status:"ok", mode:"go-json", backend:"go-gin", documentTransport:"parts-v1", partCharacters:2097152}` |
 | POST | `/api/session` | `{email, password}` | `{employee}` และ HttpOnly cookie |
 | GET | `/api/session` | session cookie | `{employee}` หรือ 401 |
 | DELETE | `/api/session` | — | `{message}` ล้าง session |
@@ -40,7 +40,7 @@ API คืน JSON ทุก response วันที่ของข้อมู
 
 API จะเลือกผู้กระทำจาก session **ไม่รับ actorId/role จาก body** พนักงานเห็นข้อมูลคำขอตัวเอง ผู้จัดการเห็นทีมที่เป็นผู้จัดการโดยตรง HR มองเห็นข้อมูลการลาเพื่อดูแลสิทธิ์ แต่ส่งความเห็นได้เฉพาะคำขอที่ได้รับมอบหมาย
 
-Login ของชุดทดลองรับชื่อผู้ใช้หรืออีเมลผ่าน field `email` เดิม เช่น `{ "email": "pimchanok.w", "password": "1234" }` หรืออีเมลเต็ม ชื่อผู้ใช้ของทั้ง 10 คนเป็นชื่อเฉพาะบุคคลจาก mapping อีเมลเดิมใน `src/domain/auth.ts` ไม่ใช้ role/position และไม่เพิ่มคอลัมน์หรือตาราง บัญชีนอกชุดทดลองที่ไม่อยู่ใน mapping ใช้ส่วนก่อน @ ของอีเมลเป็น alias ไม่แยกตัวพิมพ์เล็ก/ใหญ่และตัดช่องว่างหัวท้าย หากชื่อซ้ำกันต้องใช้อีเมลเต็ม; บัญชี inactive เข้าสู่ระบบไม่ได้ ใช้กฎร่วมทั้ง IndexedDB, mock JSON และ PostgreSQL ชื่อเดิม `employee`/`manager`/`hr`/`sales-manager`/`other` และรหัสเดิม `demo1234` ใช้ไม่ได้หลังเผยแพร่โค้ดใหม่ อีเมลเต็มยังใช้ได้ ไม่ต้องคืนค่าข้อมูลหรือรัน SQL migration
+Login ของชุดทดลองรับชื่อผู้ใช้หรืออีเมลผ่าน field `email` เดิม เช่น `{ "email": "pimchanok.w", "password": "1234" }` หรืออีเมลเต็ม ชื่อผู้ใช้ของทั้ง 10 คนเป็นชื่อเฉพาะบุคคลจาก mapping อีเมลเดิมใน `src/domain/auth.js` ไม่ใช้ role/position และไม่เพิ่มคอลัมน์หรือตาราง บัญชีนอกชุดทดลองที่ไม่อยู่ใน mapping ใช้ส่วนก่อน @ ของอีเมลเป็น alias ไม่แยกตัวพิมพ์เล็ก/ใหญ่และตัดช่องว่างหัวท้าย หากชื่อซ้ำกันต้องใช้อีเมลเต็ม; บัญชี inactive เข้าสู่ระบบไม่ได้ ใช้กฎร่วมทั้ง IndexedDB, mock JSON และ PostgreSQL ชื่อเดิม `employee`/`manager`/`hr`/`sales-manager`/`other` และรหัสเดิม `demo1234` ใช้ไม่ได้หลังเผยแพร่โค้ดใหม่ อีเมลเต็มยังใช้ได้ ไม่ต้องคืนค่าข้อมูลหรือรัน SQL migration
 
 ## ค้นหาสถานะเพื่อนร่วมงาน
 
@@ -56,15 +56,15 @@ Login ของชุดทดลองรับชื่อผู้ใช้�
 
 `workStatus` คือ `In-office`/`WFH`/`Outside` ที่บันทึกในวันที่เลือก หรือ `null` เมื่อยังไม่ได้ระบุ ไม่สมมติว่าอยู่สำนักงาน `leaveDuration` คำนวณจาก `Leave_Day` ของคำขอ Approved ในวันนั้น: `Full` เมื่อรวมอย่างน้อย 1 วัน (รวมสองครึ่งวัน), `AM`/`PM` สำหรับครึ่งวัน และ `null` เมื่อไม่มีวันลาอนุมัติ การลาเต็มวันให้ `workStatus`/`updatedAt` เป็น `null`; ครึ่งวันคงสถานะงานของช่วงที่เหลือไว้ ไม่ส่งรายละเอียดคำขอ
 
-ทั้ง IndexedDB และ API ใช้ `src/domain/colleagues.ts` เป็นกฎร่วม เมื่อเปลี่ยนหลังบ้านจริงให้รองรับ `LeaveRepository.searchColleagues()` และตรวจ session/สิทธิ์ projection ที่ server เช่นเดียวกัน
+IndexedDB ใช้ `src/domain/colleagues.js` และ Go API ใช้ `internal/service/colleagues.go` โดยตรวจเทียบผลลัพธ์ร่วมกัน API ตรวจ session/สิทธิ์และคืน projection เดิมผ่าน `LeaveRepository.searchColleagues()`
 
 ## ข้อมูลจำลองที่ API ใช้งาน
 
-Mock server เริ่มต้นและคืนค่าด้วย `createDemoDatabase()` ใน `src/data/demoDatabase.ts` ซึ่ง clone ข้อมูล 10 คนจาก `src/data/leave-management-10-people.json` การทำรายการบันทึกลง `server/data/leave-management-10-people.json` โดยค่าเริ่มต้น หรือไฟล์ที่กำหนดด้วย `MOCK_DATA_FILE` หากไฟล์ runtime มีอยู่แล้วจะอ่านข้อมูลนั้นต่อ ไม่เขียนทับเมื่อ restart และเก็บ `server/data/db.json` เดิมไว้
+Go JSON server เริ่มต้น/คืนค่าจาก JSON 10 คนเดียวกันผ่าน go:embed ใน src/data/seed.go บันทึกที่ server/data/leave-management-go.json หรือ GO_DATA_FILE ไม่ย้ายหรือเขียนทับไฟล์ Node เดิม PostgreSQL อ่าน schema leave_app เดิมและเก็บ session/upload ในฐาน ดูรายละเอียดใน GO_BACKEND.md ส่วนคำอธิบาย mock JSON/CLI ด้านล่างเป็นโหมด Node legacy ที่เก็บไว้เทียบระหว่างย้าย
 
-`POST /api/demo/reset` ใช้ได้เฉพาะ HR และแทนที่ข้อมูลในไฟล์ runtime ที่เลือกด้วยชุดต้นทาง 10 คน การแก้ไขที่บันทึกอยู่ในไฟล์นั้นจะถูกล้าง ส่วนคำสั่ง `npm run seed -- --confirm` ทำการคืนค่าเดียวกันผ่าน CLI
+`POST /api/demo/reset` ใช้ได้เฉพาะ HR และแทนที่ข้อมูลใน runtime ของโหมดที่กำลังใช้ด้วยชุดต้นทาง 10 คน การแก้ไขที่บันทึกอยู่จะถูกล้าง ส่วนคำสั่ง `npm run seed -- --confirm` คืนค่าเฉพาะไฟล์ Node legacy ผ่าน CLI
 
-API และ IndexedDB ของโหมดเบราว์เซอร์เริ่มต้นจาก source เดียวกัน แต่บันทึกแยกกัน ไม่มีการซิงก์ระหว่างโหมดหรือกลับไปยัง source JSON ไฟล์ SQL/SQLite ใน `src/data/` เป็นสำเนาส่งออกสำหรับอ้างอิง ไม่มีการเชื่อม SQLite อัตโนมัติ ดูรายละเอียดชุดข้อมูลและการสร้างไฟล์ใหม่ใน [คู่มือชุด 10 คน](../src/data/README.md)
+API และ IndexedDB ของโหมดเบราว์เซอร์เริ่มต้นจาก source เดียวกัน แต่บันทึกแยกกัน ไม่มีการซิงก์ระหว่างโหมดหรือกลับไปยัง source JSON ไฟล์ SQL/SQLite ใน `database/sqlite/` เป็นสำเนาส่งออกสำหรับอ้างอิง ไม่มีการเชื่อม SQLite อัตโนมัติ ดูรายละเอียดชุดข้อมูลและการสร้างไฟล์ใหม่ใน [คู่มือชุด 10 คน](../src/data/README.md)
 
 ## ยื่นคำขอ
 
@@ -83,7 +83,7 @@ API และ IndexedDB ของโหมดเบราว์เซอร์�
 }
 ```
 
-`duration`: `Full`, `AM`, `PM` · เอกสาร: `{fileName,fileType,fileSize,dataUrl}` โดย mock ใช้ base64 สำหรับ PDF/PNG/JPEG ไม่เกิน **25 MiB ต่อไฟล์** (`26214400` bytes; หน้าจอแสดง 25 MB ตามหน่วยเดิมของโปรเจกต์) ค่ากลางอยู่ใน `src/domain/attachments.ts` ฝั่งประมวลผลตรวจทั้งขนาดที่แจ้ง ขนาดที่คำนวณจาก base64 และ signature ของชนิดไฟล์ ไม่เชื่อ `fileSize` เพียงอย่างเดียว
+`duration`: `Full`, `AM`, `PM` · เอกสาร: `{fileName,fileType,fileSize,dataUrl}` โดย mock ใช้ base64 สำหรับ PDF/PNG/JPEG ไม่เกิน **25 MiB ต่อไฟล์** (`26214400` bytes; หน้าจอแสดง 25 MB ตามหน่วยเดิมของโปรเจกต์) ค่ากลางอยู่ใน `src/domain/attachments.js` ฝั่งประมวลผลตรวจทั้งขนาดที่แจ้ง ขนาดที่คำนวณจาก base64 และ signature ของชนิดไฟล์ ไม่เชื่อ `fileSize` เพียงอย่างเดียว
 
 `POST /api/commands` รับ body ไม่เกิน `4 × ceil(MAX_ATTACHMENT_BYTES / 3) + 1 MiB` หรือ `36001112` bytes เพื่อรองรับ base64 พร้อม metadata; `POST /api/session` จำกัด 64 KiB คำขอ HTTP เกินเพดานคืน 413 `PAYLOAD_TOO_LARGE` ส่วนไฟล์เกิน 25 MiB หรือข้อมูลเอกสารไม่ถูกต้องคืน 400 `VALIDATION` ตรวจ session ก่อนรับ command body และตรวจสิทธิ์ตามเดิม ต้องรีสตาร์ต mock server หลังปรับเพดาน หากใช้ reverse proxy ภายนอกให้ตั้ง body limit สอดคล้องกัน
 
@@ -130,7 +130,7 @@ API และ IndexedDB ของโหมดเบราว์เซอร์�
 
 ## ต่อฐานข้อมูลจริง
 
-ย้าย validation/authorization และ transaction ใน `domain/service.ts` ไปใช้ server ของคุณ ตรวจ session และ manager assignment ที่ server ทุกครั้ง การอนุมัติต้อง lock/version-check และตรวจสิทธิ์ล่าสุดใน transaction เดียว การหักโควตาในตัวอย่างคำนวณจากวันลาที่ Approved เพื่อไม่ให้หักซ้ำ
+ย้าย validation/authorization และ transaction ใน `domain/service.js` ไปใช้ server ของคุณ ตรวจ session และ manager assignment ที่ server ทุกครั้ง การอนุมัติต้อง lock/version-check และตรวจสิทธิ์ล่าสุดใน transaction เดียว การหักโควตาในตัวอย่างคำนวณจากวันลาที่ Approved เพื่อไม่ให้หักซ้ำ
 
 คำสั่งใน mock JSON server ถูก serialize และเขียนไฟล์โดย rename แบบ atomic เหมาะกับกระบวนการเดียวสำหรับทดลองพัฒนา; multi-instance หลังบ้านต้องใช้ transaction ใน SQL database
 

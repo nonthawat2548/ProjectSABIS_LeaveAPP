@@ -2,6 +2,10 @@
 
 แอปภาษาไทยสำหรับ **พนักงาน / ผู้จัดการ / HR** ต่อยอดจาก Screen Design และ Navigation Flow ในงานนี้ พร้อมข้อมูลจำลองที่บันทึกได้ และ REST adapter สำหรับเปลี่ยนเป็นหลังบ้านของคุณภายหลัง
 
+**Backend ปัจจุบัน: Go + Gin** แยก Handler / Service / Repository และเชื่อม PostgreSQL เดิม หน้า React คงเดิม เริ่มทดลองด้วย `npm run dev:api` อ่านลำดับการทำงานและวิธีเปิดฐานกลางใน [docs/GO_BACKEND.md](docs/GO_BACKEND.md) และสัญญา [OpenAPI](docs/openapi.yaml)
+
+**Frontend ปัจจุบัน: React + JavaScript + Vite** ใช้ React Router สำหรับเปลี่ยนหน้า Tailwind CSS สำหรับ layout ร่วมกับธีม CSS เดิม และ Jest + React Testing Library สำหรับทดสอบหน้าจอ อ่านลำดับโค้ดและวิธีทำงานใน [docs/FRONTEND.md](docs/FRONTEND.md) หน้าตาและขั้นตอนใช้งานคงเดิม
+
 **วันที่บนหน้าจอและช่องกรอกใช้ วัน/เดือน/ปี พ.ศ. เช่น `5/12/2569`** ไม่ใช่เดือน/วัน/ปี ส่วน API และฐานข้อมูลใช้ `2026-12-05` (ค.ศ.)
 
 ## หน้าตาเวอร์ชันใหม่
@@ -10,7 +14,7 @@
 
 - ธีมสว่างพื้นมิ้นต์และการ์ดขาว เมนูพื้นมิ้นต์อ่อนใช้ข้อความเขียวเข้มและไอคอนเส้นชัด; ธีมมืดใช้เทาชาร์โคลกับการ์ดเทาที่สว่างขึ้น ปุ่ม/ลิงก์ฟ้าอ่อน และเมนูที่เลือกสีน้ำเงิน พร้อมสีแยกสถานะและภาพ SVG ที่แก้ไขได้
 - ฟอนต์ IBM Plex Sans Thai เก็บในโปรเจกต์ เปิดได้โดยไม่ต้องเรียกบริการฟอนต์ภายนอก
-- ภาษาไทยสำหรับเมนู แบบฟอร์ม สถานะ และคำแนะนำ; คงชื่อ Leave Management และชื่อมาตรฐานไฟล์/คีย์ลัดเป็นอังกฤษ ใช้ HR/WFH พร้อมคำอธิบายไทย และค่ากลางการแสดงผลใน `src/labels.ts` ดูแนวทางภาษาใน `docs/DESIGN.md`
+- ภาษาไทยสำหรับเมนู แบบฟอร์ม สถานะ และคำแนะนำ; คงชื่อ Leave Management และชื่อมาตรฐานไฟล์/คีย์ลัดเป็นอังกฤษ ใช้ HR/WFH พร้อมคำอธิบายไทย และค่ากลางการแสดงผลใน `src/labels.js` ดูแนวทางภาษาใน `docs/DESIGN.md`
 - ธีมสว่าง/มืด จำค่าที่เลือก และใช้ค่าธีมของเครื่องเมื่อเปิดครั้งแรก
 - Dashboard แยกตามบทบาท แสดงโควตา สถานะทีม คำขอล่าสุด และวันลาที่กำลังจะมาถึงจากข้อมูลจริงในชุดจำลอง
 - ค้นหาเมนูหรือคำขอด้วยปุ่มค้นหา หรือ `Ctrl+K` / `⌘+K` แล้วปิดด้วย `Esc`
@@ -34,7 +38,7 @@ npm run dev
 
 เปิด URL ที่ Terminal แสดง ปกติคือ `http://localhost:5173` แล้วเลือกบทบาท **พนักงาน**, **ผู้จัดการ** หรือ **ฝ่ายบุคคล** ก่อน รายการบัญชีจะแสดงเฉพาะบทบาทที่เลือก: พนักงาน 7 คน, ผู้จัดการ 2 คน หรือฝ่ายบุคคล 1 คน โดยแสดงชื่อเต็มและชื่อผู้ใช้ เมื่อเลือกบุคคลแล้วระบบจะกรอกชื่อผู้ใช้และรหัสผ่าน `1234` ให้ จากนั้นกด **เข้าสู่ระบบ**
 
-ตอนเปิดหน้าช่องชื่อผู้ใช้และรหัสผ่านว่าง รายการบัญชีปิดใช้งานจนกว่าจะเลือกบทบาท การเลือก/เปลี่ยนบทบาทไม่เลือกบุคคลหรือเติมรหัสผ่าน ต้องเลือกบุคคลจากรายการก่อนจึงเติม `1234` หรือพิมพ์ชื่อผู้ใช้/อีเมลและรหัสผ่านเองได้โดยไม่ต้องเลือกบทบาท ชื่อผู้ใช้เป็นชื่อเฉพาะบุคคล เช่น `pimchanok.w`, `thanawat.k`, `siriporn.j` กำหนดใน `src/domain/auth.ts` ไม่ใช้ชื่อบทบาทหรือตำแหน่ง ไม่แยกตัวพิมพ์เล็ก/ใหญ่และต้องไม่ซ้ำกัน สิทธิ์ยังมาจากบัญชีที่ repository ยืนยัน ไม่ใช่หมวดที่เลือก แอปใช้ชุดข้อมูลจาก `src/data/leave-management-10-people.json` เป็นข้อมูลเริ่มต้น
+ตอนเปิดหน้าช่องชื่อผู้ใช้และรหัสผ่านว่าง รายการบัญชีปิดใช้งานจนกว่าจะเลือกบทบาท การเลือก/เปลี่ยนบทบาทไม่เลือกบุคคลหรือเติมรหัสผ่าน ต้องเลือกบุคคลจากรายการก่อนจึงเติม `1234` หรือพิมพ์ชื่อผู้ใช้/อีเมลและรหัสผ่านเองได้โดยไม่ต้องเลือกบทบาท ชื่อผู้ใช้เป็นชื่อเฉพาะบุคคล เช่น `pimchanok.w`, `thanawat.k`, `siriporn.j` กำหนดใน `src/domain/auth.js` ไม่ใช้ชื่อบทบาทหรือตำแหน่ง ไม่แยกตัวพิมพ์เล็ก/ใหญ่และต้องไม่ซ้ำกัน สิทธิ์ยังมาจากบัญชีที่ repository ยืนยัน ไม่ใช่หมวดที่เลือก แอปใช้ชุดข้อมูลจาก `src/data/leave-management-10-people.json` เป็นข้อมูลเริ่มต้น
 
 | บทบาท | ชื่อผู้ใช้ | อีเมล | รหัสผ่านตัวอย่าง |
 | --- | --- | --- | --- |
@@ -65,21 +69,21 @@ npm run dev
 npm run dev:api
 ```
 
-คำสั่งนี้เปิดทั้งหน้าเว็บและ **Node.js mock REST server** ให้เอง หน้าเว็บเชื่อม `/api` ผ่าน Vite proxy ไปที่ `127.0.0.1:3001`
+ติดตั้ง Go **1.26 ขึ้นไป** ก่อน คำสั่งนี้เปิดหน้าเว็บและ **Go + Gin REST server** ให้เอง หน้าเว็บเชื่อม `/api` ผ่าน Vite proxy ไปที่ `127.0.0.1:3001`
 
-- ข้อมูลหลังบ้านบันทึกใน `server/data/leave-management-10-people.json` และยังอยู่หลังรีสตาร์ต server; ตั้ง `MOCK_DATA_FILE` เพื่อใช้ไฟล์อื่นได้
+- Go บันทึกใน `server/data/leave-management-go.json` และยังอยู่หลังรีสตาร์ต; ตั้ง `GO_DATA_FILE` เพื่อเลือกไฟล์อื่น ไฟล์ Node เดิม `server/data/leave-management-10-people.json` คงอยู่ ใช้ `npm run dev:legacy`/`MOCK_DATA_FILE` เมื่อต้องการเทียบโหมดเดิม
 - เมื่อยังไม่มีไฟล์ข้อมูล จะเริ่มต้นจาก `src/data/leave-management-10-people.json` และบันทึกเป็นไฟล์ runtime เมื่อทำรายการที่เขียนข้อมูล
 - เก็บ `server/data/db.json` เดิมไว้ ไม่มีการย้ายหรือเขียนทับอัตโนมัติ
 - บัญชีตัวอย่างเหมือนโหมดเบราว์เซอร์
 - ใช้ cookie session ฝั่ง server; การอนุมัติและตรวจสิทธิ์ทำที่ server
 - โหมด API และโหมดเบราว์เซอร์เริ่มต้นด้วยชุด 10 คนเดียวกัน แต่บันทึกการเปลี่ยนแปลงแยกกัน **ไม่มีการย้ายหรือซิงก์ข้อมูลอัตโนมัติ**
 - server จำลองทำงานที่ localhost เพื่อพัฒนา คุณเปลี่ยนการเก็บ JSON เป็น SQL database ได้ภายหลัง
-- รีเซ็ตเป็นชุด 10 คนผ่านบัญชี HR → การตั้งค่า → คืนค่าข้อมูลจำลอง หรือ `npm run seed -- --confirm` สำหรับโหมด API; การคืนค่าจะล้างการแก้ไขในฐาน runtime ที่เลือกใช้อยู่
+- คืนค่าผ่านบัญชี HR → การตั้งค่า → คืนค่าข้อมูลจำลอง การคืนค่าล้างการแก้ไขในฐาน runtime ที่เลือกอยู่ ส่วน `npm run seed -- --confirm` ยังเป็น CLI ของ Node เดิม ไม่ใช้คืนค่า Go/PostgreSQL
 
 หากต้องการเปิดสอง Terminal แยกกัน:
 
 1. คัดลอก `.env.example` เป็น `.env` แล้วตั้ง `VITE_DATA_MODE=api`
-2. Terminal แรก: `npm run mock:server`
+2. Terminal แรก: `npm run go:server`
 3. Terminal ที่สอง: `npm run dev`
 
 ค่า `MOCK_PORT` ใน `.env` เปลี่ยน port ของ server และ Vite proxy ได้
@@ -88,9 +92,9 @@ npm run dev:api
 
 ดูรายละเอียดใน [docs/API.md](docs/API.md) และ [docs/DATABASE.md](docs/DATABASE.md)
 
-สำหรับ Supabase ที่สร้างผ่าน Vercel มี API PostgreSQL ใน `api/router.ts` และ SQL ชุด 10 คนพร้อม session/upload migration ดู [docs/SUPABASE.md](docs/SUPABASE.md) หลังนำเข้า SQL ตั้งค่า environment และ deploy โค้ดใหม่ ทุกเครื่องใช้ฐานกลางชุดเดียวกัน Vercel build เลือก API โดยค่าเริ่มต้นและไม่ fallback ไป IndexedDB เมื่อระบบขัดข้อง ข้อมูลเก่าในอุปกรณ์ไม่ย้ายอัตโนมัติ บัญชี login ยังเป็น demo ที่ต้องเปิด ENABLE_DEMO_LOGIN; ไฟล์ 25 MB ส่ง/ดาวน์โหลดเป็น parts และใช้พื้นที่ฐานข้อมูล สำหรับทดลองโดยไม่เพิ่มบริการ Storage
+สำหรับ Supabase ที่สร้างผ่าน Vercel มี API PostgreSQL ใน `api/go.go` และ SQL ชุด 10 คนพร้อม session/upload migration ดู [docs/SUPABASE.md](docs/SUPABASE.md) หลังนำเข้า SQL ตั้งค่า environment และ deploy โค้ดใหม่ ทุกเครื่องใช้ฐานกลางชุดเดียวกัน Vercel build เลือก API โดยค่าเริ่มต้นและไม่ fallback ไป IndexedDB เมื่อระบบขัดข้อง ข้อมูลเก่าในอุปกรณ์ไม่ย้ายอัตโนมัติ บัญชี login ยังเป็น demo ที่ต้องเปิด ENABLE_DEMO_LOGIN; ไฟล์ 25 MB ส่ง/ดาวน์โหลดเป็น parts และใช้พื้นที่ฐานข้อมูล สำหรับทดลองโดยไม่เพิ่มบริการ Storage
 
-1. สร้าง API ตาม contract ที่เตรียมไว้ หรือปรับ `src/data/apiRepository.ts` ให้ตรงกับ API ของคุณ
+1. สร้าง API ตาม contract ที่เตรียมไว้ หรือปรับ `src/data/apiRepository.js` ให้ตรงกับ API ของคุณ
 2. ตั้งค่าใน `.env`:
 
 ```dotenv
@@ -98,7 +102,7 @@ VITE_DATA_MODE=api
 VITE_API_BASE_URL=/api
 ```
 
-3. ถ้าใช้ server อื่น ให้แก้ proxy ใน `vite.config.ts` หรือใส่ URL API ของคุณใน `VITE_API_BASE_URL` และตั้งค่า CORS/cookie ให้รองรับ
+3. ถ้าใช้ server อื่น ให้แก้ proxy ใน `vite.config.js` หรือใส่ URL API ของคุณใน `VITE_API_BASE_URL` และตั้งค่า CORS/cookie ให้รองรับ
 4. ข้อมูลตารางหลักใน `database/schema.sql` ยึด 9 ตารางเดิม พร้อมระบุส่วนเพิ่มที่แอปใช้ไว้ในคู่มือ
 5. ชุด 10 คนที่แอปใช้อ่านเริ่มต้นอยู่ใน `src/data/leave-management-10-people.json` ส่วนไฟล์ SQL/SQLite ส่งออกอยู่ใน `database/sqlite/` ส่วน `database/legacy/mock-db.json` และ `database/legacy/mock.sqlite` เป็นตัวอย่างเดิมสำหรับอ้างอิง Mock REST server ใช้ JSON และยังไม่ได้เชื่อม SQLite โดยอัตโนมัติ
 
@@ -151,28 +155,43 @@ VITE_API_BASE_URL=/api
 
 ```text
 src/
-  App.tsx                 login, layout, navigation, โหลดข้อมูล
-  Dashboard.tsx           หน้าภาพรวมตามบทบาท
-  ColleaguesPage.tsx       ค้นหาสถานะเพื่อนร่วมงานด้วยชื่อ/รหัสและวันที่ พ.ศ.
-  ui.tsx                  hero, โควตา, สรุปทีม, ค้นหาด่วน, stepper
-  pages.tsx               หน้าจอของทั้ง 3 บทบาท
-  components.tsx          date picker, ตาราง, dialog, เอกสาร
+  App.jsx                 layout, session และโหลดข้อมูล
+  routes.jsx              เส้นทาง React Router และหน้าที่แต่ละบทบาทเปิดได้
+  Login.jsx               เลือกบัญชีและแบบฟอร์มเข้าสู่ระบบ
+  ThemeButton.jsx         ปุ่มเปลี่ยนธีมที่ใช้ร่วมกัน
+  Dashboard.jsx           หน้าภาพรวมตามบทบาท
+  ColleaguesPage.jsx       ค้นหาสถานะเพื่อนร่วมงานด้วยชื่อ/รหัสและวันที่ พ.ศ.
+  ui.jsx                  hero, โควตา, สรุปทีม, ค้นหาด่วน, stepper
+  pages.jsx               รวม exports ของหน้าจอไว้ที่เส้นทางเดิม
+  pages/                  หน้าจอแยกไฟล์ตามงาน: คำขอ แบบฟอร์ม สิทธิ์ สถานะ และ HR
+  pages/types.d.ts          PageProps ที่ใช้ร่วมกันโดยไม่ผูกกับ App
+  pages/useTask.js        สถานะส่งคำสั่งและแสดงข้อผิดพลาด
+  pages/requestScope.js   กรองรายการคำขอตามบทบาทเดิม
+  components.jsx          date picker, ตาราง, dialog, เอกสาร
   styles.css              สี รูปแบบ และ responsive layout
-  domain/types.ts         โครงสร้างข้อมูลและ API interface
-  domain/date.ts          วัน/เดือน/ปี พ.ศ. ↔ ISO ค.ศ.
-  domain/attachments.ts   ขนาด/ชนิดเอกสารและเพดาน HTTP ที่ใช้ร่วมกัน
-  domain/seed.ts          รหัสผ่าน demo และตัวสร้างข้อมูล/นโยบายตัวอย่าง
-  domain/service.ts       กฎการลา ตรวจสิทธิ์และคำนวณโควตา
-  domain/colleagues.ts    ค้นหาสถานะพื้นฐานโดยไม่เปิดรายละเอียดการลา
-  data/browserRepository.ts  ข้อมูลจำลอง IndexedDB
-  data/apiRepository.ts      ส่วนเชื่อม REST API
-  data/index.ts              เลือกโหมด mock / api
-  data/demoDatabase.ts       clone ชุด JSON 10 คนสำหรับเริ่มต้นและคืนค่า
+  tailwind.css            Tailwind theme/utilities สำหรับ layout โดยไม่ใช้ Preflight
+  domain/types.d.ts         โครงสร้างข้อมูลและ API interface
+  domain/date.js          วัน/เดือน/ปี พ.ศ. ↔ ISO ค.ศ.
+  domain/attachments.js   ขนาด/ชนิดเอกสารและเพดาน HTTP ที่ใช้ร่วมกัน
+  domain/seed.js          รหัสผ่าน demo และตัวสร้างข้อมูล/นโยบายตัวอย่าง
+  domain/service.js       กฎการลา ตรวจสิทธิ์และคำนวณโควตา
+  domain/colleagues.js    ค้นหาสถานะพื้นฐานโดยไม่เปิดรายละเอียดการลา
+  data/browserRepository.js  ข้อมูลจำลอง IndexedDB
+  data/apiRepository.js      ส่วนเชื่อม REST API
+  data/index.js              เลือกโหมด mock / api
+  data/demoDatabase.js       clone ชุด JSON 10 คนสำหรับเริ่มต้นและคืนค่า
   data/leave-management-10-people.json  ข้อมูลต้นทาง 10 คน
-server/
-  index.ts                ตัวอย่าง mock REST API
-  store.ts                อ่าน/เขียน JSON database แบบ serialized
-  seed.ts                 คืนค่าข้อมูลหลังบ้าน
+cmd/server/main.go        เปิด Go server ในเครื่อง
+internal/
+  httpapi/                Gin routes, JSON, session และไฟล์แนบ
+  service/                กฎการลา สิทธิ์ โควตา และคำสั่ง HR
+  repository/             JSON / PostgreSQL และ transaction
+  model/                  structs และ DTO ของ API
+api/go.go                 Go function สำหรับ Vercel
+server/                   Node เดิมสำหรับ dev:legacy และตรวจเทียบระหว่างย้าย
+  index.ts                REST API ของโหมด legacy
+  store.ts                JSON store ของโหมด legacy
+  seed.ts                 คืนค่าข้อมูล Node เดิม
 database/                 schema กลาง, supabase/, sqlite/ และ legacy/
 scripts/                  ตัวสร้าง source JSON และไฟล์ส่งออก
 docs/reference/           Data Dictionary ต้นฉบับ
@@ -189,15 +208,43 @@ tests/                    ทดสอบวันที่ กฎ/สิทธ�
 ## ตรวจสอบและ build
 
 ```bash
+npm run lint
 npm test
 npm run typecheck
 npm run build
 npm run preview
+npm run test:go
+npm run vet:go
+npm run test:parity
+npm run test:go:postgres
+npm run build:go
 ```
 
-ผล build อยู่ใน `dist/` ใช้เป็น static web app ได้ ตัวเว็บที่เผยแพร่ให้ทดลองใช้โหมด IndexedDB; mock Node server อยู่ในไฟล์โปรเจกต์สำหรับรันบนเครื่องของคุณ **ไม่ได้รันอยู่ในเว็บทดลองออนไลน์**
+ผล build อยู่ใน `dist/` สำหรับ frontend โหมดเบราว์เซอร์ใช้ IndexedDB; `dev:api` ใช้ Go JSON server และ `dev:cloud` ใช้ Go กับ PostgreSQL ส่วน Vercel เตรียม `api/go.go` เชื่อม PostgreSQL ตาม [docs/SUPABASE.md](docs/SUPABASE.md) รอบนี้ยังไม่ได้เผยแพร่ขึ้นเว็บจริง
+
+## จัดรูปแบบโค้ดและพัฒนาต่อ
+
+ใช้ [Prettier](https://prettier.io/docs/install) เวอร์ชันที่ล็อกไว้ใน `package.json` และ `.prettierrc.json` ให้ทุกคนจัดรูปแบบตรงกัน:
+
+```bash
+npm run format
+npm run format:check
+```
+
+คำสั่งครอบคลุม JavaScript/JSX, TypeScript ของ tools/tests/server เดิม และ CSS ไม่เขียนข้อมูล JSON ต้นทาง ฐาน runtime, SQL/SQLite หรือไฟล์ใน `public/` ใช้ `npm run lint` ตรวจตัวแปรและ import ของ frontend ส่วน `npm run typecheck` ตรวจ declarations และ TypeScript ที่ยังใช้ ไม่ได้ตรวจ type ภายใน JavaScript ทุกบรรทัด
+
+แก้หน้าจอใน `src/pages/` ตามชื่อไฟล์ ส่วน `src/pages.jsx` รักษา exports เดิมไว้ ใช้ `src/Login.jsx` กับหน้าเข้าสู่ระบบ `src/App.jsx` กับ session/layout และ `src/routes.jsx` กับเส้นทาง หน้าจอเขียน JavaScript โดยมี JSDoc อ้างอิง `PageProps` ใน `src/pages/types.d.ts` สำหรับเครื่องมือ กฎการลาอยู่ใน domain และ Go service; repository และ server เชื่อมข้อมูลและตรวจ session เดิม
+
+ข้อความ JSX ที่มีช่องว่างติดกับภาษาไทยบางจุดเขียนเป็น string expression เช่น `{'ผู้พิจารณา: '}` เพื่อคงขอบเขต text node และการวาดตัวอักษรเดิมเมื่อจัดรูปแบบ หลีกเลี่ยงแยกช่องว่างออกเป็น text node ใหม่โดยไม่ตรวจภาพ
+
+ลบสคริปต์ `scripts/export-sqlite.py` ที่ใช้ส่งออกชุดเก่าและไม่มีจุดเรียกแล้ว ใช้ `npm run data:generate`/`npm run data:check` สำหรับชุดปัจจุบัน ส่วนไฟล์ใน `database/legacy/` เก็บเพื่ออ้างอิง ไม่ใช่ฐาน runtime ลบ `SOURCE_VERSION.txt` ที่ระบุ commit เก่าแล้ว; ใช้ประวัติ Git ดูเวอร์ชันของโค้ด
+
 
 ## ผลตรวจสอบเวอร์ชันนี้
+
+รอบจัดโค้ด 11/10/2569: `npm test` ผ่าน **174 รายการ**, typecheck/build/format:check/data:check ผ่าน แยก Login และหน้าจอออกจากไฟล์รวม ลบ import/helper/พารามิเตอร์ที่ไม่ได้ใช้ CSS declarations ที่ซ้ำ และสคริปต์/ข้อมูลเวอร์ชันเก่าที่ไม่มีจุดใช้งาน โค้ด domain/repository/server/scripts 23 โมดูลมี AST เทียบเท่าก่อนจัดรูปแบบ ไม่เปลี่ยนข้อมูลต้นทางหรือฐาน runtime
+
+ตรวจ Edge headless เทียบก่อน–หลัง **122 กรณี** ครบ 3 บทบาท 2 ธีม และจอ 390/1440px: โครงสร้าง DOM/ข้อความตรงกันทั้งหมด ภาพ 114 กรณีตรงกันทุกพิกเซล อีก 8 กรณีของ overlay ต่างเฉพาะการวาดเงาน้อยกว่า 0.05% ของภาพและต่างค่าสีไม่เกิน 4/255 ไม่พบการเปลี่ยนหน้าตาหรือการจัดวาง ใช้ฐานทดสอบแยกและยังไม่ได้ตรวจบนโทรศัพท์จริง
 
 รอบล่าสุดแสดงสถานะทุกคนทันที: `npm test` ผ่าน **147 รายการ**, `npm run typecheck` และ `npm run build` ผ่าน ตรวจเปิดหน้าแล้วโหลดทั้งหมด ตัวกรองชื่อ/รหัส ปุ่มแสดงทุกคน และ query ว่าง/ไม่ส่ง query ทั้ง IndexedDB/REST API รวมผลไม่มีข้อมูล วันลาเต็มวัน/ครึ่งวัน และข้อมูลโหลดช้า/ผิดพลาด ตรวจ Edge headless 154 ผ่าน 110 กรณี ทั้ง 3 บทบาท 2 ธีม และกว้าง 1440/390/320px รวมรายชื่อครบ 10 คน การกรอง/กลับดูทั้งหมด และบัญชีเพื่อนบันทึกสถานะแล้วค้นหาเห็นหลังรีเฟรช ไม่พบ page error หรือหน้าล้นแนวนอน ตรวจภาพแล้ว ใช้ฐานทดสอบแยกจากข้อมูลใช้งาน ยังไม่ได้ลองบนโทรศัพท์จริง
 

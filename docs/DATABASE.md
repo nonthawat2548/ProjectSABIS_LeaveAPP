@@ -1,8 +1,10 @@
 # Data Dictionary → โครงสร้างในแอป
 
+Backend หลักปัจจุบันเป็น Go + Gin ใช้ structs ใน internal/model/model.go และ SQL mapping ใน internal/repository/postgres.go โดยรักษา schema leave_app, 9 ตาราง, session/upload, ISO dates, advisory lock/transaction และ delta เดิม ไม่ต้อง migration หรือ reset เพียงเพราะเปลี่ยนภาษา โหมด Go JSON ทดลองใช้ server/data/leave-management-go.json แยกจากฐานเดิม ดู [GO_BACKEND.md](GO_BACKEND.md) ข้อความที่กล่าวถึง server/*.ts ด้านล่างเป็น implementation Node เดิมที่เก็บไว้เทียบระหว่างย้าย
+
 ใช้ตารางหลัก **9 ตาราง** ตามไฟล์ Data Dictionary เดิม มีส่วนเพิ่มสำหรับฟังก์ชันจาก Navigation Flow ตารางนี้แสดงชื่อฐานข้อมูลกับ array ใน snapshot / mock JSON database
 
-ชื่อผู้ใช้ Login ของทั้ง 10 คนกำหนดเป็นชื่อเฉพาะบุคคล เช่น `pimchanok.w`/`thanawat.k` ผ่าน mapping อีเมลเดิมใน `src/domain/auth.ts` ไม่ใช้ role/position ไม่เขียนทับ Employee.email และไม่บันทึก field ซ้ำ รองรับอีเมลเต็มด้วย หากชื่อผู้ใช้ซ้ำต้องใช้อีเมลเต็ม การตรวจบัญชี active/สิทธิ์ยังใช้ข้อมูล runtime รหัสทดลอง `1234` อยู่ในโค้ด ไม่ได้เก็บเป็นรหัสพนักงานในตาราง ไม่ต้อง reset ฐานหรือรัน migration เพื่อเปลี่ยนชื่อผู้ใช้/รหัสทดลอง บัญชีนอกชุดทดลองที่ไม่อยู่ใน mapping ใช้ส่วนก่อน @ ของอีเมลเป็น alias
+ชื่อผู้ใช้ Login ของทั้ง 10 คนกำหนดเป็นชื่อเฉพาะบุคคล เช่น `pimchanok.w`/`thanawat.k` ผ่าน mapping อีเมลเดิมใน `src/domain/auth.js` ไม่ใช้ role/position ไม่เขียนทับ Employee.email และไม่บันทึก field ซ้ำ รองรับอีเมลเต็มด้วย หากชื่อผู้ใช้ซ้ำต้องใช้อีเมลเต็ม การตรวจบัญชี active/สิทธิ์ยังใช้ข้อมูล runtime รหัสทดลอง `1234` อยู่ในโค้ด ไม่ได้เก็บเป็นรหัสพนักงานในตาราง ไม่ต้อง reset ฐานหรือรัน migration เพื่อเปลี่ยนชื่อผู้ใช้/รหัสทดลอง บัญชีนอกชุดทดลองที่ไม่อยู่ใน mapping ใช้ส่วนก่อน @ ของอีเมลเป็น alias
 
 | Table Name เดิม | Array ในแอป | หน้าที่ |
 | --- | --- | --- |
@@ -16,9 +18,9 @@
 | Leave_Approval | approvals | การตัดสินของผู้จัดการและการปรึกษา HR |
 | Work_Status | workStatuses | สถานะการทำงานที่ผู้ใช้บันทึก |
 
-`src/domain/types.ts` เป็น schema ฝั่ง TypeScript; `database/schema.sql` เป็น SQL สำหรับ SQLite ชุด 10 คนที่แอปใช้เริ่มต้นอยู่ใน `src/data/leave-management-10-people.json` โดย `createDemoDatabase()` ใน `src/data/demoDatabase.ts` clone ข้อมูลสำหรับ repository ทั้งสองโหมด `database/legacy/mock.sqlite` และ `database/legacy/mock-db.json` เป็นข้อมูลตัวอย่างเดิม **server เวอร์ชันนี้ใช้ JSON ไม่ได้เชื่อม SQLite โดยอัตโนมัติ**
+`src/domain/types.d.ts` เป็นสัญญาโครงสร้างข้อมูลของ frontend JavaScript และ tools/tests ที่ยังใช้ TypeScript; `database/schema.sql` เป็น SQL สำหรับ SQLite ชุด 10 คนที่แอปใช้เริ่มต้นอยู่ใน `src/data/leave-management-10-people.json` โดย `createDemoDatabase()` ใน `src/data/demoDatabase.js` clone ข้อมูลสำหรับ repository ทั้งสองโหมด `database/legacy/mock.sqlite` และ `database/legacy/mock-db.json` เป็นข้อมูลตัวอย่างเดิม **โหมด JSON ไม่ได้เชื่อม SQLite โดยอัตโนมัติ** ส่วน Go/PostgreSQL ใช้ schema `leave_app` ตามหัวข้อฐานกลางด้านบน
 
-`Leave_Document.fileSize` เก็บขนาดไฟล์ต้นฉบับเป็น bytes รองรับ PDF/JPG/PNG ถึง 25 MiB ต่อไฟล์ตาม `src/domain/attachments.ts`; `dataUrl` ยังเป็น base64 ใน snapshot/JSON และ IndexedDB ซึ่งใช้พื้นที่มากกว่าไฟล์ต้นฉบับประมาณหนึ่งในสาม ไม่เพิ่มตารางหรือเปลี่ยน schema การบันทึกในเบราว์เซอร์ยังขึ้นกับพื้นที่ว่างและโควตาของอุปกรณ์
+`Leave_Document.fileSize` เก็บขนาดไฟล์ต้นฉบับเป็น bytes รองรับ PDF/JPG/PNG ถึง 25 MiB ต่อไฟล์ตาม `src/domain/attachments.js`; `dataUrl` ยังเป็น base64 ใน snapshot/JSON และ IndexedDB ซึ่งใช้พื้นที่มากกว่าไฟล์ต้นฉบับประมาณหนึ่งในสาม ไม่เพิ่มตารางหรือเปลี่ยน schema การบันทึกในเบราว์เซอร์ยังขึ้นกับพื้นที่ว่างและโควตาของอุปกรณ์
 
 ภายใน IndexedDB เอกสารที่มี data URL เกิน 1 MiB หรือทำให้เอกสาร inline รวมเกิน 4 MiB แบ่งเป็น string chunks ไม่เกิน 4 MiB ต่อ record เพื่อรองรับข้อจำกัดขนาด record ของ Chromium เก็บ manifest และ chunks ใน object store `database` เดิม โดยคง database version 1 และคืน `dataUrl` เต็มตาม `Database` เดิมเมื่ออ่าน snapshot การแก้คำขอ การเขียนเอกสาร และการล้าง chunks เก่าอยู่ใน transaction เดียวกัน ข้อมูล inline เดิมอ่านได้ทันทีและแปลงเมื่อมีการเขียนสำเร็จครั้งถัดไป โดยไม่รีเซ็ตฐาน การแบ่งส่วนนี้เป็นรายละเอียดของ browser repository; รูปแบบ API, source JSON และ 9 ตารางหลักยังเหมือนเดิม
 
@@ -29,16 +31,17 @@
 หลังลดเพดานแนบใหม่เหลือ 25 MiB เอกสารที่เก็บไว้ตามเพดานเดิมถึง 100 MiB ยังอ่าน/ดาวน์โหลดและเก็บไว้ขณะแก้ไขหรืออนุมัติได้ ไม่ย้าย ลบ หรือย่อไฟล์เดิม และไม่ต้องแก้ schema
 
 - โหมดเบราว์เซอร์: IndexedDB `leave-management-10-people-v1` เริ่มต้นด้วยชุด 10 คนและเก็บการทำรายการต่อในเบราว์เซอร์ ฐานเดิม `leave-management-v1` ถูกเก็บไว้
-- โหมด API: อ่าน/เขียน `server/data/leave-management-10-people.json` หรือพาธจาก `MOCK_DATA_FILE` หากยังไม่มีไฟล์ให้เริ่มจากชุด JSON ต้นทาง เก็บ `server/data/db.json` เดิมไว้
-- ทั้งสองโหมดเก็บข้อมูลแยกกัน ไม่ซิงก์กัน และไม่เขียนการทำรายการกลับไปยัง `src/data/leave-management-10-people.json`, SQL หรือ SQLite
-- HR คืนค่าข้อมูลจำลองเป็นชุดต้นทาง 10 คนได้ในโหมดที่ใช้งานอยู่ การคืนค่าล้างการแก้ไขในฐาน runtime ของโหมดนั้น CLI `npm run seed -- --confirm` คืนค่าไฟล์ของโหมด API
+- โหมด Go JSON (`dev:api`): อ่าน/เขียน `server/data/leave-management-go.json` หรือพาธจาก `GO_DATA_FILE` หากยังไม่มีไฟล์ให้เริ่มจากชุด JSON ต้นทางเดียวกัน
+- โหมด Node legacy (`dev:legacy`): อ่าน/เขียน `server/data/leave-management-10-people.json` หรือพาธจาก `MOCK_DATA_FILE` เก็บฐาน runtime เดิมทั้งหมดไว้
+- แต่ละโหมดเก็บข้อมูลแยกกัน ไม่ซิงก์กัน และไม่เขียนการทำรายการกลับไปยัง `src/data/leave-management-10-people.json`, SQL หรือ SQLite
+- HR คืนค่าข้อมูลจำลองเป็นชุดต้นทาง 10 คนได้ในโหมดที่ใช้งานอยู่ การคืนค่าล้างการแก้ไขในฐาน runtime ของโหมดนั้น CLI `npm run seed -- --confirm` คืนค่าเฉพาะไฟล์ Node legacy
 - ตัวสร้าง `scripts/generate-demo.ts` และ `scripts/build-sqlite.py` สร้าง JSON ต้นทางใน `src/data/` และไฟล์ส่งออกใน `database/sqlite/` ไม่แก้ฐาน runtime หากต้องการใช้ source ใหม่กับข้อมูลที่มีอยู่แล้ว ต้องเรียกการคืนค่าของ HR
 
 ชุด 10 คนมีสิทธิ์รายปี ค.ศ. 2026 และ 2027; ปีอื่นต้องให้ HR จัดสรร รายละเอียดบัญชีและสถานการณ์ตัวอย่างอยู่ใน [src/data/README.md](../src/data/README.md)
 
 ## Field mapping
 
-| Table | SQL / Data Dictionary | TypeScript / JSON |
+| Table | SQL / Data Dictionary | Frontend / JSON |
 | --- | --- | --- |
 | Employee | Employee_id, Name, Gender, Email, Phone, Position, Role, Manager_id | id, name, gender, email, phone, position, role, managerId |
 | Leave_Type | Leave_type_id, Leave_type_name, Quota_scope, Default_quota_days, Day_count_basis | id, name, quotaScope, defaultQuotaDays, dayCountBasis |
@@ -101,9 +104,9 @@
 
 ## เปิดฐานข้อมูลตัวอย่าง
 
-สำหรับ Supabase/PostgreSQL ใช้ [setup-10-people.sql](../database/supabase/setup-10-people.sql) สร้าง schema ใหม่ `leave_app` พร้อม 9 ตารางหลัก/ตารางสนับสนุน/views และ seed 10 คน ใช้ TIMESTAMPTZ/JSONB เปิด RLS ถอนสิทธิ์ browser roles รวม views แล้วรัน [002-cloud-api.sql](../database/supabase/002-cloud-api.sql) เพื่อเพิ่ม App_Session (token hash/employee/expiry), App_Upload (staging metadata/owner/expiry) และ App_Upload_Part (ordered base64 parts) โดยไม่ล้างข้อมูลเดิม ส่วนเพิ่มไม่นับใน 9 ตารางหลัก ไม่มี Supabase Auth users; api/router.ts ใช้ session ของชุด demo ที่เปิดผ่าน environment ดู [SUPABASE.md](SUPABASE.md)
+สำหรับ Supabase/PostgreSQL ใช้ [setup-10-people.sql](../database/supabase/setup-10-people.sql) สร้าง schema ใหม่ `leave_app` พร้อม 9 ตารางหลัก/ตารางสนับสนุน/views และ seed 10 คน ใช้ TIMESTAMPTZ/JSONB เปิด RLS ถอนสิทธิ์ browser roles รวม views แล้วรัน [002-cloud-api.sql](../database/supabase/002-cloud-api.sql) เพื่อเพิ่ม App_Session (token hash/employee/expiry), App_Upload (staging metadata/owner/expiry) และ App_Upload_Part (ordered base64 parts) โดยไม่ล้างข้อมูลเดิม ส่วนเพิ่มไม่นับใน 9 ตารางหลัก ไม่มี Supabase Auth users; api/go.go ใช้ session ของชุด demo ที่เปิดผ่าน environment ดู [SUPABASE.md](SUPABASE.md)
 
-server/postgresStore.ts map SQL กลับเป็น Database เดิม วันที่ DATE อ่าน ISO ค.ศ. timestamp อ่าน UTC ISO; boolean additions เก็บ 0/1 ตาม mapping เดิม Read transaction ใช้ repeatable read; mutation ใช้ advisory transaction lock ร่วมทุก instance และ SELECT FOR UPDATE ก่อนเรียก domain เขียนเฉพาะแถวที่เปลี่ยนพร้อม quota/version ใน transaction เดียว ไม่บันทึกยอดคำนวณซ้ำ
+`internal/repository/postgres.go` map SQL กลับเป็น Database เดิม วันที่ DATE อ่าน ISO ค.ศ. timestamp อ่าน UTC ISO; boolean additions เก็บ 0/1 ตาม mapping เดิม Read transaction ใช้ repeatable read; mutation ใช้ advisory transaction lock ร่วมทุก instance และ SELECT FOR UPDATE ก่อนเรียก domain เขียนเฉพาะแถวที่เปลี่ยนพร้อม quota/version ใน transaction เดียว ไม่บันทึกยอดคำนวณซ้ำ `server/postgresStore.ts` เป็น implementation Node เดิมที่ใช้ตรวจเทียบ
 
 Cloud snapshot อ่านเอกสารเฉพาะ metadata คืน remote:true/dataUrl:'' (remote ไม่ใช่คอลัมน์ SQL) แต่ Leave_Document.Data_url ในฐานยังเก็บ base64 จริงที่ผ่านการตรวจขนาด/ชนิด/เนื้อหา ดาวน์โหลดผ่าน API เป็นส่วน ๆ หลังตรวจ canView ทุกครั้ง การยื่น/แก้ไข consume staging และล้าง parts พร้อมคำขอ/เอกสารใน transaction เดียว ไม่ล้าง data_url เดิมเมื่อโหลด metadata แล้วบันทึกคำสั่งอื่น ข้อมูลและ staging ใช้โควตาฐาน Free 500 MB ร่วมกัน ไม่ใช้ Supabase Storage; ส่งออก JSON จาก cloud เป็น metadata เอกสาร
 

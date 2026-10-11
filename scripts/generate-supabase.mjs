@@ -1,284 +1,248 @@
-import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = fileURLToPath(new URL("../", import.meta.url));
-const sourcePath = resolve(root, "src/data/leave-management-10-people.json");
-const schemaPath = resolve(root, "database/schema.sql");
-export const outputPath = resolve(
-  root,
-  "database/supabase/setup-10-people.sql",
-);
+const root = fileURLToPath(new URL('../', import.meta.url));
+const sourcePath = resolve(root, 'src/data/leave-management-10-people.json');
+const schemaPath = resolve(root, 'database/schema.sql');
+export const outputPath = resolve(root, 'database/supabase/setup-10-people.sql');
 
 // Keep the original dictionary column names; PostgreSQL folds unquoted names to lower case.
 export const mappings = [
   [
-    "Employee",
-    "employees",
+    'Employee',
+    'employees',
     [
-      "Employee_id",
-      "Name",
-      "Gender",
-      "Email",
-      "Phone",
-      "Position",
-      "Role",
-      "Manager_id",
-      "Department",
-      "Active",
+      'Employee_id',
+      'Name',
+      'Gender',
+      'Email',
+      'Phone',
+      'Position',
+      'Role',
+      'Manager_id',
+      'Department',
+      'Active',
     ],
     [
-      "id",
-      "name",
-      "gender",
-      "email",
-      "phone",
-      "position",
-      "role",
-      "managerId",
-      "department",
-      "active",
-    ],
-  ],
-  [
-    "Leave_Type",
-    "leaveTypes",
-    [
-      "Leave_type_id",
-      "Leave_type_name",
-      "Quota_scope",
-      "Default_quota_days",
-      "Day_count_basis",
-      "Advance_notice_days",
-      "Document_required_from_days",
-      "Required_document_type",
-      "Eligible_gender",
-    ],
-    [
-      "id",
-      "name",
-      "quotaScope",
-      "defaultQuotaDays",
-      "dayCountBasis",
-      "advanceNoticeDays",
-      "documentRequiredFromDays",
-      "requiredDocumentType",
-      "eligibleGender",
+      'id',
+      'name',
+      'gender',
+      'email',
+      'phone',
+      'position',
+      'role',
+      'managerId',
+      'department',
+      'active',
     ],
   ],
   [
-    "Leave_Entitlement",
-    "entitlements",
+    'Leave_Type',
+    'leaveTypes',
     [
-      "Entitlement_id",
-      "Employee_id",
-      "Leave_type_id",
-      "Entitlement_year",
-      "Granted_days",
-    ],
-    ["id", "employeeId", "leaveTypeId", "year", "grantedDays"],
-  ],
-  [
-    "Maternity_Case",
-    "maternityCases",
-    ["Maternity_case_id", "Employee_id", "Case_no", "Maximum_days"],
-    ["id", "employeeId", "caseNo", "maximumDays"],
-  ],
-  [
-    "Leave_Request",
-    "requests",
-    [
-      "Leave_id",
-      "Employee_id",
-      "Leave_type_id",
-      "Maternity_case_id",
-      "Start_date",
-      "End_date",
-      "Reason",
-      "Request_date",
-      "Status",
-      "Duration",
-      "Version",
-      "Timeline_json",
+      'Leave_type_id',
+      'Leave_type_name',
+      'Quota_scope',
+      'Default_quota_days',
+      'Day_count_basis',
+      'Advance_notice_days',
+      'Document_required_from_days',
+      'Required_document_type',
+      'Eligible_gender',
     ],
     [
-      "id",
-      "employeeId",
-      "leaveTypeId",
-      "maternityCaseId",
-      "startDate",
-      "endDate",
-      "reason",
-      "requestDate",
-      "status",
-      "duration",
-      "version",
-      "timeline",
+      'id',
+      'name',
+      'quotaScope',
+      'defaultQuotaDays',
+      'dayCountBasis',
+      'advanceNoticeDays',
+      'documentRequiredFromDays',
+      'requiredDocumentType',
+      'eligibleGender',
     ],
   ],
   [
-    "Leave_Day",
-    "days",
-    ["Leave_day_id", "Leave_id", "Leave_date", "Entitlement_id", "Units"],
-    ["id", "leaveId", "date", "entitlementId", "units"],
+    'Leave_Entitlement',
+    'entitlements',
+    ['Entitlement_id', 'Employee_id', 'Leave_type_id', 'Entitlement_year', 'Granted_days'],
+    ['id', 'employeeId', 'leaveTypeId', 'year', 'grantedDays'],
   ],
   [
-    "Leave_Document",
-    "documents",
-    [
-      "Document_id",
-      "Leave_id",
-      "Document_type",
-      "File_name",
-      "Storage_key",
-      "File_type",
-      "File_size",
-      "Uploaded_at",
-      "Data_url",
-    ],
-    [
-      "id",
-      "leaveId",
-      "documentType",
-      "fileName",
-      "storageKey",
-      "fileType",
-      "fileSize",
-      "uploadedAt",
-      "dataUrl",
-    ],
+    'Maternity_Case',
+    'maternityCases',
+    ['Maternity_case_id', 'Employee_id', 'Case_no', 'Maximum_days'],
+    ['id', 'employeeId', 'caseNo', 'maximumDays'],
   ],
   [
-    "Leave_Approval",
-    "approvals",
+    'Leave_Request',
+    'requests',
     [
-      "Approval_id",
-      "Leave_id",
-      "Approver_id",
-      "Step_no",
-      "Review_role",
-      "Review_type",
-      "Status",
-      "Comment",
-      "Assigned_at",
-      "Reviewed_at",
-      "Cancelled",
+      'Leave_id',
+      'Employee_id',
+      'Leave_type_id',
+      'Maternity_case_id',
+      'Start_date',
+      'End_date',
+      'Reason',
+      'Request_date',
+      'Status',
+      'Duration',
+      'Version',
+      'Timeline_json',
     ],
     [
-      "id",
-      "leaveId",
-      "approverId",
-      "stepNo",
-      "reviewRole",
-      "reviewType",
-      "status",
-      "comment",
-      "assignedAt",
-      "reviewedAt",
-      "cancelled",
+      'id',
+      'employeeId',
+      'leaveTypeId',
+      'maternityCaseId',
+      'startDate',
+      'endDate',
+      'reason',
+      'requestDate',
+      'status',
+      'duration',
+      'version',
+      'timeline',
     ],
   ],
   [
-    "Work_Status",
-    "workStatuses",
-    [
-      "Work_status_id",
-      "Employee_id",
-      "Status_date",
-      "Status_type",
-      "Leave_id",
-      "Updated_at",
-    ],
-    ["id", "employeeId", "date", "statusType", null, "updatedAt"],
+    'Leave_Day',
+    'days',
+    ['Leave_day_id', 'Leave_id', 'Leave_date', 'Entitlement_id', 'Units'],
+    ['id', 'leaveId', 'date', 'entitlementId', 'units'],
   ],
   [
-    "App_Notification",
-    "notifications",
+    'Leave_Document',
+    'documents',
     [
-      "Notification_id",
-      "Employee_id",
-      "Leave_id",
-      "Message",
-      "Created_at",
-      "Is_read",
+      'Document_id',
+      'Leave_id',
+      'Document_type',
+      'File_name',
+      'Storage_key',
+      'File_type',
+      'File_size',
+      'Uploaded_at',
+      'Data_url',
     ],
-    ["id", "employeeId", "leaveId", "text", "createdAt", "read"],
+    [
+      'id',
+      'leaveId',
+      'documentType',
+      'fileName',
+      'storageKey',
+      'fileType',
+      'fileSize',
+      'uploadedAt',
+      'dataUrl',
+    ],
   ],
-  ["App_Holiday", "holidays", ["Holiday_date", "Name"], ["date", "name"]],
+  [
+    'Leave_Approval',
+    'approvals',
+    [
+      'Approval_id',
+      'Leave_id',
+      'Approver_id',
+      'Step_no',
+      'Review_role',
+      'Review_type',
+      'Status',
+      'Comment',
+      'Assigned_at',
+      'Reviewed_at',
+      'Cancelled',
+    ],
+    [
+      'id',
+      'leaveId',
+      'approverId',
+      'stepNo',
+      'reviewRole',
+      'reviewType',
+      'status',
+      'comment',
+      'assignedAt',
+      'reviewedAt',
+      'cancelled',
+    ],
+  ],
+  [
+    'Work_Status',
+    'workStatuses',
+    ['Work_status_id', 'Employee_id', 'Status_date', 'Status_type', 'Leave_id', 'Updated_at'],
+    ['id', 'employeeId', 'date', 'statusType', null, 'updatedAt'],
+  ],
+  [
+    'App_Notification',
+    'notifications',
+    ['Notification_id', 'Employee_id', 'Leave_id', 'Message', 'Created_at', 'Is_read'],
+    ['id', 'employeeId', 'leaveId', 'text', 'createdAt', 'read'],
+  ],
+  ['App_Holiday', 'holidays', ['Holiday_date', 'Name'], ['date', 'name']],
 ];
 
 function literal(value) {
-  if (value === null) return "NULL";
-  if (typeof value === "boolean") return value ? "1" : "0";
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) throw new Error("Invalid numeric seed value");
+  if (value === null) return 'NULL';
+  if (typeof value === 'boolean') return value ? '1' : '0';
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new Error('Invalid numeric seed value');
     return String(value);
   }
-  if (value === undefined) throw new Error("Missing seed field");
-  const text = typeof value === "string" ? value : JSON.stringify(value);
+  if (value === undefined) throw new Error('Missing seed field');
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
   return "'" + text.replaceAll("'", "''") + "'";
 }
 
-export function buildSupabaseSql(
-  source = JSON.parse(readFileSync(sourcePath, "utf8")),
-) {
-  if (source.schemaVersion !== 1)
-    throw new Error("Unsupported source schema version");
-  let schema = readFileSync(schemaPath, "utf8").replaceAll("\r\n", "\n");
+export function buildSupabaseSql(source = JSON.parse(readFileSync(sourcePath, 'utf8'))) {
+  if (source.schemaVersion !== 1) throw new Error('Unsupported source schema version');
+  let schema = readFileSync(schemaPath, 'utf8').replaceAll('\r\n', '\n');
   for (const marker of [
-    "PRAGMA foreign_keys = ON;",
-    " UNIQUE COLLATE NOCASE",
+    'PRAGMA foreign_keys = ON;',
+    ' UNIQUE COLLATE NOCASE',
     "Timeline_json TEXT NOT NULL DEFAULT '[]'",
-    "CREATE VIEW Maternity_Case_Balance AS",
+    'CREATE VIEW Maternity_Case_Balance AS',
   ]) {
     if (!schema.includes(marker))
-      throw new Error(
-        `Reference schema changed; review PostgreSQL conversion: ${marker}`,
-      );
+      throw new Error(`Reference schema changed; review PostgreSQL conversion: ${marker}`);
   }
   schema = schema
     .replace(
       /^-- SQLite starter schema.*\n/,
-      "-- PostgreSQL schema derived from database/schema.sql.\n",
+      '-- PostgreSQL schema derived from database/schema.sql.\n',
     )
-    .replace("PRAGMA foreign_keys = ON;", "")
-    .replace(" UNIQUE COLLATE NOCASE", " UNIQUE")
-    .replace(/\bTIMESTAMP\b/g, "TIMESTAMPTZ")
+    .replace('PRAGMA foreign_keys = ON;', '')
+    .replace(' UNIQUE COLLATE NOCASE', ' UNIQUE')
+    .replace(/\bTIMESTAMP\b/g, 'TIMESTAMPTZ')
     .replace(
       "Timeline_json TEXT NOT NULL DEFAULT '[]'",
       "Timeline_json JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(Timeline_json) = 'array')",
     )
-    .replace(/(CREATE VIEW \w+) AS/g, "$1 WITH (security_invoker = true) AS");
-  if (/\bPRAGMA\b|COLLATE NOCASE/.test(schema))
-    throw new Error("Unconverted SQLite syntax");
+    .replace(/(CREATE VIEW \w+) AS/g, '$1 WITH (security_invoker = true) AS');
+  if (/\bPRAGMA\b|COLLATE NOCASE/.test(schema)) throw new Error('Unconverted SQLite syntax');
 
   // Managers must exist before the employees who reference them.
   const inserts = mappings
     .flatMap(([table, collection, columns, keys]) => {
       const rows =
-        table === "Employee"
+        table === 'Employee'
           ? [...source[collection]].sort(
-              (a, b) =>
-                Number(a.managerId !== null) - Number(b.managerId !== null),
+              (a, b) => Number(a.managerId !== null) - Number(b.managerId !== null),
             )
           : source[collection];
       return rows.map((row) => {
         const values = keys.map((key) =>
-          literal(
-            key === null
-              ? null
-              : key === "cancelled"
-                ? (row[key] ?? false)
-                : row[key],
-          ),
+          literal(key === null ? null : key === 'cancelled' ? (row[key] ?? false) : row[key]),
         );
-        return `INSERT INTO ${table} (${columns.join(",")}) VALUES (${values.join(",")});`;
+        return `INSERT INTO ${table} (${columns.join(',')}) VALUES (${values.join(',')});`;
       });
     })
-    .join("\n");
+    .join('\n');
   const protection = mappings
     .map(([table]) => `ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY;`)
-    .join("\n");
+    .join('\n');
   return `-- Generated by node scripts/generate-supabase.mjs; fictional data from src/data/leave-management-10-people.json.
 -- Run once in Supabase SQL Editor. Requires PostgreSQL 15+ and an unused leave_app schema.
 -- This prepares storage only; it does not connect the frontend, create Auth users, or migrate device data.
@@ -302,18 +266,18 @@ SELECT Role, count(*) AS employee_count FROM leave_app.Employee GROUP BY Role OR
 `;
 }
 
-if (
-  process.argv[1] &&
-  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
-) {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.includes('--check')) {
-    if (readFileSync(outputPath, 'utf8').replaceAll('\r\n', '\n') !== buildSupabaseSql()) throw new Error('Supabase setup differs from source. Run npm run data:generate to update exports.');
+    if (readFileSync(outputPath, 'utf8').replaceAll('\r\n', '\n') !== buildSupabaseSql())
+      throw new Error(
+        'Supabase setup differs from source. Run npm run data:generate to update exports.',
+      );
     console.log('Supabase setup verified without writing data.');
   } else {
-  mkdirSync(dirname(outputPath), { recursive: true });
-  writeFileSync(outputPath, buildSupabaseSql(), "utf8");
-  console.log(
-    "Created database/supabase/setup-10-people.sql; runtime databases were not changed.",
-  );
+    mkdirSync(dirname(outputPath), { recursive: true });
+    writeFileSync(outputPath, buildSupabaseSql(), 'utf8');
+    console.log(
+      'Created database/supabase/setup-10-people.sql; runtime databases were not changed.',
+    );
   }
 }

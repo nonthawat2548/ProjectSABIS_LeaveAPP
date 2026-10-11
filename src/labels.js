@@ -1,0 +1,60 @@
+// Display labels only. Repository commands and stored enum values stay in English.
+export const roleLabels = {
+  Employee: 'พนักงาน',
+  Manager: 'ผู้จัดการ',
+  HR: 'ฝ่ายบุคคล (HR)',
+};
+export const statusLabels = {
+  Pending: 'รอพิจารณา',
+  Approved: 'อนุมัติแล้ว',
+  Rejected: 'ไม่อนุมัติ',
+  Withdrawn: 'ยกเลิกแล้ว',
+};
+export const durationLabels = {
+  Full: 'เต็มวัน',
+  AM: 'ครึ่งวันเช้า',
+  PM: 'ครึ่งวันบ่าย',
+};
+export const workStatusLabels = {
+  'In-office': 'ทำงานที่สำนักงาน',
+  WFH: 'ทำงานจากบ้าน (WFH)',
+  Outside: 'ปฏิบัติงานนอกสถานที่',
+};
+
+// Known demo job/department names only; preserve custom text and stored employee data.
+const positionLabels = {
+  นักพัฒนาระบบ: 'Software Developer',
+  เจ้าหน้าที่ระบบ: 'Systems Administrator',
+  นักวิเคราะห์ระบบ: 'Systems Analyst',
+  ผู้จัดการฝ่ายไอที: 'IT Manager',
+  เจ้าหน้าที่ฝ่ายบุคคล: 'HR Specialist',
+  เจ้าหน้าที่ฝ่ายขาย: 'Sales Representative',
+  ผู้จัดการฝ่ายขาย: 'Sales Manager',
+  เจ้าหน้าที่ประสานงานขาย: 'Sales Coordinator',
+  เจ้าหน้าที่ดูแลลูกค้า: 'Customer Service Representative',
+  เจ้าหน้าที่ทดสอบระบบ: 'Software Tester',
+};
+const departmentLabels = {
+  ฝ่ายไอที: 'IT Department',
+  ฝ่ายบุคคล: 'Human Resources',
+  ฝ่ายขาย: 'Sales Department',
+};
+export function formatPosition(value) {
+  return Object.hasOwn(positionLabels, value) ? positionLabels[value] : value;
+}
+export function formatDepartment(value) {
+  return Object.hasOwn(departmentLabels, value) ? departmentLabels[value] : value;
+}
+export function employeeLabelLanguage(value) {
+  // eslint-disable-next-line no-control-regex -- Match the full ASCII range for English labels.
+  return /^[\x00-\x7F]+$/.test(value) ? 'en' : undefined;
+}
+
+export function formatWorkStatus(status) {
+  const label = (value) =>
+    Object.hasOwn(workStatusLabels, value) ? workStatusLabels[value] : value;
+  if (status === 'Leave') return 'ลา';
+  const halfDay = ' / Leave (ครึ่งวัน)';
+  if (status.endsWith(halfDay)) return `${label(status.slice(0, -halfDay.length))} / ลาครึ่งวัน`;
+  return label(status);
+}
