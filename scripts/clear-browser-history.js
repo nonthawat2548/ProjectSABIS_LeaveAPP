@@ -2,7 +2,12 @@ import { clearRequestHistory } from './request-history.js';
 
 const DATABASE_NAME = 'leave-management-10-people-v1';
 
-/** One transaction removes history and file chunks from the current origin only. */
+/**
+ * One transaction removes history and file chunks from the current origin only.
+ *
+ * @param {IDBFactory} factory
+ * @returns {Promise<{ before: number; after: number }>}
+ */
 export async function clearIndexedDbHistory(factory) {
   const db = await new Promise((resolve, reject) => {
     const request = factory.open(DATABASE_NAME);
@@ -48,6 +53,9 @@ export async function clearIndexedDbHistory(factory) {
   }
 }
 
+/**
+ * @returns {Promise<{ before: number; after: number }>}
+ */
 export async function clearBrowserHistory() {
   if (!import.meta.env?.DEV || !['localhost', '127.0.0.1', '[::1]'].includes(location.hostname))
     throw new Error('หน้านี้ใช้ได้เฉพาะเว็บทดลองในเครื่องเท่านั้น');

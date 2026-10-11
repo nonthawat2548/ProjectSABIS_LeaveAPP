@@ -6,7 +6,7 @@ export const DEMO_DATA_CHANNEL = 'leave-10-people-data';
 
 /**
  * Every repository gets its own copy; mutations never change the source fixture.
- * @returns {import('../domain/types').Database}
+ * @returns {import('../domain/types.js').Database}
  */
 export function createDemoDatabase() {
   return structuredClone(sample);
@@ -14,7 +14,7 @@ export function createDemoDatabase() {
 
 /**
  * Public account choices for the demo login, derived from the same source as repositories.
- * @returns {Pick<import('../domain/types').Employee, 'id' | 'name' | 'email' | 'role' | 'department'>[]}
+ * @returns {Pick<import('../domain/types.js').Employee, 'id' | 'name' | 'email' | 'role' | 'department'>[]}
  */
 export function getDemoAccounts() {
   return sample.employees

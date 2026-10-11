@@ -10,23 +10,23 @@ import {
   X,
 } from 'lucide-react';
 
-import { addDays, formatDate, nextWorkingDay, parseThaiDate, today } from '../domain/date';
+import { addDays, formatDate, nextWorkingDay, parseThaiDate, today } from '../domain/date.js';
 import {
   balance,
   maternityGenderIssue,
   previewRequest,
   requestCode,
   validateAttachment,
-} from '../domain/service';
+} from '../domain/service.js';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   MAX_ATTACHMENT_BYTES,
   MAX_ATTACHMENT_LABEL,
-} from '../domain/attachments';
-import { Badge, Card, DateField, DocumentRow, Heading, KeyRow } from '../components';
-import { Stepper } from '../ui';
-import { durationLabels as durations } from '../labels';
-import { useTask } from './useTask';
+} from '../domain/attachments.js';
+import { Badge, Card, DateField, DocumentRow, Heading, KeyRow } from '../components.jsx';
+import { Stepper } from '../ui.jsx';
+import { durationLabels as durations } from '../labels.js';
+import { useTask } from './useTask.js';
 
 function HRContact({ db }) {
   const contacts = db.employees.filter((e) => e.role === 'HR' && e.active);
@@ -54,7 +54,7 @@ function HRContact({ db }) {
   );
 }
 
-/** @param {import('./types').PageProps & { editId?: number }} props */
+/** @param {import('./types.js').PageProps & { editId?: number }} props */
 export function LeaveForm({ db, actor, run, editId }) {
   const previous = db.requests.find((r) => r.id === editId);
   const owner = db.employees.find((e) => e.id === actor.id) ?? actor;

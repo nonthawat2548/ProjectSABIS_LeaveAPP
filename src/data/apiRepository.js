@@ -1,7 +1,7 @@
-import { DomainError, validateAttachment } from '../domain/service';
-import { CLOUD_PART_CHARACTERS, MAX_STORED_DOCUMENT_BASE64_LENGTH } from '../domain/attachments';
-import { documentBlob } from '../domain/documentCodec';
-/** @implements {import('../domain/types').LeaveRepository} */
+import { DomainError, validateAttachment } from '../domain/service.js';
+import { CLOUD_PART_CHARACTERS, MAX_STORED_DOCUMENT_BASE64_LENGTH } from '../domain/attachments.js';
+import { documentBlob } from '../domain/documentCodec.js';
+/** @implements {import('../domain/types.js').LeaveRepository} */
 export class ApiRepository {
   capabilities;
 
@@ -44,12 +44,12 @@ export class ApiRepository {
   /**
    * @param {string} identifier
    * @param {string} password
-   * @returns {Promise<import('../domain/types').Employee>}
+   * @returns {Promise<import('../domain/types.js').Employee>}
    */
   async login(identifier, password) {
     return (await this.request('/session', 'POST', { email: identifier, password })).employee;
   }
-  /** @returns {Promise<import('../domain/types').Employee | null>} */
+  /** @returns {Promise<import('../domain/types.js').Employee | null>} */
   async session() {
     try {
       return (await this.request('/session')).employee;
@@ -62,13 +62,13 @@ export class ApiRepository {
   async logout() {
     await this.request('/session', 'DELETE');
   }
-  /** @returns {Promise<import('../domain/types').Database>} */
+  /** @returns {Promise<import('../domain/types.js').Database>} */
   async snapshot() {
     return this.request('/snapshot');
   }
   /**
    * @param {number} employeeId
-   * @returns {Promise<import('../domain/types').EmployeeProfile>}
+   * @returns {Promise<import('../domain/types.js').EmployeeProfile>}
    */
   async getEmployeeProfile(employeeId) {
     return this.request(
@@ -78,14 +78,14 @@ export class ApiRepository {
   /**
    * @param {string} query
    * @param {string} date
-   * @returns {Promise<import('../domain/types').ColleagueStatus[]>}
+   * @returns {Promise<import('../domain/types.js').ColleagueStatus[]>}
    */
   async searchColleagues(query, date) {
     return this.request('/colleagues?' + new URLSearchParams({ query, date }).toString());
   }
   /**
-   * @param {import('../domain/types').Command} command
-   * @returns {Promise<import('../domain/types').CommandResult>}
+   * @param {import('../domain/types.js').Command} command
+   * @returns {Promise<import('../domain/types.js').CommandResult>}
    */
   async execute(command) {
     const attachment =
@@ -135,7 +135,7 @@ export class ApiRepository {
     }
   }
   /**
-   * @param {import('../domain/types').LeaveDocument} document
+   * @param {import('../domain/types.js').LeaveDocument} document
    * @returns {Promise<Blob>}
    */
   async downloadDocument(document) {

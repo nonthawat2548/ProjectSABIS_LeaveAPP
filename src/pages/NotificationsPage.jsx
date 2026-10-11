@@ -1,10 +1,10 @@
 import { Check, ChevronRight, Bell } from 'lucide-react';
 
-import { formatDateTime } from '../domain/date';
-import { Card, Empty, Heading } from '../components';
-import { useTask } from './useTask';
+import { formatDateTime } from '../domain/date.js';
+import { Card, Empty, Heading } from '../components.jsx';
+import { useTask } from './useTask.js';
 
-/** @param {import('./types').PageProps} props */
+/** @param {import('./types.js').PageProps} props */
 export function NotificationsPage({ db, run }) {
   const { busy, error, perform } = useTask(run);
   return (

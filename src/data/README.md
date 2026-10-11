@@ -5,10 +5,10 @@
 | ไฟล์ | หน้าที่ |
 | --- | --- |
 | `leave-management-10-people.json` | ต้นทางชุดทดลอง 10 คน ใช้เมื่อเริ่มฐานใหม่หรือคืนค่าข้อมูล |
-| `demoDatabase.ts` | คืนสำเนาชุดทดลองและรายชื่อบัญชีบนหน้าเข้าสู่ระบบ |
-| `index.ts` | เลือกโหมดเบราว์เซอร์หรือ REST API |
-| `browserRepository.ts` | อ่าน/บันทึก IndexedDB ในเบราว์เซอร์ |
-| `apiRepository.ts` | อ่าน/บันทึกผ่าน REST API รวม PostgreSQL บน Vercel |
+| `demoDatabase.js` | คืนสำเนาชุดทดลองและรายชื่อบัญชีบนหน้าเข้าสู่ระบบ |
+| `index.js` | เลือกโหมดเบราว์เซอร์หรือ REST API |
+| `browserRepository.js` | อ่าน/บันทึก IndexedDB ในเบราว์เซอร์ |
+| `apiRepository.js` | อ่าน/บันทึกผ่าน REST API รวม PostgreSQL บน Vercel |
 
 ## ข้อมูลที่เปลี่ยนเมื่อใช้งานแอป
 
@@ -35,7 +35,7 @@
 
 ## สร้างและตรวจไฟล์
 
-ตัวสร้างอยู่ใน `scripts/generate-demo.ts`, `scripts/build-sqlite.py` และ `scripts/generate-supabase.mjs` ใช้ `src/domain/seed.js` เป็นส่วนตั้งต้นด้านบัญชี/นโยบาย ไม่ใช่ฐาน runtime อีกชุดหนึ่ง
+ตัวสร้างอยู่ใน `scripts/generate-demo.js`, `scripts/build-sqlite.py` และ `scripts/generate-supabase.mjs` ใช้ `src/domain/seed.js` เป็นส่วนตั้งต้นด้านบัญชี/นโยบาย ไม่ใช่ฐาน runtime อีกชุดหนึ่ง
 
 ```bash
 npm run data:check     # ตรวจว่าต้นทางและไฟล์ส่งออกตรงกัน ไม่เขียนข้อมูล

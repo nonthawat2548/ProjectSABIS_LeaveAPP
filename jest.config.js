@@ -4,7 +4,7 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/tests/ui/setup.js'],
   extensionsToTreatAsEsm: ['.jsx'],
   transform: {
-    '^.+\\.[jt]sx?$': [
+    '^.+\\.[j]sx?$': [
       'babel-jest',
       {
         babelrc: false,

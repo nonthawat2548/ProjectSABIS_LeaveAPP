@@ -29,7 +29,7 @@ npm run dev:cloud
 
 บน Vercel ใช้ `api/go.go` และ rewrite ใน `vercel.json` ซึ่งชี้ `/api/*` ไป Go function ใช้ PostgreSQL เท่านั้น ค่า environment เดิมยังใช้ได้ และตรวจ TLS certificate ตามเดิม `POSTGRES_LOCAL=true` ยอมปิด TLS ได้เฉพาะฐาน loopback ที่ไม่ได้รันบน Vercel เพื่อทดสอบในเครื่อง ห้ามใช้กับฐาน cloud
 
-`api/go.go` เรียก public package `serverless/handler.go` ซึ่งเริ่ม cloud handler จาก `internal/app` อีกที ต้องไม่ import `leave-management/internal/...` โดยตรงจากไฟล์ API เพราะ [ตัว build ของ Vercel](https://github.com/vercel/vercel/blob/main/packages/go/src/index.ts) เขียน module wrapper ตามชื่อ package ของ handler ทำให้ Go ปฏิเสธการนำเข้า internal จากขอบเขตนั้น กฎ สิทธิ์และ repository ยังคงอยู่ใน `internal/` เดิม
+`api/go.go` เรียก public package `serverless/handler.go` ซึ่งเริ่ม cloud handler จาก `internal/app` อีกที ต้องไม่ import `leave-management/internal/...` โดยตรงจากไฟล์ API เพราะ [ตัว build ของ Vercel](https://github.com/vercel/vercel/blob/main/packages/go/src/index.js) เขียน module wrapper ตามชื่อ package ของ handler ทำให้ Go ปฏิเสธการนำเข้า internal จากขอบเขตนั้น กฎ สิทธิ์และ repository ยังคงอยู่ใน `internal/` เดิม
 
 รอบนี้เตรียมโค้ดและ config สำหรับ deploy แต่ยังไม่ได้เผยแพร่ไป Vercel หรือทำรายการกับ Supabase ที่ใช้อยู่ หากต้องการกลับ Node ชั่วคราวต้องเปลี่ยน config อย่างชัดเจน ไม่มีการสลับ backend หรือรีเซ็ตข้อมูลเอง
 
@@ -83,7 +83,7 @@ Go tests ใช้ `testing` และ `httptest` ตามมาตรฐาน
 
 ผลตรวจในเครื่อง 11/10/2569: ชุดทดสอบเดิม 174 รายการ, Go tests, vet, typecheck, build ทั้ง frontend/Go, format และ data:check ผ่าน ตรวจเทียบ Go/TypeScript ผ่าน 94 กรณี และ PostgreSQL integration ผ่าน OpenAPI ผ่านการตรวจ schema และ references ตรวจ Edge headless 122 สถานะ ครอบคลุมสามบทบาท สองธีม และจอ 390/1440px โดยข้อความ/โครงสร้างหน้าจอตรงกับเดิม ภาพ 114 ภาพตรงทุกพิกเซล อีก 8 ภาพต่างเฉพาะจุดเล็กน้อยไม่เกิน 0.028% ของพิกเซลและค่าสีต่างสูงสุด 4/255 ทดสอบยื่นลาพร้อม PDF บนมือถือ แก้ไข อนุมัติจากเซสชันผู้จัดการ ดาวน์โหลดเอกสารเดิม และตรวจสถานะผ่าน HR สำเร็จ ไม่พบ page error การตรวจทั้งหมดใช้ฐานทดสอบแยก ยังไม่ได้ตรวจ deployment Go บน Vercel
 
-JavaScript domain ยังจำเป็นสำหรับ preview ในแบบฟอร์มและ IndexedDB ส่วน `server/*.ts` เก็บไว้สำหรับเทียบกฎ/โหมด Node ระหว่างย้าย ไม่ใช่ backend ที่ Vercel ใช้แล้ว declaration `.d.ts` เป็นสัญญาข้อมูลให้เครื่องมือและชุดทดสอบเดิม ไม่ใช่ runtime อีกชุด
+JavaScript domain ยังจำเป็นสำหรับ preview ในแบบฟอร์มและ IndexedDB ส่วน `server/*.js` เก็บไว้สำหรับเทียบกฎ/โหมด Node ระหว่างย้าย ไม่ใช่ backend ที่ Vercel ใช้แล้ว สัญญาข้อมูลอยู่ใน JSDoc ของ `src/domain/types.js` และคำอธิบายฟังก์ชันอยู่ข้าง implementation ไม่ใช่ runtime อีกชุด
 
 ## ขอบเขตที่ยังคงเดิม
 

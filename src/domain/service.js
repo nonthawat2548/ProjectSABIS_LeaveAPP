@@ -1,3 +1,14 @@
+/**
+ * @typedef {import('./types.js').AttachmentInput} AttachmentInput
+ * @typedef {import('./types.js').Balance} Balance
+ * @typedef {import('./types.js').Command} Command
+ * @typedef {import('./types.js').CommandResult} CommandResult
+ * @typedef {import('./types.js').Database} Database
+ * @typedef {import('./types.js').Employee} Employee
+ * @typedef {import('./types.js').LeaveDay} LeaveDay
+ * @typedef {import('./types.js').LeaveRequest} LeaveRequest
+ * @typedef {import('./types.js').RequestInput} RequestInput
+ */
 import { datesBetween, dayDifference, isoDate, today, workingDates } from './date.js';
 import {
   ALLOWED_ATTACHMENT_TYPES,
@@ -7,6 +18,10 @@ import {
   MAX_COMMAND_BODY_BYTES,
 } from './attachments.js';
 export class DomainError extends Error {
+  /**
+   * @param {string} message
+   * @param {string} [code]
+   */
   constructor(message, code = 'VALIDATION') {
     super(message);
     this.code = code;
@@ -17,16 +32,33 @@ const fail = (text, code = 'VALIDATION') => {
   throw new DomainError(text, code);
 };
 const nextId = (rows) => Math.max(0, ...rows.map((r) => r.id)) + 1;
+/**
+ * @type {(r: LeaveRequest) => string}
+ */
 export const requestCode = (r) =>
   `LR-${r.requestDate.slice(0, 4)}-${String(r.id).padStart(5, '0')}`;
+/**
+ * @type {(db: Database, id: number) => number}
+ */
 export const totalDays = (db, id) =>
   db.days.filter((d) => d.leaveId === id).reduce((a, d) => a + d.units, 0);
+/**
+ * @param {Database} db
+ * @param {number} id
+ * @returns {Employee}
+ */
 export function actorById(db, id) {
   return (
     db.employees.find((e) => e.id === id && e.active) ??
     fail('กรุณาเข้าสู่ระบบอีกครั้ง', 'UNAUTHENTICATED')
   );
 }
+/**
+ * @param {Database} db
+ * @param {Employee} actor
+ * @param {LeaveRequest} r
+ * @returns {boolean}
+ */
 export function canView(db, actor, r) {
   return (
     actor.id === r.employeeId ||
@@ -35,6 +67,11 @@ export function canView(db, actor, r) {
     actor.role === 'HR'
   );
 }
+/**
+ * @param {Database} db
+ * @param {number} actorId
+ * @returns {Database}
+ */
 export function visibleSnapshot(db, actorId) {
   const actor = actorById(db, actorId);
   const allowed = new Set(db.requests.filter((r) => canView(db, actor, r)).map((r) => r.id));
@@ -73,6 +110,15 @@ export function visibleSnapshot(db, actorId) {
     notifications: db.notifications.filter((n) => n.employeeId === actor.id),
   });
 }
+/**
+ * @param {Database} db
+ * @param {number} employeeId
+ * @param {number} typeId
+ * @param {number} year
+ * @param {number | null} [caseId]
+ * @param {number} [excludeId]
+ * @returns {Balance}
+ */
 export function balance(db, employeeId, typeId, year, caseId = null, excludeId) {
   const type = db.leaveTypes.find((t) => t.id === typeId);
   if (!type) return { total: 0, used: 0, remaining: 0, pending: 0 };
@@ -101,6 +147,12 @@ export function balance(db, employeeId, typeId, year, caseId = null, excludeId) 
           ?.maximumDays ?? 0);
   return { total, used, remaining: total - used, pending };
 }
+/**
+ * @param {Database} db
+ * @param {number} employeeId
+ * @param {string} date
+ * @returns {string}
+ */
 export function effectiveWorkStatus(db, employeeId, date) {
   const approved = new Set(
     db.requests
@@ -115,6 +167,10 @@ export function effectiveWorkStatus(db, employeeId, date) {
     'In-office';
   return units >= 1 ? 'Leave' : units > 0 ? `${base} / Leave (ครึ่งวัน)` : base;
 }
+/**
+ * @param {AttachmentInput} a
+ * @returns {void}
+ */
 export function validateAttachment(a) {
   const sizeMessage = `เอกสารต้องเป็น PDF, JPG หรือ PNG ขนาดไม่เกิน ${MAX_ATTACHMENT_LABEL}`;
   if (
@@ -161,7 +217,12 @@ export function validateAttachment(a) {
     fail('ข้อมูลเอกสารไม่ถูกต้อง');
   }
 }
-/** Uses the stored owner's gender, never a field supplied with a leave command. */
+/**
+ * Uses the stored owner's gender, never a field supplied with a leave command.
+ *
+ * @param {Pick<Employee, 'gender'>} employee
+ * @returns {string | null}
+ */
 export function maternityGenderIssue(employee) {
   if (employee.gender === 'Female') return null;
   if (employee.gender === 'Male') return 'พนักงานชายไม่มีสิทธิ์ยื่นลาคลอดตามนโยบายของโปรเจกต์';
@@ -232,6 +293,14 @@ function inputDays(db, actor, input) {
         : null,
   }));
 }
+/**
+ * @param {Database} db
+ * @param {Employee} actor
+ * @param {RequestInput} input
+ * @param {number} [excludeId]
+ * @param {Date} [now]
+ * @returns {{ days: Omit<LeaveDay, 'id' | 'leaveId'>[]; total: number; }}
+ */
 export function previewRequest(db, actor, input, excludeId, now = new Date()) {
   return checkRequest(db, actor, input, excludeId, now);
 }
@@ -377,7 +446,15 @@ function requireComment(comment) {
     fail('กรุณาระบุข้อความ 1–500 ตัวอักษร');
   return comment.trim();
 }
-/** All mutations must run in one repository transaction; quota is derived from approved Leave_Day rows. */
+/**
+ * All mutations must run in one repository transaction; quota is derived from approved Leave_Day rows.
+ *
+ * @param {Database} db
+ * @param {number} actorId
+ * @param {Command} c
+ * @param {Date} [now]
+ * @returns {CommandResult}
+ */
 export function applyCommand(db, actorId, c, now = new Date()) {
   const actor = actorById(db, actorId),
     at = now.toISOString();

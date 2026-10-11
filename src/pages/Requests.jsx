@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { FilePlus2, Search } from 'lucide-react';
 
-import { parseThaiDate } from '../domain/date';
-import { requestCode } from '../domain/service';
-import { Card, DateField, Heading, RequestTable, statusLabels } from '../components';
-import { assigned } from './requestScope';
+import { parseThaiDate } from '../domain/date.js';
+import { requestCode } from '../domain/service.js';
+import { Card, DateField, Heading, RequestTable, statusLabels } from '../components.jsx';
+import { assigned } from './requestScope.js';
 
-/** @param {import('./types').PageProps} props */
+/** @param {import('./types.js').PageProps} props */
 export function Requests({ db, actor }) {
   const [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Check, LoaderCircle } from 'lucide-react';
-import { BrandMark } from './ui';
+import { BrandMark } from './ui.jsx';
 
 export function EntryTransition({ phase, name, title, action = 'login' }) {
   const status = useRef(null);

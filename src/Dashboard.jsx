@@ -10,13 +10,13 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-import { balance, effectiveWorkStatus } from './domain/service';
-import { formatDate, today } from './domain/date';
-import { Card, RequestTable, Stat } from './components';
-import { QuotaOverview, TeamOverview, UpcomingLeave, WelcomeHero, WeeklyOverview } from './ui';
-import { formatWorkStatus } from './labels';
+import { balance, effectiveWorkStatus } from './domain/service.js';
+import { formatDate, today } from './domain/date.js';
+import { Card, RequestTable, Stat } from './components.jsx';
+import { QuotaOverview, TeamOverview, UpcomingLeave, WelcomeHero, WeeklyOverview } from './ui.jsx';
+import { formatWorkStatus } from './labels.js';
 
-/** @param {import('./pages/types').PageProps} props */
+/** @param {import('./pages/types.js').PageProps} props */
 export function Dashboard({ db, actor }) {
   const employee = actor.role === 'Employee';
   const requests = db.requests.filter((r) =>

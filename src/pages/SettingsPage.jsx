@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { X, Download, RotateCcw, Database as DatabaseIcon } from 'lucide-react';
 
-import { formatDate, parseThaiDate } from '../domain/date';
-import { Card, DateField, Dialog, Heading, KeyRow } from '../components';
-import { dataMode, repository } from '../data';
-import { useTask } from './useTask';
+import { formatDate, parseThaiDate } from '../domain/date.js';
+import { Card, DateField, Dialog, Heading, KeyRow } from '../components.jsx';
+import { dataMode, repository } from '../data/index.js';
+import { useTask } from './useTask.js';
 
-/** @param {import('./types').PageProps} props */
+/** @param {import('./types.js').PageProps} props */
 export function SettingsPage({ db, run, reload }) {
   const [typeId, setTypeId] = useState(2),
     [policy, setPolicy] = useState(db.leaveTypes.find((t) => t.id === 2)),

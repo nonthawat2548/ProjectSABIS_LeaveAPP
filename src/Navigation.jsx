@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowUpRight, LogOut, Sparkles, Users, X } from 'lucide-react';
 
-import { employeeLabelLanguage, formatDepartment, formatPosition } from './labels';
-import { Avatar, BrandMark } from './ui';
-import { ENTRY_TIMING, motionDelay, prefersReducedMotion } from './motion';
+import { employeeLabelLanguage, formatDepartment, formatPosition } from './labels.js';
+import { Avatar, BrandMark } from './ui.jsx';
+import { ENTRY_TIMING, motionDelay, prefersReducedMotion } from './motion.js';
 
 export function WorkspaceNavigation({
   actor,

@@ -1,11 +1,11 @@
-import { EmployeeLabel } from './EmployeeLabel';
+import { EmployeeLabel } from './EmployeeLabel.jsx';
 import { useState } from 'react';
 import { ArrowUpRight, CalendarCheck2, Check, Search, Users, Wallet } from 'lucide-react';
 
-import { balance, effectiveWorkStatus, requestCode, totalDays } from './domain/service';
-import { addDays, formatDate, today } from './domain/date';
-import { Badge, Card, Dialog, Empty } from './components';
-import { formatWorkStatus } from './labels';
+import { balance, effectiveWorkStatus, requestCode, totalDays } from './domain/service.js';
+import { addDays, formatDate, today } from './domain/date.js';
+import { Badge, Card, Dialog, Empty } from './components.jsx';
+import { formatWorkStatus } from './labels.js';
 export function BrandMark() {
   return (
     <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -313,7 +313,7 @@ export function WeeklyOverview({ db, actor }) {
 }
 /**
  * @param {{path: string, label: string}[]} menus
- * @param {import('./domain/types').Database} db
+ * @param {import('./domain/types.js').Database} db
  * @param {string} query
  */
 export function searchWorkspace(menus, db, query) {

@@ -1,10 +1,26 @@
+/**
+ * @typedef {import('./types.js').ColleagueStatus} ColleagueStatus
+ * @typedef {import('./types.js').Database} Database
+ */
 import { actorById, DomainError } from './service.js';
 import { isoDate } from './date.js';
 
-/** A display code for the existing Employee.id, not a new stored employee identifier. */
+/**
+ * A display code for the existing Employee.id, not a new stored employee identifier.
+ *
+ * @type {(id: number) => string}
+ */
 export const employeeCode = (id) => `EMP-${String(id).padStart(5, '0')}`;
 
-/** Signed-in staff may look up work availability; private leave data keeps its original scope. */
+/**
+ * Signed-in staff may look up work availability; private leave data keeps its original scope.
+ *
+ * @param {Database} db
+ * @param {number} actorId
+ * @param {string} query
+ * @param {string} date
+ * @returns {ColleagueStatus[]}
+ */
 export function searchColleagues(db, actorId, query, date) {
   const actor = actorById(db, actorId);
   if (!['Employee', 'Manager', 'HR'].includes(actor.role))

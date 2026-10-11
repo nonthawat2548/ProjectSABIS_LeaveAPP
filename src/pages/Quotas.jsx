@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 
-import { today } from '../domain/date';
-import { balance } from '../domain/service';
-import { Card, Heading, KeyRow } from '../components';
-import { QuotaRing } from '../ui';
+import { today } from '../domain/date.js';
+import { balance } from '../domain/service.js';
+import { Card, Heading, KeyRow } from '../components.jsx';
+import { QuotaRing } from '../ui.jsx';
 
-/** @param {import('./types').PageProps} props */
+/** @param {import('./types.js').PageProps} props */
 export function Quotas({ db, actor }) {
   const [year, setYear] = useState(Number(today().slice(0, 4)));
   const years = [

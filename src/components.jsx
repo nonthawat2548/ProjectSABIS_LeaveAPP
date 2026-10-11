@@ -9,12 +9,12 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 
-import { formatDate, formatDateTime, parseThaiDate, thaiMonths, today } from './domain/date';
-import { requestCode, totalDays } from './domain/service';
-import { documentBlob } from './domain/documentCodec';
-import { repository } from './data';
-import { statusLabels } from './labels';
-export { statusLabels, roleLabels } from './labels';
+import { formatDate, formatDateTime, parseThaiDate, thaiMonths, today } from './domain/date.js';
+import { requestCode, totalDays } from './domain/service.js';
+import { documentBlob } from './domain/documentCodec.js';
+import { repository } from './data/index.js';
+import { statusLabels } from './labels.js';
+export { statusLabels, roleLabels } from './labels.js';
 export function Badge({ status }) {
   return <span className={'badge ' + status.toLowerCase()}>{statusLabels[status]}</span>;
 }

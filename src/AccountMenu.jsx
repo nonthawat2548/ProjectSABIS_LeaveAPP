@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { UserRound } from 'lucide-react';
-import { Avatar } from './ui';
+import { Avatar } from './ui.jsx';
 
 export function AccountMenu({ actor, route, disabled }) {
   const [open, setOpen] = useState(false);

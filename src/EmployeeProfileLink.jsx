@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { canReadEmployeeProfile } from './domain/employeeProfile';
+import { canReadEmployeeProfile } from './domain/employeeProfile.js';
 
 export const EmployeeProfileContext = createContext(null);
 

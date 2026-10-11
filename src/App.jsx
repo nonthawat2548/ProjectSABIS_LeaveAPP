@@ -18,27 +18,27 @@ import {
   Search,
 } from 'lucide-react';
 
-import { dataMode, repository } from './data';
-import { DEMO_DATA_CHANNEL } from './data/demoDatabase';
-import { DomainError } from './domain/service';
-import { canReadEmployeeProfile } from './domain/employeeProfile';
-import { formatDate, today } from './domain/date';
-import { createWorkspaceRoutes, WorkspaceRoutes } from './routes';
-import { BrandMark, CommandMenu } from './ui';
-import { WorkspaceNavigation } from './Navigation';
-import { EntryTransition } from './EntryTransition';
-import { ENTRY_TIMING, motionDelay } from './motion';
-import { NotificationPopover } from './NotificationPopover';
-import { NotificationToasts } from './NotificationToasts';
-import { Login } from './Login';
-import { ThemeButton } from './ThemeButton';
-import { Dialog } from './components';
-import { EmployeeProfileContext } from './EmployeeProfileLink';
-import { AccountMenu } from './AccountMenu';
-import { EmployeeProfilePage } from './pages/EmployeeProfilePage';
+import { dataMode, repository } from './data/index.js';
+import { DEMO_DATA_CHANNEL } from './data/demoDatabase.js';
+import { DomainError } from './domain/service.js';
+import { canReadEmployeeProfile } from './domain/employeeProfile.js';
+import { formatDate, today } from './domain/date.js';
+import { createWorkspaceRoutes, WorkspaceRoutes } from './routes.jsx';
+import { BrandMark, CommandMenu } from './ui.jsx';
+import { WorkspaceNavigation } from './Navigation.jsx';
+import { EntryTransition } from './EntryTransition.jsx';
+import { ENTRY_TIMING, motionDelay } from './motion.js';
+import { NotificationPopover } from './NotificationPopover.jsx';
+import { NotificationToasts } from './NotificationToasts.jsx';
+import { Login } from './Login.jsx';
+import { ThemeButton } from './ThemeButton.jsx';
+import { Dialog } from './components.jsx';
+import { EmployeeProfileContext } from './EmployeeProfileLink.jsx';
+import { AccountMenu } from './AccountMenu.jsx';
+import { EmployeeProfilePage } from './pages/EmployeeProfilePage.jsx';
 
-export { Login } from './Login';
-export { ThemeButton } from './ThemeButton';
+export { Login } from './Login.jsx';
+export { ThemeButton } from './ThemeButton.jsx';
 
 export default function App() {
   return (

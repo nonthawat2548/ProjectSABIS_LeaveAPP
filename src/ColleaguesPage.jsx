@@ -1,14 +1,14 @@
-import { EmployeeLabel } from './EmployeeLabel';
-import { EmployeeProfileLink } from './EmployeeProfileLink';
+import { EmployeeLabel } from './EmployeeLabel.jsx';
+import { EmployeeProfileLink } from './EmployeeProfileLink.jsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Clock3, LoaderCircle, Search, Users } from 'lucide-react';
 
-import { employeeCode } from './domain/colleagues';
-import { formatDate, formatDateTime, parseThaiDate, today } from './domain/date';
-import { repository } from './data';
-import { Card, DateField, Empty, Heading } from './components';
-import { durationLabels, workStatusLabels } from './labels';
-import { Avatar } from './ui';
+import { employeeCode } from './domain/colleagues.js';
+import { formatDate, formatDateTime, parseThaiDate, today } from './domain/date.js';
+import { repository } from './data/index.js';
+import { Card, DateField, Empty, Heading } from './components.jsx';
+import { durationLabels, workStatusLabels } from './labels.js';
+import { Avatar } from './ui.jsx';
 
 function Status({ person }) {
   if (person.leaveDuration === 'Full') return <span className="work-badge leave">ลาเต็มวัน</span>;
@@ -24,7 +24,7 @@ function Status({ person }) {
   );
 }
 
-/** @param {import('./pages/types').PageProps} props */
+/** @param {import('./pages/types.js').PageProps} props */
 export function ColleaguesPage({ actor, db }) {
   const initialDate = useRef(today());
   const [query, setQuery] = useState(''),

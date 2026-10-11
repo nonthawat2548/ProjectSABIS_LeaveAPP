@@ -1,6 +1,6 @@
 import { actorById, DomainError } from './service.js';
 
-/** @param {Pick<import('./types').Employee, 'id' | 'role' | 'active'> | null} actor
+/** @param {Pick<import('./types.js').Employee, 'id' | 'role' | 'active'> | null} actor
  * @param {number} employeeId */
 export function canReadEmployeeProfile(actor, employeeId) {
   return Boolean(
@@ -18,10 +18,10 @@ export function parseEmployeeProfileId(value) {
 
 /**
  * Read one staff profile without widening the private leave snapshot.
- * @param {import('./types').Database} db
+ * @param {import('./types.js').Database} db
  * @param {number} actorId
  * @param {number} employeeId
- * @returns {import('./types').EmployeeProfile}
+ * @returns {import('./types.js').EmployeeProfile}
  */
 export function employeeProfile(db, actorId, employeeId) {
   const actor = actorById(db, actorId);

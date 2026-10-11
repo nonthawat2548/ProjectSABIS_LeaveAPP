@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { formatDate, thaiMonths, today } from '../domain/date';
-import { Card, Heading, monthShift, statusLabels } from '../components';
-import { durationLabels as durations } from '../labels';
+import { formatDate, thaiMonths, today } from '../domain/date.js';
+import { Card, Heading, monthShift, statusLabels } from '../components.jsx';
+import { durationLabels as durations } from '../labels.js';
 
-/** @param {import('./types').PageProps} props */
+/** @param {import('./types.js').PageProps} props */
 export function CalendarPage({ db, actor }) {
   const [month, setMonth] = useState(today().slice(0, 7) + '-01'),
     [pending, setPending] = useState(true),

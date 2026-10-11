@@ -2,7 +2,7 @@
 
 Implementation ปัจจุบัน: `internal/httpapi/` (Go + Gin) · frontend adapter: `src/data/apiRepository.js` · สัญญา [OpenAPI](openapi.yaml) · วิธีรันและลำดับอ่านโค้ด [GO_BACKEND.md](GO_BACKEND.md)
 
-บน Vercel ใช้ api/go.go → serverless/handler.go → internal/httpapi/ → internal/service/ และ internal/repository/postgres.go เชื่อม PostgreSQL private schema leave_app ใช้ business commands และ cookie contract เดิม ไม่ใช้ไฟล์ JSON/session ใน memory ดู [SUPABASE.md](SUPABASE.md) ไม่มี fallback ไป IndexedDB ส่วน Node ใน server/*.ts เป็น reference/โหมด legacy สำหรับเทียบระหว่างย้ายระบบ
+บน Vercel ใช้ api/go.go → serverless/handler.go → internal/httpapi/ → internal/service/ และ internal/repository/postgres.go เชื่อม PostgreSQL private schema leave_app ใช้ business commands และ cookie contract เดิม ไม่ใช้ไฟล์ JSON/session ใน memory ดู [SUPABASE.md](SUPABASE.md) ไม่มี fallback ไป IndexedDB ส่วน Node ใน server/*.js เป็น reference/โหมด legacy สำหรับเทียบระหว่างย้ายระบบ
 
 ## Cloud transport เพิ่มเติม
 

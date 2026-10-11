@@ -14,11 +14,7 @@ let api;
 if (legacy) {
   api = spawn(
     node,
-    [
-      '--import',
-      'tsx',
-      process.argv.includes('--cloud') ? 'server/cloud-dev.ts' : 'server/index.ts',
-    ],
+    [process.argv.includes('--cloud') ? 'server/cloud-dev.js' : 'server/index.js'],
     { stdio: 'inherit', env: process.env },
   );
 } else {

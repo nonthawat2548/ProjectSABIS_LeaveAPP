@@ -1,5 +1,12 @@
+/**
+ * @typedef {import('./types.js').Database} Database
+ */
 import { addDays, nextWorkingDay, today, workingDates } from './date.js';
 export const DEMO_PASSWORD = '1234';
+/**
+ * @param {Date} [now]
+ * @returns {Database}
+ */
 export function createSeed(now = new Date()) {
   const base = today(now);
   const year = Number(base.slice(0, 4));

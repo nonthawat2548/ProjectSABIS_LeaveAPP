@@ -1,14 +1,14 @@
-import { DEMO_PASSWORD } from '../domain/seed';
-import { findLoginAccount, LOGIN_ERROR } from '../domain/auth';
-import { actorById, applyCommand, DomainError, visibleSnapshot } from '../domain/service';
+import { DEMO_PASSWORD } from '../domain/seed.js';
+import { findLoginAccount, LOGIN_ERROR } from '../domain/auth.js';
+import { actorById, applyCommand, DomainError, visibleSnapshot } from '../domain/service.js';
 import {
   createDemoDatabase,
   DEMO_DATASET_ID,
   DEMO_SESSION_KEY,
   DEMO_DATA_CHANNEL,
-} from './demoDatabase';
-import { searchColleagues } from '../domain/colleagues';
-import { employeeProfile } from '../domain/employeeProfile';
+} from './demoDatabase.js';
+import { searchColleagues } from '../domain/colleagues.js';
+import { employeeProfile } from '../domain/employeeProfile.js';
 const DB_NAME = DEMO_DATASET_ID,
   STORE = 'database',
   KEY = 'state',
@@ -182,7 +182,7 @@ function notifyDataChanged() {
     channel.close();
   }
 }
-/** @implements {import('../domain/types').LeaveRepository} */
+/** @implements {import('../domain/types.js').LeaveRepository} */
 export class BrowserRepository {
   actorId() {
     const id = Number(sessionStorage.getItem(SESSION));
@@ -192,7 +192,7 @@ export class BrowserRepository {
   /**
    * @param {string} identifier
    * @param {string} password
-   * @returns {Promise<import('../domain/types').Employee>}
+   * @returns {Promise<import('../domain/types.js').Employee>}
    */
   async login(identifier, password) {
     const employee = await transaction(true, (db) => {
@@ -204,7 +204,7 @@ export class BrowserRepository {
     sessionStorage.setItem(SESSION, String(employee.id));
     return employee;
   }
-  /** @returns {Promise<import('../domain/types').Employee | null>} */
+  /** @returns {Promise<import('../domain/types.js').Employee | null>} */
   async session() {
     if (!sessionStorage.getItem(SESSION)) return null;
     return transaction(false, (db) => {
@@ -219,13 +219,13 @@ export class BrowserRepository {
   async logout() {
     sessionStorage.removeItem(SESSION);
   }
-  /** @returns {Promise<import('../domain/types').Database>} */
+  /** @returns {Promise<import('../domain/types.js').Database>} */
   async snapshot() {
     return transaction(false, (db) => visibleSnapshot(db, this.actorId()));
   }
   /**
    * @param {number} employeeId
-   * @returns {Promise<import('../domain/types').EmployeeProfile>}
+   * @returns {Promise<import('../domain/types.js').EmployeeProfile>}
    */
   async getEmployeeProfile(employeeId) {
     return transaction(false, (db) => employeeProfile(db, this.actorId(), employeeId), false);
@@ -233,14 +233,14 @@ export class BrowserRepository {
   /**
    * @param {string} query
    * @param {string} date
-   * @returns {Promise<import('../domain/types').ColleagueStatus[]>}
+   * @returns {Promise<import('../domain/types.js').ColleagueStatus[]>}
    */
   async searchColleagues(query, date) {
     return transaction(false, (db) => searchColleagues(db, this.actorId(), query, date), false);
   }
   /**
-   * @param {import('../domain/types').Command} command
-   * @returns {Promise<import('../domain/types').CommandResult>}
+   * @param {import('../domain/types.js').Command} command
+   * @returns {Promise<import('../domain/types.js').CommandResult>}
    */
   async execute(command) {
     const result = await transaction(true, (db) => applyCommand(db, this.actorId(), command));

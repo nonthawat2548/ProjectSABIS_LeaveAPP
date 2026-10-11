@@ -1,13 +1,13 @@
-import { EmployeeLabel } from '../EmployeeLabel';
-import { EmployeeProfileLink } from '../EmployeeProfileLink';
+import { EmployeeLabel } from '../EmployeeLabel.jsx';
+import { EmployeeProfileLink } from '../EmployeeProfileLink.jsx';
 import { useEffect, useState } from 'react';
 import { Info } from 'lucide-react';
 
-import { formatDate, parseThaiDate, today } from '../domain/date';
-import { effectiveWorkStatus } from '../domain/service';
-import { Card, DateField, Heading } from '../components';
-import { formatWorkStatus, workStatusLabels } from '../labels';
-import { useTask } from './useTask';
+import { formatDate, parseThaiDate, today } from '../domain/date.js';
+import { effectiveWorkStatus } from '../domain/service.js';
+import { Card, DateField, Heading } from '../components.jsx';
+import { formatWorkStatus, workStatusLabels } from '../labels.js';
+import { useTask } from './useTask.js';
 
 function WorkStatusCards({ db, people, actor, date }) {
   return (
@@ -37,7 +37,7 @@ function WorkStatusCards({ db, people, actor, date }) {
   );
 }
 
-/** @param {import('./types').PageProps} props */
+/** @param {import('./types.js').PageProps} props */
 export function WorkPage({ db, actor, run }) {
   const [date, setDate] = useState(formatDate(today())),
     [status, setStatus] = useState('In-office');

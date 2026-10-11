@@ -1,4 +1,4 @@
-import { employeeLabelLanguage, formatDepartment, formatPosition } from './labels';
+import { employeeLabelLanguage, formatDepartment, formatPosition } from './labels.js';
 
 export function EmployeeLabel({ value, kind }) {
   const label = kind === 'position' ? formatPosition(value) : formatDepartment(value);

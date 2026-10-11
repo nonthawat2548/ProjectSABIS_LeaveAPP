@@ -1,4 +1,12 @@
-/** Clear leave transactions while retaining accounts and granted rights. */
+/**
+ * @typedef {import('../src/domain/types.js').Database} Database
+ */
+/**
+ * Clear leave transactions while retaining accounts and granted rights.
+ *
+ * @param {Database} input
+ * @returns {Database}
+ */
 export function clearRequestHistory(input) {
   const collections = [
     'employees',

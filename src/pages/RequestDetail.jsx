@@ -1,15 +1,15 @@
-import { EmployeeLabel } from '../EmployeeLabel';
-import { EmployeeProfileLink } from '../EmployeeProfileLink';
+import { EmployeeLabel } from '../EmployeeLabel.jsx';
+import { EmployeeProfileLink } from '../EmployeeProfileLink.jsx';
 import { useState } from 'react';
 import { Check, ChevronLeft, Clock3, Send, Users, X } from 'lucide-react';
 
-import { formatDate, formatDateTime } from '../domain/date';
-import { balance, requestCode, totalDays } from '../domain/service';
-import { Badge, Card, Dialog, DocumentRow, Heading, KeyRow } from '../components';
-import { durationLabels as durations } from '../labels';
-import { useTask } from './useTask';
+import { formatDate, formatDateTime } from '../domain/date.js';
+import { balance, requestCode, totalDays } from '../domain/service.js';
+import { Badge, Card, Dialog, DocumentRow, Heading, KeyRow } from '../components.jsx';
+import { durationLabels as durations } from '../labels.js';
+import { useTask } from './useTask.js';
 
-/** @param {import('./types').PageProps & { id: number }} props */
+/** @param {import('./types.js').PageProps & { id: number }} props */
 export function RequestDetail({ db, actor, run, id }) {
   const r = db.requests.find((r) => r.id === id);
   const [dialog, setDialog] = useState(null),

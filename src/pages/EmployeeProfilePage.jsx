@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Card, Heading } from '../components';
-import { repository } from '../data';
-import { EmployeeLabel } from '../EmployeeLabel';
-import { canViewEmployeeProfile } from '../EmployeeProfileLink';
-import { employeeCode } from '../domain/colleagues';
-import { loginUsername } from '../domain/auth';
-import { roleLabels } from '../labels';
-import { Avatar } from '../ui';
+import { Card, Heading } from '../components.jsx';
+import { repository } from '../data/index.js';
+import { EmployeeLabel } from '../EmployeeLabel.jsx';
+import { canViewEmployeeProfile } from '../EmployeeProfileLink.jsx';
+import { employeeCode } from '../domain/colleagues.js';
+import { loginUsername } from '../domain/auth.js';
+import { roleLabels } from '../labels.js';
+import { Avatar } from '../ui.jsx';
 
 const genderLabels = { Male: 'ชาย', Female: 'หญิง', Other: 'อื่น ๆ' };
 
-/** @param {import('./types').PageProps & { employeeId: number, embedded?: boolean }} props */
+/** @param {import('./types.js').PageProps & { employeeId: number, embedded?: boolean }} props */
 export function EmployeeProfilePage({ actor, employeeId, embedded = false }) {
   const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState(null);
@@ -61,7 +61,7 @@ export function EmployeeProfilePage({ actor, employeeId, embedded = false }) {
   return <EmployeeProfileDetails actor={actor} profile={result.profile} embedded={embedded} />;
 }
 
-/** @param {{actor: import('../domain/types').Employee, profile: import('../domain/types').EmployeeProfile, embedded?: boolean}} props */
+/** @param {{actor: import('../domain/types.js').Employee, profile: import('../domain/types.js').EmployeeProfile, embedded?: boolean}} props */
 export function EmployeeProfileDetails({ actor, profile, embedded = false }) {
   const { employee, manager } = profile;
   if (!canViewEmployeeProfile(actor, employee))

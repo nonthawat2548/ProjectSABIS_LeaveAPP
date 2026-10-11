@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Bell, CheckCheck, ChevronRight, X } from 'lucide-react';
 
-import { formatDateTime, today } from './domain/date';
+import { formatDateTime, today } from './domain/date.js';
 
 export function NotificationPopover({ notifications, employeeId, route, disabled, onReadAll }) {
   const [open, setOpen] = useState(false),

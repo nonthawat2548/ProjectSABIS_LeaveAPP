@@ -1,7 +1,7 @@
 import { Link, useParams, useRoutes } from 'react-router-dom';
-import { Heading } from './components';
-import { ColleaguesPage } from './ColleaguesPage';
-import { EmployeeProfilePage } from './pages/EmployeeProfilePage';
+import { Heading } from './components.jsx';
+import { ColleaguesPage } from './ColleaguesPage.jsx';
+import { EmployeeProfilePage } from './pages/EmployeeProfilePage.jsx';
 import {
   AdminPage,
   CalendarPage,
@@ -13,7 +13,7 @@ import {
   Requests,
   SettingsPage,
   WorkPage,
-} from './pages';
+} from './pages.jsx';
 
 function NotFound() {
   return (

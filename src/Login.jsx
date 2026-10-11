@@ -13,12 +13,12 @@ import {
   LoaderCircle,
 } from 'lucide-react';
 
-import { getDemoAccounts } from './data/demoDatabase';
-import { DEMO_PASSWORD } from './domain/seed';
-import { findLoginAccount, loginUsername } from './domain/auth';
-import { roleLabels } from './components';
-import { BrandMark } from './ui';
-import { ThemeButton } from './ThemeButton';
+import { getDemoAccounts } from './data/demoDatabase.js';
+import { DEMO_PASSWORD } from './domain/seed.js';
+import { findLoginAccount, loginUsername } from './domain/auth.js';
+import { roleLabels } from './components.jsx';
+import { BrandMark } from './ui.jsx';
+import { ThemeButton } from './ThemeButton.jsx';
 
 export function Login({ onLogin, initialError, theme, onToggleTheme }) {
   const accounts = getDemoAccounts();

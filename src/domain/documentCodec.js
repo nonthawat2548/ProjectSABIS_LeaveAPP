@@ -1,4 +1,4 @@
-import { ALLOWED_ATTACHMENT_TYPES } from './attachments';
+import { ALLOWED_ATTACHMENT_TYPES } from './attachments.js';
 
 /** Decode in bounded blocks rather than creating an array with an entry for each byte. */
 export function documentBlob(doc) {

@@ -12,13 +12,25 @@ const demoUsernames = {
   'weeraphat@demo.local': 'weeraphat',
 };
 
-/** Preserve existing emails/database records; unknown accounts use their email alias. */
+/**
+ * Preserve existing emails/database records; unknown accounts use their email alias.
+ *
+ * @param {string} email
+ * @returns {string}
+ */
 export function loginUsername(email) {
   const key = email.trim().toLowerCase();
   return Object.hasOwn(demoUsernames, key) ? demoUsernames[key] : key.split('@')[0];
 }
 
-/** Exact email first; a username must identify exactly one account. */
+/**
+ * Exact email first; a username must identify exactly one account.
+ *
+ * @template {{ email: string; }} T
+ * @param {readonly T[]} accounts
+ * @param {string} identifier
+ * @returns {T | undefined}
+ */
 export function findLoginAccount(accounts, identifier) {
   const value = identifier.trim().toLowerCase();
   if (!value) return undefined;

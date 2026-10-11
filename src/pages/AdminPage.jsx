@@ -1,13 +1,13 @@
-import { EmployeeLabel } from '../EmployeeLabel';
-import { EmployeeProfileLink } from '../EmployeeProfileLink';
+import { EmployeeLabel } from '../EmployeeLabel.jsx';
+import { EmployeeProfileLink } from '../EmployeeProfileLink.jsx';
 import { useEffect, useState } from 'react';
 
-import { today } from '../domain/date';
-import { balance, maternityGenderIssue } from '../domain/service';
-import { Card, Heading, KeyRow, roleLabels } from '../components';
-import { useTask } from './useTask';
+import { today } from '../domain/date.js';
+import { balance, maternityGenderIssue } from '../domain/service.js';
+import { Card, Heading, KeyRow, roleLabels } from '../components.jsx';
+import { useTask } from './useTask.js';
 
-/** @param {import('./types').PageProps} props */
+/** @param {import('./types.js').PageProps} props */
 export function AdminPage({ actor, db, run }) {
   const [employeeId, setEmployeeId] = useState(1),
     [typeId, setTypeId] = useState(1),

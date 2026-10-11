@@ -8,6 +8,8 @@
 
 **วันที่บนหน้าจอและช่องกรอกใช้ วัน/เดือน/ปี พ.ศ. เช่น `5/12/2569`** ไม่ใช่เดือน/วัน/ปี ส่วน API และฐานข้อมูลใช้ `2026-12-05` (ค.ศ.)
 
+โค้ด frontend, Node legacy, สคริปต์ และชุดทดสอบเป็น JavaScript/JSX ทั้งหมด ใช้ JSDoc อธิบายข้อมูลแทนไฟล์ TypeScript; backend หลักยังเป็น Go + Gin `npm run typecheck` ตรวจ JSDoc ด้วยเครื่องมือ TypeScript โดยไม่แปลง source และไม่อ่านหรือเปลี่ยนฐานข้อมูล
+
 ## หน้าตาเวอร์ชันใหม่
 
 - พนักงานเปิดประวัติได้เฉพาะตนเอง ส่วนผู้จัดการและ HR กดดูประวัติพนักงานได้ข้ามฝ่าย รายชื่อ ตำแหน่ง ฝ่ายและสถานะเพื่อนร่วมงานยังแสดงให้ทุกบทบาท การกดชื่อที่มีสิทธิ์เปิดป๊อปอัปประวัติ ปิดด้วย ×, Esc หรือคลิกด้านนอก โดยเก็บหน้า ตัวกรอง และตำแหน่งเลื่อนเดิมไว้ รูปบัญชีมุมขวาบนเปิดเมนู “โปรไฟล์” เพื่อดูประวัติตนเองแบบเต็มหน้า ส่วนชื่อบัญชีใต้เมนูไม่ใช่ลิงก์ โปรไฟล์อ่านผ่าน repository/endpoint แยกที่ตรวจ session โดยไม่ขยายสิทธิ์คำขอ เอกสาร และโควตา
@@ -167,13 +169,13 @@ src/
   ui.jsx                  hero, โควตา, สรุปทีม, ค้นหาด่วน, stepper
   pages.jsx               รวม exports ของหน้าจอไว้ที่เส้นทางเดิม
   pages/                  หน้าจอแยกไฟล์ตามงาน: คำขอ แบบฟอร์ม สิทธิ์ สถานะ และ HR
-  pages/types.d.ts          PageProps ที่ใช้ร่วมกันโดยไม่ผูกกับ App
+  pages/types.js          PageProps ที่ใช้ร่วมกันโดยไม่ผูกกับ App
   pages/useTask.js        สถานะส่งคำสั่งและแสดงข้อผิดพลาด
   pages/requestScope.js   กรองรายการคำขอตามบทบาทเดิม
   components.jsx          date picker, ตาราง, dialog, เอกสาร
   styles.css              สี รูปแบบ และ responsive layout
   tailwind.css            Tailwind theme/utilities สำหรับ layout โดยไม่ใช้ Preflight
-  domain/types.d.ts         โครงสร้างข้อมูลและ API interface
+  domain/types.js         โครงสร้างข้อมูลและ API interface
   domain/date.js          วัน/เดือน/ปี พ.ศ. ↔ ISO ค.ศ.
   domain/attachments.js   ขนาด/ชนิดเอกสารและเพดาน HTTP ที่ใช้ร่วมกัน
   domain/seed.js          รหัสผ่าน demo และตัวสร้างข้อมูล/นโยบายตัวอย่าง
@@ -193,9 +195,9 @@ internal/
 api/go.go                 Go function สำหรับ Vercel
 serverless/handler.go      public entrypoint สำหรับตัวครอบ Go ของ Vercel
 server/                   Node เดิมสำหรับ dev:legacy และตรวจเทียบระหว่างย้าย
-  index.ts                REST API ของโหมด legacy
-  store.ts                JSON store ของโหมด legacy
-  seed.ts                 คืนค่าข้อมูล Node เดิม
+  index.js                REST API ของโหมด legacy
+  store.js                JSON store ของโหมด legacy
+  seed.js                 คืนค่าข้อมูล Node เดิม
 database/                 schema กลาง, supabase/, sqlite/ และ legacy/
 scripts/                  ตัวสร้าง source JSON และไฟล์ส่งออก
 docs/reference/           Data Dictionary ต้นฉบับ
@@ -236,9 +238,9 @@ npm run format
 npm run format:check
 ```
 
-คำสั่งครอบคลุม JavaScript/JSX, TypeScript ของ tools/tests/server เดิม และ CSS ไม่เขียนข้อมูล JSON ต้นทาง ฐาน runtime, SQL/SQLite หรือไฟล์ใน `public/` ใช้ `npm run lint` ตรวจตัวแปรและ import ของ frontend ส่วน `npm run typecheck` ตรวจ declarations และ TypeScript ที่ยังใช้ ไม่ได้ตรวจ type ภายใน JavaScript ทุกบรรทัด
+คำสั่งครอบคลุม JavaScript/JSX และ CSS ไม่เขียนข้อมูล JSON ต้นทาง ฐาน runtime, SQL/SQLite หรือไฟล์ใน `public/` ใช้ `npm run lint` ตรวจตัวแปรและ import ของ frontend ส่วน `npm run typecheck` ตรวจสัญญา JSDoc และ JavaScript ที่เปิด `// @ts-check` ตาม `jsconfig.json` ไม่ได้ตรวจชนิดภายใน JavaScript ทุกไฟล์
 
-แก้หน้าจอใน `src/pages/` ตามชื่อไฟล์ ส่วน `src/pages.jsx` รักษา exports เดิมไว้ ใช้ `src/Login.jsx` กับหน้าเข้าสู่ระบบ `src/App.jsx` กับ session/layout และ `src/routes.jsx` กับเส้นทาง หน้าจอเขียน JavaScript โดยมี JSDoc อ้างอิง `PageProps` ใน `src/pages/types.d.ts` สำหรับเครื่องมือ กฎการลาอยู่ใน domain และ Go service; repository และ server เชื่อมข้อมูลและตรวจ session เดิม
+แก้หน้าจอใน `src/pages/` ตามชื่อไฟล์ ส่วน `src/pages.jsx` รักษา exports เดิมไว้ ใช้ `src/Login.jsx` กับหน้าเข้าสู่ระบบ `src/App.jsx` กับ session/layout และ `src/routes.jsx` กับเส้นทาง หน้าจอเขียน JavaScript โดยมี JSDoc อ้างอิง `PageProps` ใน `src/pages/types.js` สำหรับเครื่องมือ กฎการลาอยู่ใน domain และ Go service; repository และ server เชื่อมข้อมูลและตรวจ session เดิม
 
 ข้อความ JSX ที่มีช่องว่างติดกับภาษาไทยบางจุดเขียนเป็น string expression เช่น `{'ผู้พิจารณา: '}` เพื่อคงขอบเขต text node และการวาดตัวอักษรเดิมเมื่อจัดรูปแบบ หลีกเลี่ยงแยกช่องว่างออกเป็น text node ใหม่โดยไม่ตรวจภาพ
 

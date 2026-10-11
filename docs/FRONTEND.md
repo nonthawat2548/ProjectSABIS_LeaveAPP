@@ -34,7 +34,11 @@ npm run dev:api
 
 ไฟล์ `.jsx` คือ JavaScript ที่เขียน JSX สำหรับหน้าจอ ส่วน `.js` ใช้กับฟังก์ชันและการเชื่อมข้อมูล ไม่มี type annotation ในโค้ดที่เบราว์เซอร์รัน
 
-`src/data/apiRepository.js`, `browserRepository.js`, `demoDatabase.js` และ `index.js` ใช้ JSDoc ในไฟล์ JavaScript เพื่อบอกชนิดพารามิเตอร์และผลลัพธ์ให้เครื่องมือ/ชุดทดสอบ แทน `.d.ts` ที่เคยอยู่ข้างไฟล์ทั้งสี่ ส่วน `src/domain/types.d.ts`, `src/pages/types.d.ts` และ declaration ของ domain ยังคงเป็นสัญญาข้อมูลกลาง ไม่ใช่ implementation อีกชุดและไม่ถูกโหลดเข้าเบราว์เซอร์ โค้ด `server/*.ts`, ตัวสร้างข้อมูล และการทดสอบกฎเดิมยังเก็บไว้เพื่อใช้โหมด Node อ้างอิงและตรวจเทียบกับ Go
+`src/`, หลังบ้าน Node เดิมใน `server/`, สคริปต์ และชุดทดสอบใช้ JavaScript ทั้งหมด โครงสร้างข้อมูลกลางอยู่ใน JSDoc ของ `src/domain/types.js` และ `PageProps` อยู่ใน `src/pages/types.js` ส่วนคำอธิบายฟังก์ชัน domain อยู่ข้าง implementation โดยตรง ไม่มีไฟล์ `.ts`, `.tsx` หรือ `.d.ts` ที่โปรเจกต์เขียนเอง หลังบ้าน Go และรูปแบบข้อมูลที่บันทึกคงเดิม
+
+แพ็กเกจ `typescript` และ `@types/*` ยังเป็นเครื่องมือพัฒนาเพื่ออ่าน JSDoc และแนะนำชนิดข้อมูลใน editor ไม่ใช่ภาษา source ของแอปหรือโค้ดที่รันในเบราว์เซอร์ ส่วน `tsx` ที่เคยใช้เปิด TypeScript ถูกถอดออกแล้ว Node legacy เปิด `.js` ได้โดยตรง
+
+รอบเปลี่ยน source เป็น JavaScript 11/10/2569: ชุดทดสอบ Node 185 และ Jest 59 รายการผ่าน รวม 244 รายการ พร้อม lint, JSDoc check, format, Vercel frontend build, Go tests/vet/build, Vercel Go wrapper, parity 139 กรณี, PostgreSQL integration และ data:check ตรวจ AST ของ implementation เดิม 91 โมดูลแล้วตรงกันหลังตัดชนิดข้อมูลและปรับเส้นทาง import ต่างเฉพาะ launcher กับวิธีทดสอบ native boot ตามการเปลี่ยนภาษา SHA-256 ของไฟล์ข้อมูลต้นทาง/ส่งออก/ฐานในเครื่อง 11 ไฟล์เท่าเดิม ตรวจ Edge headless 12 กรณี ครบสามบทบาท สองธีม และกว้าง 390/1440px ไม่พบ page error หรือหน้าล้นแนวนอน ใช้ browser context และฐานทดสอบแยก ไม่ทำรายการกับ Supabase จริง
 
 ## เปลี่ยนหน้าอย่างไร
 
@@ -82,9 +86,9 @@ npm run test:go:postgres
 
 - `lint` ตรวจ JavaScript/JSX รวมตัวแปรและ import ที่ไม่ได้ใช้
 - `test:ui` ใช้ Jest + React Testing Library ตรวจ login, routing, สิทธิ์, การกรอกวันที่/ไฟล์แนบ, กล่องแจ้งเตือนและสถานะเพื่อนร่วมงาน โดยไม่ใช้ฐานจริง
-- `test:unit` คงชุดทดสอบวันที่ กฎการลา repository และ HTTP API เดิมไว้ `npm test` รันทั้งสองชุด
-- `typecheck` ตรวจ declarations และโค้ด TypeScript ใน server/tools/tests ที่ยังใช้ ไม่ได้ตรวจ type ภายใน JavaScript ทุกบรรทัด
-- `build` ตรวจส่วน TypeScript แล้วสร้างเว็บด้วย Vite ส่วน JavaScript ตรวจร่วมกับ lint และ tests
+- `test:unit` รันไฟล์ `tests/*.test.js` ด้วย Node และโหลด JSX ผ่าน Babel React preset ใน `scripts/register-jsx.mjs`; ไฟล์ JavaScript ปกติใช้ native Node ส่วน `npm test` รันทั้งชุดนี้และ Jest
+- `typecheck` ใช้ `tsc -p jsconfig.json --noEmit` ตรวจสัญญา JSDoc และไฟล์ JavaScript ที่เปิด `// @ts-check` โดยไม่มีขั้นตอนแปลง TypeScript เป็น JavaScript; ไม่ได้ตรวจชนิดภายใน JavaScript ทุกไฟล์
+- `build` ตรวจ JSDoc แล้วสร้างเว็บด้วย Vite ร่วมกับการตรวจ JavaScript ผ่าน lint และ tests
 - `test:parity` เทียบ Go กับ JavaScript domain จากข้อมูลทดสอบเดียวกัน และ `test:go:postgres` ใช้ PostgreSQL ทดสอบแยก ไม่อ่าน `.env` หรือทำรายการกับ Supabase จริง
 
 GitHub Actions ใน `.github/workflows/check.yml` รัน checks เหล่านี้ร่วมกับ Go build/vet และการตรวจข้อมูลต้นทาง
