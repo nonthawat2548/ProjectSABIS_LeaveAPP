@@ -178,10 +178,6 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }) {
                     )}
                   </span>
                   <strong>{roleLabels[role]}</strong>
-                  <small>
-                    {members.length}
-                    {' บัญชี'}
-                  </small>
                   {selected && (
                     <span className="account-check">
                       <Check size={11} />

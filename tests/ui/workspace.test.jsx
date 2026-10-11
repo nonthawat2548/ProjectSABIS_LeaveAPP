@@ -3,7 +3,8 @@ import { act, cleanup, render, screen, waitFor, within } from '@testing-library/
 import userEvent from '@testing-library/user-event';
 import { createDemoDatabase } from '../../src/data/demoDatabase.js';
 import { findLoginAccount } from '../../src/domain/auth.js';
-import { applyCommand, visibleSnapshot } from '../../src/domain/service.js';
+import { applyCommand, DomainError, visibleSnapshot } from '../../src/domain/service.js';
+import { ENTRY_TIMING } from '../../src/motion.js';
 import { searchColleagues } from '../../src/domain/colleagues.js';
 
 const repository = {
@@ -45,7 +46,74 @@ beforeEach(() => {
     searchColleagues(database, account.id, query, date),
   );
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  jest.useFakeTimers({
+    now,
+    doNotFake: [
+      'performance',
+      'hrtime',
+      'nextTick',
+      'queueMicrotask',
+      'setImmediate',
+      'clearImmediate',
+      'setTimeout',
+      'clearTimeout',
+      'setInterval',
+      'clearInterval',
+      'requestAnimationFrame',
+      'cancelAnimationFrame',
+    ],
+  });
+  window.matchMedia.mockImplementation((query) => ({
+    matches: query === '(prefers-reduced-motion: reduce)',
+    media: query,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  }));
+});
+
+function deferred() {
+  let resolve, reject;
+  const promise = new Promise((accept, decline) => {
+    resolve = accept;
+    reject = decline;
+  });
+  return { promise, resolve, reject };
+}
+
+function motionTimers(reduced = false, mobile = false) {
+  jest.useFakeTimers({
+    now,
+    doNotFake: [
+      'nextTick',
+      'queueMicrotask',
+      'setImmediate',
+      'clearImmediate',
+      'performance',
+      'hrtime',
+    ],
+  });
+  window.matchMedia.mockImplementation((query) => ({
+    matches:
+      query === '(prefers-reduced-motion: reduce)'
+        ? reduced
+        : query === '(max-width: 760px)' && mobile,
+    media: query,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  }));
+}
+
+async function advanceMotion(ms) {
+  await act(async () => jest.advanceTimersByTime(ms));
+}
+
+async function clickLogout() {
+  const button = screen.getByRole('button', { name: 'ออกจากระบบ', exact: true });
+  await act(async () => button.click());
+  return button;
+}
 
 async function openWorkspace(id = 1, path = '/dashboard') {
   account = database.employees.find((employee) => employee.id === id);
@@ -53,6 +121,147 @@ async function openWorkspace(id = 1, path = '/dashboard') {
   render(<App />);
   await waitFor(() => expect(document.querySelector('.app-shell')).toBeInTheDocument());
 }
+
+test('logout waits for the server, prevents duplicate calls and reveals login after confirmation', async () => {
+  motionTimers();
+  const pending = deferred();
+  await openWorkspace();
+  repository.logout.mockImplementationOnce(() => pending.promise);
+  const button = screen.getByRole('button', { name: 'ออกจากระบบ', exact: true });
+  await act(async () => {
+    button.click();
+    button.click();
+  });
+  expect(repository.logout).toHaveBeenCalledTimes(1);
+  expect(button).toBeDisabled();
+  const overlay = screen.getByRole('status');
+  expect(overlay).toHaveTextContent('กำลังออกจากระบบ');
+  expect(overlay).toHaveAttribute('aria-busy', 'true');
+  expect(overlay).toHaveFocus();
+  expect(document.querySelector('.app-shell')).toHaveAttribute('inert');
+  await advanceMotion(ENTRY_TIMING.checking + 2000);
+  expect(screen.getByRole('status')).toHaveTextContent('กำลังออกจากระบบ');
+  expect(screen.queryByLabelText('ชื่อผู้ใช้หรืออีเมล')).not.toBeInTheDocument();
+  await act(async () => pending.resolve());
+  expect(screen.getByRole('status')).toHaveTextContent('ออกจากระบบสำเร็จ');
+  expect(document.querySelector('.entry-transition')).toHaveClass('phase-ready');
+  await advanceMotion(ENTRY_TIMING.ready - 1);
+  expect(screen.queryByLabelText('ชื่อผู้ใช้หรืออีเมล')).not.toBeInTheDocument();
+  await advanceMotion(1);
+  expect(document.querySelector('.entry-transition')).toHaveClass('phase-leaving');
+  expect(document.querySelector('.app-shell')).not.toBeInTheDocument();
+  expect(document.querySelector('.login-frame')).toHaveAttribute('inert');
+  await advanceMotion(ENTRY_TIMING.leaving);
+  expect(document.querySelector('.entry-transition')).not.toBeInTheDocument();
+  expect(document.querySelector('.login-frame')).not.toHaveAttribute('inert');
+  expect(screen.getByLabelText('ชื่อผู้ใช้หรืออีเมล')).toHaveValue('');
+  expect(screen.getByLabelText('รหัสผ่าน')).toHaveValue('');
+  expect(screen.getByLabelText('ชื่อผู้ใช้หรืออีเมล')).toHaveFocus();
+  expect(jest.getTimerCount()).toBe(0);
+});
+
+test('failed logout restores the workspace and focus, and allows retry', async () => {
+  const user = userEvent.setup();
+  const pending = deferred();
+  await openWorkspace();
+  repository.logout.mockImplementationOnce(() => pending.promise);
+  const button = await clickLogout();
+  await act(async () => pending.reject(new Error('ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง')));
+  expect(screen.getByRole('alert')).toHaveTextContent('ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง');
+  expect(document.querySelector('.app-shell')).not.toHaveAttribute('inert');
+  expect(document.querySelector('.entry-transition')).not.toBeInTheDocument();
+  expect(button).toBeEnabled();
+  expect(button).toHaveFocus();
+  await user.click(button);
+  expect(await screen.findByLabelText('ชื่อผู้ใช้หรืออีเมล')).toHaveFocus();
+  expect(repository.logout).toHaveBeenCalledTimes(2);
+});
+
+test('reduced motion skips logout presentation delays while still awaiting the server', async () => {
+  motionTimers(true);
+  const pending = deferred();
+  await openWorkspace();
+  repository.logout.mockImplementationOnce(() => pending.promise);
+  await clickLogout();
+  expect(screen.getByRole('status')).toHaveTextContent('กำลังออกจากระบบ');
+  expect(jest.getTimerCount()).toBe(0);
+  await act(async () => pending.resolve());
+  expect(document.querySelector('.entry-transition')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('ชื่อผู้ใช้หรืออีเมล')).toHaveFocus();
+  expect(jest.getTimerCount()).toBe(0);
+});
+
+test.each(['checking', 'ready', 'leaving'])(
+  'unmount cancels logout timers during %s',
+  async (phase) => {
+    motionTimers();
+    const pending = deferred();
+    await openWorkspace();
+    repository.logout.mockImplementationOnce(() => pending.promise);
+    await clickLogout();
+    if (phase !== 'checking') {
+      await act(async () => pending.resolve());
+      await advanceMotion(ENTRY_TIMING.checking);
+      if (phase === 'leaving') await advanceMotion(ENTRY_TIMING.ready);
+    }
+    expect(document.querySelector('.entry-transition')).toHaveClass('phase-' + phase);
+    cleanup();
+    expect(jest.getTimerCount()).toBe(0);
+    await act(async () => pending.resolve());
+    await advanceMotion(5000);
+    expect(jest.getTimerCount()).toBe(0);
+    expect(document.querySelector('.entry-transition')).not.toBeInTheDocument();
+  },
+);
+
+test.each(['snapshot', 'unauthenticated'])(
+  'stale background %s cannot interrupt logout',
+  async (result) => {
+    motionTimers();
+    const refresh = deferred(),
+      pending = deferred();
+    await openWorkspace();
+    repository.snapshot.mockImplementationOnce(() => refresh.promise);
+    await act(async () => window.dispatchEvent(new Event('focus')));
+    repository.logout.mockImplementationOnce(() => pending.promise);
+    await clickLogout();
+    await act(async () => {
+      if (result === 'snapshot') {
+        const stale = visibleSnapshot(database, account.id);
+        stale.employees = stale.employees.map((e) => ({ ...e, name: 'ข้อมูลเก่า' }));
+        refresh.resolve(stale);
+      } else refresh.reject(new DomainError('เซสชันหมดอายุ', 'UNAUTHENTICATED'));
+    });
+    expect(document.querySelector('.app-shell')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('กำลังออกจากระบบ');
+    expect(screen.queryByText('ข้อมูลเก่า')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    await act(async () => pending.resolve());
+    await advanceMotion(ENTRY_TIMING.checking);
+    await advanceMotion(ENTRY_TIMING.ready);
+    await advanceMotion(ENTRY_TIMING.leaving);
+    expect(screen.getByLabelText('ชื่อผู้ใช้หรืออีเมล')).toHaveFocus();
+  },
+);
+
+test('failed mobile logout releases scroll locking and focuses the visible menu button', async () => {
+  motionTimers(false, true);
+  const pending = deferred();
+  await openWorkspace();
+  const toggle = screen.getByRole('button', { name: 'เปิดหรือปิดเมนู' });
+  await act(async () => toggle.click());
+  expect(document.body.style.overflow).toBe('hidden');
+  repository.logout.mockImplementationOnce(() => pending.promise);
+  await clickLogout();
+  expect(document.body.style.overflow).toBe('');
+  expect(screen.getByRole('status')).toHaveFocus();
+  await act(async () => pending.reject(new Error('ออกจากระบบไม่สำเร็จ')));
+  expect(screen.getByRole('alert')).toHaveTextContent('ออกจากระบบไม่สำเร็จ');
+  expect(toggle).toHaveFocus();
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await advanceMotion(ENTRY_TIMING.menuClose);
+  expect(document.body.style.overflow).toBe('');
+});
 
 test('login starts empty and role selection only lists accounts in that category', async () => {
   const user = userEvent.setup();

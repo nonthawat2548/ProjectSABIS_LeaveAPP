@@ -126,6 +126,10 @@ test('Login account controls submit the selected person to the connected reposit
         assert.equal(passwordInput().value, '');
         assert.equal(emailInput().type, 'text');
         assert.equal(dom.window.document.querySelector('.login-note'), null);
+        assert.deepEqual(
+          roleButtons().map((button) => button.textContent),
+          ['พนักงาน', 'ผู้จัดการ', 'ฝ่ายบุคคล (HR)'],
+        );
         assert(roleButtons().every((button) => button.getAttribute('aria-pressed') === 'false'));
         assert(
           !form().checkValidity(),

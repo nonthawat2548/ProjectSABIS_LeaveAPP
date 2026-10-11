@@ -5,7 +5,16 @@ import { employeeLabelLanguage, formatDepartment, formatPosition } from './label
 import { Avatar, BrandMark } from './ui';
 import { ENTRY_TIMING, motionDelay, prefersReducedMotion } from './motion';
 
-export function WorkspaceNavigation({ actor, menus, unread, route, open, onClose, onLogout }) {
+export function WorkspaceNavigation({
+  actor,
+  menus,
+  unread,
+  route,
+  open,
+  onClose,
+  onLogout,
+  loggingOut = false,
+}) {
   const panel = useRef(null);
   const closeButton = useRef(null);
   const [closing, setClosing] = useState(false);
@@ -165,7 +174,12 @@ export function WorkspaceNavigation({ actor, menus, unread, route, open, onClose
             </small>
           </div>
         </div>
-        <button className="logout" onClick={onLogout}>
+        <button
+          className="logout"
+          disabled={loggingOut}
+          aria-busy={loggingOut || undefined}
+          onClick={onLogout}
+        >
           <LogOut size={17} />
           ออกจากระบบ
         </button>

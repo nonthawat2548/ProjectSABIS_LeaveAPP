@@ -191,7 +191,9 @@ test('Login asks for a role before listing demo accounts in both themes', () => 
       'The account selector must have a linked visible label',
     );
     assert(html.includes('เลือกบัญชีทดลอง'));
-    for (const count of [7, 2, 1]) assert(html.includes(`${count} บัญชี`));
+    for (const label of ['พนักงาน', 'ผู้จัดการ', 'ฝ่ายบุคคล (HR)'])
+      assert(html.includes(`<strong>${label}</strong>`));
+    for (const count of [7, 2, 1]) assert(!html.includes(`${count} บัญชี`));
     const options = [...select[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/g)].filter(
       (option) => !/value=""/.test(option[1]),
     );

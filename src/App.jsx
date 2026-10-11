@@ -58,12 +58,15 @@ function Workspace() {
   const route = pathname === '/' ? '/dashboard' : pathname;
   const [entry, setEntry] = useState(null);
   const entryController = useRef(null);
+  const entryFocus = useRef(null);
+  const sessionVersion = useRef(0);
   const main = useRef(null),
     hadEntry = useRef(false);
   useEffect(
     () => () => {
       const controller = entryController.current;
       entryController.current = null;
+      sessionVersion.current++;
       controller?.abort();
     },
     [],
@@ -75,9 +78,15 @@ function Workspace() {
     }
     if (hadEntry.current) {
       hadEntry.current = false;
-      main.current?.focus();
+      const target = !actor
+        ? document.querySelector('#login-email')
+        : entryFocus.current?.isConnected
+          ? entryFocus.current
+          : main.current;
+      entryFocus.current = null;
+      target?.focus();
     }
-  }, [entry]);
+  }, [entry, actor]);
   const closeMobile = useCallback(() => setMobile(false), []);
   useEffect(() => {
     const viewport = window.matchMedia('(max-width: 760px)');
@@ -107,7 +116,9 @@ function Workspace() {
     return () => window.removeEventListener('keydown', shortcut);
   }, [actor, entry]);
   const reload = useCallback(async () => {
-    setDb(await repository.snapshot());
+    const version = sessionVersion.current;
+    const snapshot = await repository.snapshot();
+    if (version === sessionVersion.current) setDb(snapshot);
   }, []);
   useEffect(() => {
     let live = true;
@@ -132,9 +143,11 @@ function Workspace() {
     };
   }, []);
   useEffect(() => {
-    if (!actor) return;
+    if (!actor || entry?.action === 'logout') return;
+    let live = true;
     const refresh = () => {
       void reload().catch((e) => {
+        if (!live) return;
         if (e instanceof DomainError && e.code === 'UNAUTHENTICATED') {
           setActor(null);
           setDb(null);
@@ -149,11 +162,12 @@ function Workspace() {
     if (ch) ch.onmessage = refresh;
     const timer = dataMode === 'api' ? setInterval(refresh, 15000) : null;
     return () => {
+      live = false;
       window.removeEventListener('focus', refresh);
       ch?.close();
       if (timer) clearInterval(timer);
     };
-  }, [actor, reload]);
+  }, [actor, reload, entry?.action]);
   useEffect(() => {
     setMobile(false);
     setError('');
@@ -176,6 +190,8 @@ function Workspace() {
     }
   }
   async function login(email, password) {
+    hadEntry.current = true;
+    sessionVersion.current++;
     entryController.current?.abort();
     const controller = new AbortController();
     entryController.current = controller;
@@ -216,15 +232,38 @@ function Workspace() {
     }
   }
   async function logout() {
+    if (entryController.current) return;
+    const controller = new AbortController();
+    entryController.current = controller;
+    sessionVersion.current++;
+    hadEntry.current = true;
+    entryFocus.current = mobile
+      ? document.querySelector('.mobile-toggle')
+      : document.querySelector('.logout, .boot button:last-child');
+    const minimum = motionDelay(ENTRY_TIMING.checking, controller.signal);
+    setMobile(false);
+    setCommandOpen(false);
+    setToast('');
+    setError('');
+    setEntry({ phase: 'checking', action: 'logout' });
     try {
       await repository.logout();
+      if (!(await minimum) || controller.signal.aborted) return;
+      setEntry({ phase: 'ready', action: 'logout' });
+      if (!(await motionDelay(ENTRY_TIMING.ready, controller.signal))) return;
       setActor(null);
       setDb(null);
-      setCommandOpen(false);
-      setToast('');
       navigate('/dashboard');
+      setEntry({ phase: 'leaving', action: 'logout' });
+      if (await motionDelay(ENTRY_TIMING.leaving, controller.signal)) setEntry(null);
     } catch (e) {
+      if (controller.signal.aborted) return;
+      controller.abort();
+      if (entryController.current === controller) setEntry(null);
       setError(e.message);
+    } finally {
+      controller.abort();
+      if (entryController.current === controller) entryController.current = null;
     }
   }
   if (loading) return <EntryTransition phase="checking" title="กำลังโหลดข้อมูล" />;
@@ -245,15 +284,18 @@ function Workspace() {
 
   if (!db)
     return (
-      <div className="boot">
-        <p role="alert">{error || 'กำลังโหลดข้อมูล…'}</p>
-        <button className="btn" onClick={() => void reload().catch((e) => setError(e.message))}>
-          ลองอีกครั้ง
-        </button>
-        <button className="btn" onClick={() => void logout()}>
-          ออกจากระบบ
-        </button>
-      </div>
+      <>
+        <div className="boot" inert={!!entry} aria-busy={!!entry}>
+          <p role="alert">{error || 'กำลังโหลดข้อมูล…'}</p>
+          <button className="btn" onClick={() => void reload().catch((e) => setError(e.message))}>
+            ลองอีกครั้ง
+          </button>
+          <button className="btn" disabled={!!entry} onClick={() => void logout()}>
+            ออกจากระบบ
+          </button>
+        </div>
+        {entry && <EntryTransition {...entry} />}
+      </>
     );
 
   const menus = [{ path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> }];
@@ -301,6 +343,7 @@ function Workspace() {
           open={mobile}
           onClose={closeMobile}
           onLogout={() => void logout()}
+          loggingOut={entry?.action === 'logout'}
           route={route}
         />
 
