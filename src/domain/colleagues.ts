@@ -1,6 +1,6 @@
 import type { ColleagueStatus, Database } from './types';
-import { actorById, DomainError } from './service';
-import { isoDate } from './date';
+import { actorById, DomainError } from './service.js';
+import { isoDate } from './date.js';
 
 /** A display code for the existing Employee.id, not a new stored employee identifier. */
 export const employeeCode = (id: number) => `EMP-${String(id).padStart(5, '0')}`;

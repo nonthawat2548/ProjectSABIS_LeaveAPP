@@ -153,6 +153,8 @@ npm run preview
 
 ## การตรวจสอบและรายงานผล
 
+- Cloud API ใช้ native Node ESM: relative runtime imports ต้องมี .js และ JSON import ต้องมี `with { type: 'json' }` รักษา tests/cloud-boot.test.ts ที่ compile แล้วเปิด JavaScript ผ่าน Node โดยไม่ใช้ tsx/bundler; การผ่าน Vite/tsx อย่างเดียวไม่ยืนยัน function boot วันที่ 11/10/2569 ตรวจเว็บจริง leave-app-coral.vercel.app พบ API ตอบ 500 FUNCTION_INVOCATION_FAILED เป็น text/plain ปรับ imports/API error response แล้ว npm test ผ่าน 163 รายการ typecheck/build ผ่าน (VERCEL=1) ยังไม่ได้ deploy ชุดแก้และไม่มี Runtime Logs จึงยังไม่ยืนยันสาเหตุเฉพาะหรือการเชื่อมฐานจริง
+
 - สถานะเชื่อม PostgreSQL API (11/10/2569): npm test ผ่าน 161 รายการ npm run typecheck และ npm run build ผ่าน (build ตั้ง VERCEL=1 ตรวจค่าเริ่มต้น API) ตรวจ migration ซ้ำ/session ข้าม handler/สิทธิ์ตามบทบาท/ลาคลอดล่าสุด/โควตาพร้อมกัน/rollback/ไฟล์ multipart ผ่าน PGlite แยกจากข้อมูลผู้ใช้ ตรวจ Edge headless 154 ด้วย production bundle แบบ Vercel, viewport 320/390/1440px และสองธีม ผ่าน 11 กรณี รวมยื่นไฟล์ 100 MiB 67 parts เห็นจากอีกเซสชัน ผู้จัดการอนุมัติ และดาวน์โหลดกลับขนาด/hash ตรงกัน ไม่พบ page error หรือ horizontal overflow ตรวจภาพแล้ว ยังไม่ได้เชื่อม Supabase ของผู้ใช้หรือ deploy บน Vercel จริง และไม่ได้ตรวจบนโทรศัพท์จริง
 
 - การเตรียม Supabase/PostgreSQL (10/10/2569): เพิ่ม SQL setup/ตัวสร้าง/คู่มือและ tests/supabase-schema.test.ts 6 รายการผ่าน PGlite dev dependency บนฐานแยก ตรวจ schema/seed/ISO/timeline/เอกสาร/นโยบาย/ยอดเทียบ domain, RLS+grants รวม views, import ซ้ำไม่เขียนทับ และ escape ตัวอักษร; npm test ผ่าน 153 รายการ typecheck/build ผ่าน ยังไม่ได้รันกับ Supabase จริงหรือเชื่อม frontend/API และยังไม่ยืนยันการซิงก์ข้ามเครื่อง

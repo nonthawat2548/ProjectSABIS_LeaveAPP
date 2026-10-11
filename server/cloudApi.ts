@@ -1,11 +1,11 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { actorById, applyCommand, canView, DomainError, visibleSnapshot } from '../src/domain/service';
-import { DEMO_PASSWORD } from '../src/domain/seed';
-import { createDemoDatabase } from '../src/data/demoDatabase';
-import { searchColleagues } from '../src/domain/colleagues';
-import { ALLOWED_ATTACHMENT_TYPES, CLOUD_PART_CHARACTERS, MAX_ATTACHMENT_BYTES, MAX_CLOUD_BODY_BYTES } from '../src/domain/attachments';
+import { actorById, applyCommand, canView, DomainError, visibleSnapshot } from '../src/domain/service.js';
+import { DEMO_PASSWORD } from '../src/domain/seed.js';
+import { createDemoDatabase } from '../src/data/demoDatabase.js';
+import { searchColleagues } from '../src/domain/colleagues.js';
+import { ALLOWED_ATTACHMENT_TYPES, CLOUD_PART_CHARACTERS, MAX_ATTACHMENT_BYTES, MAX_CLOUD_BODY_BYTES } from '../src/domain/attachments.js';
 import type { AttachmentInput, Command } from '../src/domain/types';
-import { loadDatabase, saveDatabase, type CloudStore, type SqlClient } from './postgresStore';
+import { loadDatabase, saveDatabase, type CloudStore, type SqlClient } from './postgresStore.js';
 
 const fail=(message:string,code='VALIDATION'):never=>{throw new DomainError(message,code)};
 const hash=(value:string)=>createHash('sha256').update(value).digest('hex');

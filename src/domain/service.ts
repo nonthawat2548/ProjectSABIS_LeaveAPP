@@ -1,6 +1,6 @@
 import type { AttachmentInput, Balance, Command, CommandResult, Database, Employee, LeaveDay, LeaveRequest, MaternityCase, RequestInput } from './types';
-import { datesBetween, dayDifference, isoDate, today, workingDates } from './date';
-import { ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BASE64_LENGTH, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_LABEL, MAX_COMMAND_BODY_BYTES } from './attachments';
+import { datesBetween, dayDifference, isoDate, today, workingDates } from './date.js';
+import { ALLOWED_ATTACHMENT_TYPES, MAX_ATTACHMENT_BASE64_LENGTH, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_LABEL, MAX_COMMAND_BODY_BYTES } from './attachments.js';
 export class DomainError extends Error {constructor(message:string,public code='VALIDATION'){super(message);this.name='DomainError'}}
 const fail=(text:string,code='VALIDATION'):never=>{throw new DomainError(text,code)};
 const nextId=(rows:{id:number}[])=>Math.max(0,...rows.map(r=>r.id))+1;

@@ -1,6 +1,6 @@
 import pg from 'pg';
 import type { Database } from '../src/domain/types';
-import { DomainError } from '../src/domain/service';
+import { DomainError } from '../src/domain/service.js';
 
 export interface SqlClient { query(sql: string, values?: unknown[]): Promise<{rows: Record<string, any>[]}> }
 export interface SqlConnection extends SqlClient { release(): void }

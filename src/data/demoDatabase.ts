@@ -1,4 +1,4 @@
-import sample from './leave-management-10-people.json';
+import sample from './leave-management-10-people.json' with { type: 'json' };
 import type { Database, Employee } from '../domain/types';
 
 export const DEMO_DATASET_ID = 'leave-management-10-people-v1';

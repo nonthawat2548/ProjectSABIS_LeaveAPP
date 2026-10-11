@@ -7,7 +7,11 @@ export class ApiRepository implements LeaveRepository {
     constructor(private base = (import.meta.env?.VITE_API_BASE_URL || '/api').replace(/\/$/, '')) { }
     private async request(path: string, method = 'GET', body?: unknown) {
         let response: Response; try { response = await fetch(this.base + path, { method, credentials: 'include', headers: body === undefined ? {} : { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }) } catch { throw new DomainError('ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองอีกครั้งหรือติดต่อผู้ดูแลระบบ', 'NETWORK') }
-        const data = await response.json().catch(() => ({ message: 'ระบบส่งข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้ง' }));
+        let data: any;
+        try { data = await response.json() } catch {
+            throw new DomainError(response.status >= 500 ? 'ระบบส่วนกลางยังไม่พร้อมใช้งาน กรุณาลองอีกครั้งหรือติดต่อผู้ดูแลระบบ' : 'ระบบส่งข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้งหรือติดต่อผู้ดูแลระบบ', response.status >= 500 ? 'UNAVAILABLE' : 'API');
+        }
+        if (data === null || typeof data !== 'object') throw new DomainError('ระบบส่งข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้งหรือติดต่อผู้ดูแลระบบ', 'API');
         if (!response.ok) throw new DomainError(data.message ?? 'การเชื่อมต่อมีปัญหา', data.code ?? 'API'); return data;
     }
     async login(email: string, password: string): Promise<Employee> { return (await this.request('/session', 'POST', { email, password })).employee }
