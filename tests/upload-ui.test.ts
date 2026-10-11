@@ -7,7 +7,7 @@ import { applyCommand } from '../src/domain/service';
 import { MAX_ATTACHMENT_BYTES } from '../src/domain/attachments';
 import type { Command, LeaveDocument } from '../src/domain/types';
 
-test('Attachment UI uses the 100 MB limit and keeps readable documents when replacements fail', async t => {
+test('Attachment UI uses the 25 MB limit and keeps readable documents when replacements fail', async t => {
     // FileReader is controlled here; real browser file I/O is verified separately.
     const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { url: 'http://localhost/#/new' });
     class ControlledReader {
@@ -77,7 +77,7 @@ test('Attachment UI uses the 100 MB limit and keeps readable documents when repl
 
     await t.test('A PDF larger than the previous 2 MB limit can be read, reviewed and submitted', async () => {
         await renderForm();
-        assert(document.querySelector('.upload-box p')?.textContent?.includes('100 MB'));
+        assert(document.querySelector('.upload-box p')?.textContent?.includes('25 MB'));
         const picker = document.querySelector<HTMLButtonElement>('button[aria-label="เลือกไฟล์เอกสารประกอบ"]')!;
         assert.equal(picker.textContent, 'เลือกไฟล์');
         assert.equal(input().hidden, true);
@@ -112,7 +112,7 @@ test('Attachment UI uses the 100 MB limit and keeps readable documents when repl
         assert(document.getElementById('root')?.textContent?.includes('ส่งคำขอเรียบร้อย'));
     });
 
-    await t.test('Exactly 100 MB reaches the reader; larger, empty and unsupported files are rejected before reading', async () => {
+    await t.test('Exactly 25 MB reaches the reader; larger, empty and unsupported files are rejected before reading', async () => {
         await renderForm();
         await chooseFile(MAX_ATTACHMENT_BYTES, 'maximum.pdf');
         assert.equal(ControlledReader.pending.length, 1);
@@ -121,7 +121,7 @@ test('Attachment UI uses the 100 MB limit and keeps readable documents when repl
         for (const [size, type] of [[MAX_ATTACHMENT_BYTES + 1, 'application/pdf'], [0, 'application/pdf'], [100, 'text/plain']] as const) {
             await chooseFile(size, 'invalid-file', type);
             assert.equal(ControlledReader.pending.length, 1, 'Rejected metadata must not start FileReader');
-            assert.match(alert()!, /100 MB/);
+            assert.match(alert()!, /25 MB/);
             assert.equal(input().disabled, false); assert.equal(checkButton().disabled, false);
         }
     });
@@ -130,7 +130,7 @@ test('Attachment UI uses the 100 MB limit and keeps readable documents when repl
         await renderForm(); await chooseFile(tinyPdfBytes.length, 'previous.pdf'); await completeReader(tinyPdf);
         assert.equal(selected(), 'previous.pdf');
         await chooseFile(MAX_ATTACHMENT_BYTES + 1, 'oversized.pdf');
-        assert.equal(selected(), 'previous.pdf'); assert.match(alert()!, /100 MB/);
+        assert.equal(selected(), 'previous.pdf'); assert.match(alert()!, /25 MB/);
         await chooseFile(100, 'unreadable.pdf');
         assert.equal(selected(), 'previous.pdf'); assert.equal(input().disabled, true);
         await failReader(); assert.equal(selected(), 'previous.pdf'); assert.match(alert()!, /อ่านไฟล์ไม่สำเร็จ/);

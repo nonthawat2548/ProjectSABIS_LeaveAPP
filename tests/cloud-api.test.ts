@@ -142,7 +142,7 @@ test('ApiRepository sends multiple bounded cloud parts and downloads exact bytes
   };
   const a={cookie:''},b={cookie:''};const first=new ApiRepository('https://leave.test/api'),second=new ApiRepository('https://leave.test/api');
   await context.run(a,()=>first.login('employee@demo.local','demo1234'));await context.run(b,()=>second.login('employee@demo.local','demo1234'));
-  const file=Buffer.alloc(5*1024*1024,71);file.write('%PDF-1.7\n');
+  const file=Buffer.alloc(MAX_ATTACHMENT_BYTES,71);file.write('%PDF-1.7\n');
   const posted=await context.run(a,()=>first.execute({type:'submit',input:{...requestInput,attachment:{fileName:'หลายส่วน.pdf',fileType:'application/pdf',fileSize:file.length,dataUrl:'data:application/pdf;base64,'+file.toString('base64')}}}));
   const state:Database=await context.run(b,()=>second.snapshot()),doc=state.documents.find(item=>item.leaveId===posted.id)!;
   const blob=await context.run(b,()=>second.downloadDocument(doc));

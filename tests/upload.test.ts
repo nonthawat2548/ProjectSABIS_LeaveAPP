@@ -21,9 +21,9 @@ function fixture(date = now): Database {
     return db;
 }
 
-test('Attachment policy accepts documents above the previous 2 MiB limit', () => {
-    assert.equal(MAX_ATTACHMENT_BYTES, 100 * megabyte);
-    assert.equal(MAX_ATTACHMENT_LABEL, '100 MB');
+test('Attachment policy is 25 MiB and accepts ordinary documents above 2 MiB', () => {
+    assert.equal(MAX_ATTACHMENT_BYTES, 25 * megabyte);
+    assert.equal(MAX_ATTACHMENT_LABEL, '25 MB');
     const attachment = pdfAttachment(3 * megabyte);
     validateAttachment(attachment);
     const db = fixture();
@@ -34,7 +34,7 @@ test('Attachment policy accepts documents above the previous 2 MiB limit', () =>
     assert.equal(saved.fileName, attachment.fileName);
 });
 
-test('The exact 100 MiB decoded boundary is accepted and an extra byte cannot bypass it', () => {
+test('The exact 25 MiB decoded boundary is accepted and an extra byte cannot bypass it', () => {
     validateAttachment(pdfAttachment(MAX_ATTACHMENT_BYTES));
     const oversized = pdfAttachment(MAX_ATTACHMENT_BYTES + 1);
     assert.throws(() => validateAttachment(oversized), validationError);

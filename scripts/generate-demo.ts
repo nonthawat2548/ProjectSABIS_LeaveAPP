@@ -1,9 +1,9 @@
 /** Generate the ten-person source fixture without resetting existing runtime databases. */
-import { copyFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createSeed } from '../domain/seed';
-import { applyCommand, balance, totalDays, validateAttachment } from '../domain/service';
-import type { AttachmentInput, Database, RequestInput } from '../domain/types';
+import { createSeed } from '../src/domain/seed';
+import { applyCommand, balance, totalDays, validateAttachment } from '../src/domain/service';
+import type { AttachmentInput, Database, RequestInput } from '../src/domain/types';
 
 const now = new Date('2026-10-10T05:00:00Z');
 const db: Database = createSeed(now);
@@ -98,6 +98,9 @@ for (const entitlement of db.entitlements) {
 if (db.employees.length !== 10 || totalDays(db, crossYear) !== 2 || totalDays(db, holidayRequest) !== 2) {
   throw new Error('Unexpected sample count or day calculation');
 }
-copyFileSync(fileURLToPath(new URL('../../database/schema.sql', import.meta.url)), fileURLToPath(new URL('./schema.sql', import.meta.url)));
-writeFileSync(fileURLToPath(new URL('./leave-management-10-people.json', import.meta.url)), JSON.stringify(db, null, 2) + '\n', 'utf8');
-console.log(JSON.stringify({ employees: db.employees.length, roles: { Employee: 7, Manager: 2, HR: 1 }, requests: db.requests.length, entitlements: db.entitlements.length, note: 'Only sample files in src/data/ were written.' }));
+const output = fileURLToPath(new URL('../src/data/leave-management-10-people.json', import.meta.url));
+const content = JSON.stringify(db, null, 2) + '\n';
+if (process.argv.includes('--check')) {
+  if (readFileSync(output, 'utf8').replaceAll('\r\n', '\n') !== content) throw new Error('Demo source differs from generator. Run npm run data:generate to update source and exports.');
+} else writeFileSync(output, content, 'utf8');
+console.log(JSON.stringify({ employees: db.employees.length, roles: { Employee: 7, Manager: 2, HR: 1 }, requests: db.requests.length, entitlements: db.entitlements.length, note: process.argv.includes('--check') ? 'Source verified without writing data.' : 'Only src/data/leave-management-10-people.json was written.' }));

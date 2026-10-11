@@ -15,7 +15,7 @@ export function EntryTransition({ phase, name, title }: EntryState & { title?: s
             <span className="entry-state-icon">{ready ? <Check size={20} /> : <LoaderCircle size={20} className="button-spinner" />}</span>
         </div>
         <strong>{title ?? (ready ? `ยินดีต้อนรับ${name ? ', ' + name.split(' ')[0] : ''}` : 'กำลังเข้าสู่ระบบ')}</strong>
-        <p>{ready ? 'พื้นที่ทำงานของคุณพร้อมแล้ว' : 'ตรวจสอบบัญชีและเตรียมข้อมูลของคุณ'}</p>
+        <p>{ready ? 'เข้าสู่ระบบสำเร็จ' : 'กำลังตรวจสอบบัญชีและโหลดข้อมูล'}</p>
         <div className="entry-dots" aria-hidden="true"><i /><i /><i /></div>
     </div>;
 }

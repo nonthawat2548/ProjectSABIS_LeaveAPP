@@ -14,7 +14,7 @@ const dataPrefix = 'data:application/pdf;base64,';
 const pdfHeader = Buffer.from('%PDF-1.7\n').toString('base64');
 const zeroChunk = 'A'.repeat(64 * 1024);
 
-/** Streams a canonical large PDF fixture without creating a second 100 MiB client Buffer. */
+/** Streams a canonical large PDF fixture without creating a second 25 MiB client Buffer. */
 function* encodedPdf(size: number) {
     yield pdfHeader;
     let remaining = Math.floor((size - 9) / 3) * 4;
@@ -36,7 +36,7 @@ function* streamedCommand(input: RequestInput, size: number) {
     yield empty.slice(split);
 }
 
-test('HTTP attachments: 100 MiB persistence, direct validation and bounded JSON request bodies', { timeout: 120000 }, async t => {
+test('HTTP attachments: 25 MiB persistence, direct validation and bounded JSON request bodies', { timeout: 120000 }, async t => {
     const folder = await mkdtemp(join(tmpdir(), 'leave-upload-api-'));
     const file = join(folder, 'db.json');
     const date = workingDates(addDays(today(), 14), addDays(today(), 21), [])[0];
@@ -79,7 +79,7 @@ test('HTTP attachments: 100 MiB persistence, direct validation and bounded JSON 
     };
     const read = async (): Promise<Database> => JSON.parse(await readFile(file, 'utf8'));
 
-    await t.test('A real 100 MiB PDF reaches command validation and is persisted unchanged', async () => {
+    await t.test('A real 25 MiB PDF reaches command validation and is persisted unchanged', async () => {
         const response = await stream(streamedCommand(input(attachment(MAX_ATTACHMENT_BYTES)), MAX_ATTACHMENT_BYTES));
         assert.equal(response.status, 200, await response.text());
         assert((await stat(file)).size > MAX_ATTACHMENT_BASE64_LENGTH);
@@ -94,10 +94,10 @@ test('HTTP attachments: 100 MiB persistence, direct validation and bounded JSON 
         await writeFile(file, JSON.stringify(fixture));
     });
 
-    await t.test('The encoded payload cannot bypass 100 MiB by claiming a smaller fileSize', async () => {
+    await t.test('The encoded payload cannot bypass 25 MiB by claiming a smaller fileSize', async () => {
         const response = await stream(streamedCommand(input(attachment(MAX_ATTACHMENT_BYTES)), MAX_ATTACHMENT_BYTES + 1));
         assert.equal(response.status, 400);
-        assert.match((await response.json()).message, /100 MB|ขนาดเอกสาร/);
+        assert.match((await response.json()).message, /25 MB|ขนาดเอกสาร/);
         assert.deepEqual(await read(), fixture);
     });
 
@@ -106,7 +106,7 @@ test('HTTP attachments: 100 MiB persistence, direct validation and bounded JSON 
         for (const fileSize of [MAX_ATTACHMENT_BYTES + 1, -1, 0, 1.5, '9', null]) {
             const response = await send({ type: 'submit', input: input({ ...attachment(9), fileSize, dataUrl: validSmall } as AttachmentInput) });
             assert.equal(response.status, 400);
-            assert.match((await response.json()).message, /100 MB|ข้อมูลเอกสาร|ขนาดเอกสาร/);
+            assert.match((await response.json()).message, /25 MB|ข้อมูลเอกสาร|ขนาดเอกสาร/);
         }
         const mismatch = await send({ type: 'submit', input: input({ ...attachment(8), dataUrl: validSmall }) });
         assert.equal(mismatch.status, 400);

@@ -14,19 +14,23 @@
 | Leave_Approval | approvals | การตัดสินของผู้จัดการและการปรึกษา HR |
 | Work_Status | workStatuses | สถานะการทำงานที่ผู้ใช้บันทึก |
 
-`src/domain/types.ts` เป็น schema ฝั่ง TypeScript; `database/schema.sql` เป็น SQL สำหรับ SQLite ชุด 10 คนที่แอปใช้เริ่มต้นอยู่ใน `src/data/leave-management-10-people.json` โดย `createDemoDatabase()` ใน `src/data/demoDatabase.ts` clone ข้อมูลสำหรับ repository ทั้งสองโหมด `database/mock.sqlite` และ `database/mock-db.json` เป็นข้อมูลตัวอย่างเดิม **server เวอร์ชันนี้ใช้ JSON ไม่ได้เชื่อม SQLite โดยอัตโนมัติ**
+`src/domain/types.ts` เป็น schema ฝั่ง TypeScript; `database/schema.sql` เป็น SQL สำหรับ SQLite ชุด 10 คนที่แอปใช้เริ่มต้นอยู่ใน `src/data/leave-management-10-people.json` โดย `createDemoDatabase()` ใน `src/data/demoDatabase.ts` clone ข้อมูลสำหรับ repository ทั้งสองโหมด `database/legacy/mock.sqlite` และ `database/legacy/mock-db.json` เป็นข้อมูลตัวอย่างเดิม **server เวอร์ชันนี้ใช้ JSON ไม่ได้เชื่อม SQLite โดยอัตโนมัติ**
 
-`Leave_Document.fileSize` เก็บขนาดไฟล์ต้นฉบับเป็น bytes รองรับ PDF/JPG/PNG ถึง 100 MiB ต่อไฟล์ตาม `src/domain/attachments.ts`; `dataUrl` ยังเป็น base64 ใน snapshot/JSON และ IndexedDB ซึ่งใช้พื้นที่มากกว่าไฟล์ต้นฉบับประมาณหนึ่งในสาม ไม่เพิ่มตารางหรือเปลี่ยน schema การบันทึกในเบราว์เซอร์ยังขึ้นกับพื้นที่ว่างและโควตาของอุปกรณ์
+`Leave_Document.fileSize` เก็บขนาดไฟล์ต้นฉบับเป็น bytes รองรับ PDF/JPG/PNG ถึง 25 MiB ต่อไฟล์ตาม `src/domain/attachments.ts`; `dataUrl` ยังเป็น base64 ใน snapshot/JSON และ IndexedDB ซึ่งใช้พื้นที่มากกว่าไฟล์ต้นฉบับประมาณหนึ่งในสาม ไม่เพิ่มตารางหรือเปลี่ยน schema การบันทึกในเบราว์เซอร์ยังขึ้นกับพื้นที่ว่างและโควตาของอุปกรณ์
 
 ภายใน IndexedDB เอกสารที่มี data URL เกิน 1 MiB หรือทำให้เอกสาร inline รวมเกิน 4 MiB แบ่งเป็น string chunks ไม่เกิน 4 MiB ต่อ record เพื่อรองรับข้อจำกัดขนาด record ของ Chromium เก็บ manifest และ chunks ใน object store `database` เดิม โดยคง database version 1 และคืน `dataUrl` เต็มตาม `Database` เดิมเมื่ออ่าน snapshot การแก้คำขอ การเขียนเอกสาร และการล้าง chunks เก่าอยู่ใน transaction เดียวกัน ข้อมูล inline เดิมอ่านได้ทันทีและแปลงเมื่อมีการเขียนสำเร็จครั้งถัดไป โดยไม่รีเซ็ตฐาน การแบ่งส่วนนี้เป็นรายละเอียดของ browser repository; รูปแบบ API, source JSON และ 9 ตารางหลักยังเหมือนเดิม
 
 ## แหล่งข้อมูลที่ใช้งานจริงในโหมดจำลอง
 
+แผนผังไฟล์อยู่ใน [database/README.md](../database/README.md): `src/data/` มี source JSON และ repository; `database/supabase/` มี PostgreSQL setup/migration; `database/sqlite/` มีชุดส่งออก; `database/legacy/` เก็บตัวอย่างเก่า; `docs/reference/data-dictionary.csv` เป็นเอกสารอ้างอิง ใช้ schema กลาง `database/schema.sql` เพียงไฟล์เดียว ตรวจความตรงกันด้วย `npm run data:check` การย้ายไฟล์ในรอบนี้ไม่เปลี่ยนตำแหน่ง runtime หรือจำเป็นต้องคืนค่าข้อมูล
+
+หลังลดเพดานแนบใหม่เหลือ 25 MiB เอกสารที่เก็บไว้ตามเพดานเดิมถึง 100 MiB ยังอ่าน/ดาวน์โหลดและเก็บไว้ขณะแก้ไขหรืออนุมัติได้ ไม่ย้าย ลบ หรือย่อไฟล์เดิม และไม่ต้องแก้ schema
+
 - โหมดเบราว์เซอร์: IndexedDB `leave-management-10-people-v1` เริ่มต้นด้วยชุด 10 คนและเก็บการทำรายการต่อในเบราว์เซอร์ ฐานเดิม `leave-management-v1` ถูกเก็บไว้
 - โหมด API: อ่าน/เขียน `server/data/leave-management-10-people.json` หรือพาธจาก `MOCK_DATA_FILE` หากยังไม่มีไฟล์ให้เริ่มจากชุด JSON ต้นทาง เก็บ `server/data/db.json` เดิมไว้
 - ทั้งสองโหมดเก็บข้อมูลแยกกัน ไม่ซิงก์กัน และไม่เขียนการทำรายการกลับไปยัง `src/data/leave-management-10-people.json`, SQL หรือ SQLite
 - HR คืนค่าข้อมูลจำลองเป็นชุดต้นทาง 10 คนได้ในโหมดที่ใช้งานอยู่ การคืนค่าล้างการแก้ไขในฐาน runtime ของโหมดนั้น CLI `npm run seed -- --confirm` คืนค่าไฟล์ของโหมด API
-- ตัวสร้าง `src/data/generate.ts` และ `src/data/build-sqlite.py` สร้างไฟล์ source/ส่งออกใน `src/data/` เท่านั้น ไม่แก้ฐาน runtime หากต้องการใช้ source ใหม่กับข้อมูลที่มีอยู่แล้ว ต้องเรียกการคืนค่าของ HR
+- ตัวสร้าง `scripts/generate-demo.ts` และ `scripts/build-sqlite.py` สร้าง JSON ต้นทางใน `src/data/` และไฟล์ส่งออกใน `database/sqlite/` ไม่แก้ฐาน runtime หากต้องการใช้ source ใหม่กับข้อมูลที่มีอยู่แล้ว ต้องเรียกการคืนค่าของ HR
 
 ชุด 10 คนมีสิทธิ์รายปี ค.ศ. 2026 และ 2027; ปีอื่นต้องให้ HR จัดสรร รายละเอียดบัญชีและสถานการณ์ตัวอย่างอยู่ใน [src/data/README.md](../src/data/README.md)
 
@@ -101,7 +105,7 @@ server/postgresStore.ts map SQL กลับเป็น Database เดิม �
 
 Cloud snapshot อ่านเอกสารเฉพาะ metadata คืน remote:true/dataUrl:'' (remote ไม่ใช่คอลัมน์ SQL) แต่ Leave_Document.Data_url ในฐานยังเก็บ base64 จริงที่ผ่านการตรวจขนาด/ชนิด/เนื้อหา ดาวน์โหลดผ่าน API เป็นส่วน ๆ หลังตรวจ canView ทุกครั้ง การยื่น/แก้ไข consume staging และล้าง parts พร้อมคำขอ/เอกสารใน transaction เดียว ไม่ล้าง data_url เดิมเมื่อโหลด metadata แล้วบันทึกคำสั่งอื่น ข้อมูลและ staging ใช้โควตาฐาน Free 500 MB ร่วมกัน ไม่ใช้ Supabase Storage; ส่งออก JSON จาก cloud เป็น metadata เอกสาร
 
-เปิดชุด 10 คน `src/data/leave-management-10-people.sqlite` ด้วยเครื่องมือ SQLite ที่คุณใช้อยู่ หรือนำเข้า `src/data/leave-management-10-people.sql` ในฐานใหม่ที่ว่าง ไฟล์เหล่านี้เป็นสำเนาส่งออก ไม่ใช่ฐานที่แอปอ่าน/เขียนขณะทำรายการ ตัวอย่างเดิมยังอยู่ใน `database/mock.sqlite`, `database/schema.sql` และ `database/seed.sql`
+เปิดชุด 10 คน `database/sqlite/leave-management-10-people.sqlite` ด้วยเครื่องมือ SQLite ที่คุณใช้อยู่ หรือนำเข้า `database/sqlite/leave-management-10-people.sql` ในฐานใหม่ที่ว่าง ไฟล์เหล่านี้เป็นสำเนาส่งออก ไม่ใช่ฐานที่แอปอ่าน/เขียนขณะทำรายการ ตัวอย่างเดิมอยู่ใน `database/legacy/` ส่วน `database/schema.sql` เป็น schema กลาง
 
 ```sql
 SELECT * FROM Leave_Entitlement_Balance;

@@ -102,7 +102,7 @@ test('Maternity form explains eligibility and reviews the selected case before s
         assert.equal(summary('ใช้แล้ว'), '3 วัน');
         assert.equal(summary('รอพิจารณา'), '1 วัน');
         assert.equal(summary('คงเหลือ'), '6 วัน');
-        assert.equal(summary('พร้อมยื่นเพิ่ม'), '5 วัน');
+        assert.equal(summary('สิทธิ์ที่ขอเพิ่มได้'), '5 วัน');
         await choose('leave-case', '2');
         assert.equal(summary('สิทธิ์ทั้งหมดของกรณี'), '17 วัน');
         assert.equal(summary('ใช้แล้ว'), '0 วัน');
@@ -120,7 +120,7 @@ test('Maternity form explains eligibility and reviews the selected case before s
         assert(review()); assert.equal(commands.length, 0, 'Review is not a submit command');
         assert.equal(summary('กรณีลาคลอด'), 'กรณีที่ 1');
         assert.equal(summary('สิทธิ์ทั้งหมด'), '9 วัน');
-        assert.equal(summary('จำนวนวันที่นับ'), '3 วัน');
+        assert.equal(summary('จำนวนวันลา'), '3 วัน');
         assert(text().includes(formatDate(start)) && text().includes(formatDate(end)));
         const confirm = [...document.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent?.includes('ยืนยันส่งคำขอ'))!;
         await act(async () => { confirm.click(); await Promise.resolve() });
@@ -158,9 +158,9 @@ test('Maternity form explains eligibility and reviews the selected case before s
         const start = addDays(today(), 40);
         const id = applyCommand(db, 3, { type: 'submit', input: { leaveTypeId: 4, maternityCaseId: 1, startDate: start, endDate: addDays(start, 2), duration: 'Full', reason: 'ลาเพื่อคลอดบุตร' } }).id!;
         await render(db, 3, id);
-        assert.equal(summary('รอพิจารณา (ไม่รวมคำขอที่แก้)'), '0 วัน');
+        assert.equal(summary('รอพิจารณา (ไม่รวมคำขอนี้)'), '0 วัน');
         assert.equal(summary('คำขอนี้'), '3 วัน');
-        assert.equal(summary('พร้อมยื่นเพิ่ม'), '3 วัน');
+        assert.equal(summary('สิทธิ์ที่ขอเพิ่มได้'), '3 วัน');
         await submit(); assert(review());
         const confirm = [...document.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent?.includes('ยืนยันส่งคำขอ'))!;
         await act(async () => { confirm.click(); await Promise.resolve() });

@@ -71,6 +71,8 @@ test('Brand names keep English language metadata while operational and administr
     const login = render(Login, { onLogin: async () => { }, initialError: '', theme: 'light', onToggleTheme() { } });
     assert.equal(login.window.document.querySelector('.login-topline [lang="en"]')?.textContent, 'Leave Management');
     assert.equal(login.window.document.querySelector('.demo-accounts button:last-child strong')?.textContent, 'ฝ่ายบุคคล (HR)');
+    assert.equal(login.window.document.querySelector('.login-card h2')?.textContent?.trim(), 'เข้าสู่ระบบ ✦');
+    assert.equal(login.window.document.querySelector('.login-submit span')?.textContent, 'เข้าสู่ระบบ');
     login.window.close();
     const settings = render(SettingsPage, { ...tasks, db: visibleSnapshot(full, actor.id), actor });
     const copy = settings.window.document.body.textContent!;

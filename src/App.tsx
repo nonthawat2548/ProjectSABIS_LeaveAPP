@@ -13,6 +13,7 @@ import { WorkspaceNavigation } from './Navigation';
 import { EntryTransition, type EntryState } from './EntryTransition';
 import { ENTRY_TIMING, motionDelay } from './motion';
 import { ColleaguesPage } from './ColleaguesPage';
+import { NotificationPopover } from './NotificationPopover';
 export interface PageProps { db: Database; actor: Employee; run: (c: Command) => Promise<CommandResult>; reload: () => Promise<void> }
 function useRoute() { const [route, setRoute] = useState(location.hash.slice(1) || '/dashboard'); useEffect(() => { const change = () => setRoute(location.hash.slice(1) || '/dashboard'); window.addEventListener('hashchange', change); return () => window.removeEventListener('hashchange', change) }, []); return route }
 export default function App() {
@@ -72,7 +73,7 @@ export default function App() {
         }
     }
     async function logout() { try { await repository.logout(); setActor(null); setDb(null); setCommandOpen(false); setToast(''); location.hash = '/dashboard' } catch (e) { setError((e as Error).message) } }
-    if (loading) return <EntryTransition phase="checking" title="กำลังเปิดพื้นที่ทำงาน" />;
+    if (loading) return <EntryTransition phase="checking" title="กำลังโหลดข้อมูล" />;
     if (!actor) return <><div className="login-frame" inert={!!entry}><Login onLogin={login} initialError={error} theme={theme} onToggleTheme={() => setTheme(t => t === 'light' ? 'dark' : 'light')} /></div>{entry && <EntryTransition {...entry} />}</>;
     if (!db) return <div className="boot"><p role="alert">{error || 'กำลังโหลดข้อมูล…'}</p><button className="btn" onClick={() => void reload().catch(e => setError(e.message))}>ลองอีกครั้ง</button><button className="btn" onClick={() => void logout()}>ออกจากระบบ</button></div>;
     const menus: { path: string; label: string; icon: ReactNode }[] = [{ path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> }];
@@ -95,9 +96,11 @@ export default function App() {
     else if (route === '/settings' && actor.role === 'HR') page = <SettingsPage {...props} />;
     else { title = 'ไม่พบหน้า'; page = <><Heading title="ไม่พบหน้าหรือไม่มีสิทธิ์เข้าถึง" /><a className="btn primary" href="#/dashboard">กลับหน้าหลัก</a></> }
     const unread = db.notifications.filter(n => !n.read).length;
-    return <><div className="app-shell" inert={!!entry} aria-busy={!!entry}><WorkspaceNavigation actor={actor} menus={menus} unread={unread} open={mobile} onClose={closeMobile} onLogout={() => void logout()} route={route} /><div className="app-body" inert={mobile}><header className="topbar"><div className="topbar-title"><button className="icon-btn mobile-toggle" aria-label="เปิดหรือปิดเมนู" aria-expanded={mobile} aria-controls="workspace-navigation" onClick={() => setMobile(!mobile)}><Menu size={20} /></button><a href="#/dashboard" className="breadcrumb-root">พื้นที่ทำงาน</a><ChevronLeft className="flip breadcrumb-chevron" size={13} /><span>{title}</span></div><div className="topbar-actions"><button className="header-search" aria-label="ค้นหาเมนูและคำขอ" onClick={() => setCommandOpen(true)}><Search size={17} /><span>ค้นหาในระบบ</span><kbd>Ctrl / ⌘ + K</kbd></button><ThemeButton theme={theme} onToggle={() => setTheme(t => t === 'light' ? 'dark' : 'light')} /><button className="icon-btn" aria-label="รีเฟรชข้อมูล" onClick={() => void reload().then(() => setToast('ข้อมูลเป็นปัจจุบันแล้ว')).catch(e => setError(e.message))}><RefreshCw size={17} /></button><a className="icon-btn bell" href="#/notifications" aria-label={`การแจ้งเตือน ${unread} รายการใหม่`}><Bell size={19} />{unread > 0 && <span>{unread}</span>}</a><div className="header-avatar"><Avatar person={actor} size="small" /></div></div></header><div className="mode-bar"><span><span className="status-dot" />พื้นที่ทดลอง · {dataMode === 'mock' ? 'ข้อมูลบันทึกในเบราว์เซอร์' : 'ข้อมูลจากระบบกลาง'}</span><span><CalendarDays size={13} /> {formatDate(today())} · พ.ศ.</span></div><main key={route} ref={main} tabIndex={-1}><div className="back-row">{route !== '/dashboard' && <a href="#/dashboard" className="text-link"><ChevronLeft size={14} />หน้าหลัก</a>}</div>{error && <div className="error" role="alert">{error}<button className="icon-btn" aria-label="ปิดข้อผิดพลาด" onClick={() => setError('')}><X size={15} /></button></div>}{page}</main><footer><span lang="en"><BrandMark />Leave Management</span><span>ข้อมูลและนโยบายตัวอย่าง · วันที่ วัน/เดือน/ปี พ.ศ.</span></footer></div>{toast && <div className="toast" role="status"><span className="toast-icon"><Check size={17} /></span>{toast}<button onClick={() => setToast('')} aria-label="ปิดแจ้งเตือน"><X size={15} /></button></div>}{commandOpen && <CommandMenu menus={menus} db={db} onClose={() => setCommandOpen(false)} />}</div>{entry && <EntryTransition {...entry} />}</>;
+    const appleKeyboard = /Mac|iPhone|iPad|iPod/i.test(globalThis.navigator?.platform ?? '');
+    const searchShortcut = appleKeyboard ? '⌘ + K' : 'Ctrl + K';
+    return <><div className="app-shell" inert={!!entry} aria-busy={!!entry}><WorkspaceNavigation actor={actor} menus={menus} unread={unread} open={mobile} onClose={closeMobile} onLogout={() => void logout()} route={route} /><div className="app-body" inert={mobile}><header className="topbar"><div className="topbar-title"><button className="icon-btn mobile-toggle" aria-label="เปิดหรือปิดเมนู" aria-expanded={mobile} aria-controls="workspace-navigation" onClick={() => setMobile(!mobile)}><Menu size={20} /></button><a href="#/dashboard" className="breadcrumb-root">พื้นที่ทำงาน</a><ChevronLeft className="flip breadcrumb-chevron" size={13} /><span>{title}</span></div><div className="topbar-actions"><button className="header-search toolbar-hint" data-tooltip={`ค้นหาเมนูหรือคำขอ (${searchShortcut})`} aria-label="ค้นหาเมนูหรือคำขอ" aria-keyshortcuts={appleKeyboard ? 'Meta+K' : 'Control+K'} onClick={() => setCommandOpen(true)}><Search size={20} aria-hidden="true" /><span>ค้นหาเมนูหรือคำขอ</span><kbd lang="en" aria-hidden="true">{searchShortcut}</kbd></button><ThemeButton theme={theme} onToggle={() => setTheme(t => t === 'light' ? 'dark' : 'light')} /><button className="icon-btn toolbar-hint" data-tooltip="รีเฟรชข้อมูล" aria-label="รีเฟรชข้อมูล" onClick={() => void reload().then(() => setToast('ข้อมูลเป็นปัจจุบันแล้ว')).catch(e => setError(e.message))}><RefreshCw size={20} aria-hidden="true" /></button><NotificationPopover notifications={db.notifications} employeeId={actor.id} route={route} disabled={mobile || commandOpen || !!entry} onReadAll={() => run({ type: 'readNotifications' })} /><div className="header-avatar toolbar-hint" data-tooltip={actor.name} tabIndex={0}><Avatar person={actor} size="small" /></div></div></header><div className="mode-bar"><span><span className="status-dot" />พื้นที่ทดลอง · {dataMode === 'mock' ? 'ข้อมูลบันทึกในเบราว์เซอร์' : 'ข้อมูลจากระบบกลาง'}</span><span><CalendarDays size={13} /> {formatDate(today())} · พ.ศ.</span></div><main key={route} ref={main} tabIndex={-1}><div className="back-row">{route !== '/dashboard' && <a href="#/dashboard" className="text-link"><ChevronLeft size={14} />หน้าหลัก</a>}</div>{error && <div className="error" role="alert">{error}<button className="icon-btn" aria-label="ปิดข้อผิดพลาด" onClick={() => setError('')}><X size={15} /></button></div>}{page}</main><footer><span lang="en"><BrandMark />Leave Management</span><span>ข้อมูลและนโยบายตัวอย่าง</span></footer></div>{toast && <div className="toast" role="status"><span className="toast-icon"><Check size={17} /></span>{toast}<button onClick={() => setToast('')} aria-label="ปิดแจ้งเตือน"><X size={15} /></button></div>}{commandOpen && <CommandMenu menus={menus} db={db} onClose={() => setCommandOpen(false)} />}</div>{entry && <EntryTransition {...entry} />}</>;
 }
-export function ThemeButton({ theme, onToggle }: { theme: 'light' | 'dark'; onToggle: () => void }) { return <button className="icon-btn theme-toggle" aria-label={theme === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'} title={theme === 'light' ? 'ธีมมืด' : 'ธีมสว่าง'} onClick={onToggle}>{theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}</button> }
+export function ThemeButton({ theme, onToggle }: { theme: 'light' | 'dark'; onToggle: () => void }) { return <button className="icon-btn theme-toggle toolbar-hint" aria-label={theme === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'} data-tooltip={theme === 'light' ? 'เปลี่ยนเป็นธีมมืด' : 'เปลี่ยนเป็นธีมสว่าง'} onClick={onToggle}>{theme === 'light' ? <Moon size={20} aria-hidden="true" /> : <Sun size={20} aria-hidden="true" />}</button> }
 export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin: (e: string, p: string) => Promise<void>; initialError: string; theme: 'light' | 'dark'; onToggleTheme: () => void }) {
     const accounts = getDemoAccounts();
     const roles = ['Employee', 'Manager', 'HR'] as const;
@@ -128,12 +131,12 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
             <div className="intro-brand" lang="en"><span><BrandMark /></span>leave<span className="brand-dot">.</span></div>
             <div className="login-story">
                 <span className="eyebrow" lang="en"><span className="pulse-dot" />Space for your balance</span>
-                <h1>งานลงตัว<br />มีเวลาให้<span>ชีวิต</span><span className="story-star">✦</span></h1>
-                <p>ให้การจัดการวันลาเป็นเรื่องง่าย<br />เพื่อทุกวันที่ทำงาน และทุกวันที่พักผ่อน</p>
+                <h1>ระบบจัดการ<br /><span>การลา</span><span className="story-star">✦</span></h1>
+                <p>ยื่นคำขอลา ตรวจสอบสิทธิ์<br />และติดตามผลการพิจารณา</p>
                 <div className="login-illustration">
                     <img src="/art/leave-garden.svg" alt="ภาพประกอบปฏิทินและต้นไม้" />
-                    <div className="floating-feature feature-approved"><span><Check size={18} /></span><div><strong>ทุกคำขอชัดเจน</strong><small>ติดตามได้ทุกขั้นตอน</small></div></div>
-                    <div className="floating-feature feature-balance"><span><Wallet size={18} /></span><div><strong>วางแผนเวลาได้ดีขึ้น</strong><small>เห็นสิทธิ์คงเหลือในที่เดียว</small></div></div>
+                    <div className="floating-feature feature-approved"><span><Check size={18} /></span><div><strong>ติดตามคำขอลา</strong><small>ตรวจสอบสถานะคำขอ</small></div></div>
+                    <div className="floating-feature feature-balance"><span><Wallet size={18} /></span><div><strong>ตรวจสอบสิทธิ์วันลา</strong><small>ดูวันลาที่ใช้และคงเหลือ</small></div></div>
                 </div>
             </div>
             <div className="login-benefits"><span><ShieldCheck size={15} />สิทธิ์ตามบทบาท</span><span><CalendarDays size={15} />ปฏิทินวันลา</span><span><Bell size={15} />ติดตามผล</span></div>
@@ -141,9 +144,9 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
         <div className="login-panel">
             <div className="login-topline"><span lang="en">Leave Management</span><ThemeButton theme={theme} onToggle={onToggleTheme} /></div>
             <div className="login-card">
-                <span className="login-kicker"><span className="status-dot" />พร้อมเริ่มวันใหม่</span>
-                <h2>ยินดีต้อนรับกลับมา<span> ✦</span></h2>
-                <p>เข้าสู่พื้นที่ทำงานของคุณ</p>
+                <span className="login-kicker"><span className="status-dot" />ระบบจัดการการลา</span>
+                <h2>เข้าสู่ระบบ<span> ✦</span></h2>
+                <p>กรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ</p>
                 <div className="demo-label">เลือกบทบาทก่อนเลือกบัญชีทดลอง</div>
                 <div className="demo-accounts" role="group" aria-label="เลือกบทบาท">{roles.map(role => {
                     const members = accounts.filter(account => account.role === role);
@@ -165,11 +168,11 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
                     <div className="field"><label htmlFor="login-email">อีเมล</label><input ref={emailInput} id="login-email" type="email" value={email} onChange={e => changeEmail(e.target.value)} autoComplete="username" disabled={busy} required /></div>
                     <div className="field"><label htmlFor="login-password">รหัสผ่าน</label><div className="password-input"><input id="login-password" type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" disabled={busy} required /><button type="button" className="icon-btn" aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'} onClick={() => setShowPassword(v => !v)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
                     {error && <div className="error" role="alert">{error}</div>}
-                    <button className={'btn primary login-submit' + (busy ? ' is-busy' : '')} disabled={busy}><span>{busy ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่พื้นที่ทำงาน'}</span>{busy ? <LoaderCircle size={18} className="button-spinner" aria-hidden="true" /> : <ArrowRight size={18} />}</button>
+                    <button className={'btn primary login-submit' + (busy ? ' is-busy' : '')} disabled={busy}><span>{busy ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่ระบบ'}</span>{busy ? <LoaderCircle size={18} className="button-spinner" aria-hidden="true" /> : <ArrowRight size={18} />}</button>
                 </form>
-                <div className="login-note"><DatabaseIcon size={18} /><div><strong>พื้นที่ทดลองใช้งาน</strong><p>ทุกบัญชีใช้รหัสผ่าน <code>{DEMO_PASSWORD}</code><br />{dataMode === 'mock' ? 'ข้อมูลของคุณบันทึกในเบราว์เซอร์นี้' : 'ข้อมูลจากระบบกลาง'}</p></div></div>
+                <div className="login-note"><DatabaseIcon size={18} /><div><strong>บัญชีทดลอง</strong><p>ทุกบัญชีใช้รหัสผ่าน <code>{DEMO_PASSWORD}</code><br />{dataMode === 'mock' ? 'ข้อมูลของคุณบันทึกในเบราว์เซอร์นี้' : 'ข้อมูลจากระบบกลาง'}</p></div></div>
             </div>
-            <div className="login-bottom">ออกแบบให้การทำงานและชีวิตสมดุลขึ้น<span lang="en">© {new Date().getFullYear()} Leave Management</span></div>
+            <div className="login-bottom">ระบบจัดการการลาสำหรับพนักงาน<span lang="en">© {new Date().getFullYear()} Leave Management</span></div>
         </div>
     </div>;
 }

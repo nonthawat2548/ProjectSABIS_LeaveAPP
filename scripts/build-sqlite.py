@@ -1,12 +1,19 @@
 """Build the standalone 10-person sample from src/data/ JSON; Python stdlib only."""
 import json
 import sqlite3
+import sys
+from tempfile import TemporaryDirectory
 from contextlib import closing
 from pathlib import Path
 
-folder = Path(__file__).resolve().parent
-source = json.loads((folder / 'leave-management-10-people.json').read_text(encoding='utf-8'))
-schema = (folder / 'schema.sql').read_text(encoding='utf-8')
+root = Path(__file__).resolve().parent.parent
+source = json.loads((root / 'src/data/leave-management-10-people.json').read_text(encoding='utf-8'))
+schema = (root / 'database/schema.sql').read_text(encoding='utf-8')
+exports = root / 'database/sqlite'
+check = '--check' in sys.argv
+scratch = TemporaryDirectory(prefix='leave-sqlite-check-') if check else None
+folder = Path(scratch.name) if scratch else exports
+folder.mkdir(parents=True, exist_ok=True)
 database_path = folder / 'leave-management-10-people.sqlite'
 temporary_path = folder / 'leave-management-10-people.build.sqlite'
 if temporary_path.exists():
@@ -57,4 +64,10 @@ with closing(sqlite3.connect(temporary_path)) as db:
 
 # The connection is closed before replacing the generated file on Windows.
 temporary_path.replace(database_path)
-print('SQLite and standalone SQL created; 10 accounts, foreign keys, integrity and SQL round-trip verified.')
+if check:
+    assert sql == (exports / 'leave-management-10-people.sql').read_text(encoding='utf-8'), 'SQL export differs from source'
+    with closing(sqlite3.connect(database_path)) as generated, closing(sqlite3.connect((exports / database_path.name).as_uri() + '?mode=ro', uri=True)) as existing:
+        for table in tables:
+            assert generated.execute(f'SELECT * FROM {table} ORDER BY 1').fetchall() == existing.execute(f'SELECT * FROM {table} ORDER BY 1').fetchall(), table
+    scratch.cleanup()
+print('SQLite/SQL exports verified without modifying data.' if check else 'SQLite and standalone SQL created; 10 accounts, foreign keys, integrity and SQL round-trip verified.')

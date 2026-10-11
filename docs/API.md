@@ -6,6 +6,8 @@
 
 ## Cloud transport เพิ่มเติม
 
+ไฟล์ที่ส่งใหม่หรือแนบใหม่ขณะแก้ไขจำกัด 25 MiB (หน้าจอใช้ 25 MB) ใช้ 17 ส่วนที่ขนาดสูงสุด ส่วนดาวน์โหลดเอกสารเดิมยังรองรับถึง 100 MiB ตามนโยบายก่อนหน้า ไม่ลบหรือย่อไฟล์เก่า ตาราง staging จาก 002-cloud-api.sql คงขอบเขตเดิมสำหรับความเข้ากันได้ API ตรวจเพดานใหม่ก่อนสร้าง staging และ domain ตรวจขนาดจริงซ้ำเมื่อ submit/edit จึงไม่ต้องรัน SQL migration เพิ่ม
+
 | Method | Path | ข้อมูล |
 | --- | --- | --- |
 | GET | `/api/health` | cloud: status ok, mode cloud-postgres, documentTransport parts-v1, partCharacters 2097152; 503 เมื่อฐาน/migration ไม่พร้อม |
@@ -17,7 +19,7 @@
 
 ทุก private response ใช้ no-store; cookie HttpOnly/SameSite=Lax/Secure เมื่อ HTTPS เซสชันเก็บ token hash อายุ 8 ชั่วโมงในฐานร่วมกัน บัญชี demo เปิดได้เฉพาะ ENABLE_DEMO_LOGIN=true และไม่ใช่ Supabase Auth
 
-Cloud จำกัด body command/part 3 MiB, login/metadata 64 KiB; base64 ไม่เกิน 2 MiB ตัวอักษรต่อส่วน ต่ำกว่า Vercel 4.5 MB รองรับไฟล์เดิม 100 MiB ApiRepository ตรวจ health เพื่อเลือก transport; mock JSON ที่ไม่มี parts-v1 ส่ง dataUrl เดิม Cloud submit/edit อ้างอิง `{attachment:{uploadId}}` หลังตรวจส่วนครบ/owner server ขยายเป็น AttachmentInput แล้วใช้ validator/domain เดิม ตรวจเพศ/กรณีก่อนข้อผิดพลาดไฟล์ บันทึกคำขอ/เอกสารและ consume staging ใน transaction เดียว ไม่อนุญาตใช้ upload ของคนอื่น
+Cloud จำกัด body command/part 3 MiB, login/metadata 64 KiB; base64 ไม่เกิน 2 MiB ตัวอักษรต่อส่วน ต่ำกว่า Vercel 4.5 MB รองรับไฟล์เดิม 25 MiB ApiRepository ตรวจ health เพื่อเลือก transport; mock JSON ที่ไม่มี parts-v1 ส่ง dataUrl เดิม Cloud submit/edit อ้างอิง `{attachment:{uploadId}}` หลังตรวจส่วนครบ/owner server ขยายเป็น AttachmentInput แล้วใช้ validator/domain เดิม ตรวจเพศ/กรณีก่อนข้อผิดพลาดไฟล์ บันทึกคำขอ/เอกสารและ consume staging ใน transaction เดียว ไม่อนุญาตใช้ upload ของคนอื่น
 
 Cloud snapshot คืน documents ตามสิทธิ์ด้วย remote:true/dataUrl:'' ไม่ส่งเอกสารใหญ่ตอน Login/ทุก 15 วินาที downloadDocument ของ adapter โหลด parts เมื่อกดดาวน์โหลดและตรวจขนาด Blob เทียบ fileSize ไฟล์เก็บ base64 ใน PostgreSQL ใช้พื้นที่ฐานร่วมกัน; ไม่ใช่ object storage การส่งออก JSON จาก HR ใน cloud จึงไม่รวมเนื้อไฟล์ remote
 
@@ -79,9 +81,9 @@ API และ IndexedDB ของโหมดเบราว์เซอร์�
 }
 ```
 
-`duration`: `Full`, `AM`, `PM` · เอกสาร: `{fileName,fileType,fileSize,dataUrl}` โดย mock ใช้ base64 สำหรับ PDF/PNG/JPEG ไม่เกิน **100 MiB ต่อไฟล์** (`104857600` bytes; หน้าจอแสดง 100 MB ตามหน่วยเดิมของโปรเจกต์) ค่ากลางอยู่ใน `src/domain/attachments.ts` ฝั่งประมวลผลตรวจทั้งขนาดที่แจ้ง ขนาดที่คำนวณจาก base64 และ signature ของชนิดไฟล์ ไม่เชื่อ `fileSize` เพียงอย่างเดียว
+`duration`: `Full`, `AM`, `PM` · เอกสาร: `{fileName,fileType,fileSize,dataUrl}` โดย mock ใช้ base64 สำหรับ PDF/PNG/JPEG ไม่เกิน **25 MiB ต่อไฟล์** (`26214400` bytes; หน้าจอแสดง 25 MB ตามหน่วยเดิมของโปรเจกต์) ค่ากลางอยู่ใน `src/domain/attachments.ts` ฝั่งประมวลผลตรวจทั้งขนาดที่แจ้ง ขนาดที่คำนวณจาก base64 และ signature ของชนิดไฟล์ ไม่เชื่อ `fileSize` เพียงอย่างเดียว
 
-`POST /api/commands` รับ body ไม่เกิน `4 × ceil(MAX_ATTACHMENT_BYTES / 3) + 1 MiB` หรือ `140858712` bytes เพื่อรองรับ base64 พร้อม metadata; `POST /api/session` จำกัด 64 KiB คำขอ HTTP เกินเพดานคืน 413 `PAYLOAD_TOO_LARGE` ส่วนไฟล์เกิน 100 MiB หรือข้อมูลเอกสารไม่ถูกต้องคืน 400 `VALIDATION` ตรวจ session ก่อนรับ command body และตรวจสิทธิ์ตามเดิม ต้องรีสตาร์ต mock server หลังปรับเพดาน หากใช้ reverse proxy ภายนอกให้ตั้ง body limit สอดคล้องกัน
+`POST /api/commands` รับ body ไม่เกิน `4 × ceil(MAX_ATTACHMENT_BYTES / 3) + 1 MiB` หรือ `36001112` bytes เพื่อรองรับ base64 พร้อม metadata; `POST /api/session` จำกัด 64 KiB คำขอ HTTP เกินเพดานคืน 413 `PAYLOAD_TOO_LARGE` ส่วนไฟล์เกิน 25 MiB หรือข้อมูลเอกสารไม่ถูกต้องคืน 400 `VALIDATION` ตรวจ session ก่อนรับ command body และตรวจสิทธิ์ตามเดิม ต้องรีสตาร์ต mock server หลังปรับเพดาน หากใช้ reverse proxy ภายนอกให้ตั้ง body limit สอดคล้องกัน
 
 การจัดเก็บและ snapshot ยังเป็น base64 แบบเดิม ไม่ได้เปลี่ยนเป็น multipart หรือแยก object storage ไฟล์ใหญ่ใช้พื้นที่และหน่วยความจำเพิ่มประมาณหนึ่งในสามสำหรับส่วน base64 และมีสำเนาระหว่างอ่าน/ส่ง/บันทึก หลังบ้านจริงควรใช้ multipart upload/object storage แล้วคืน document ID หรือ storage key โดยปรับ adapter และ contract พร้อมกัน
 

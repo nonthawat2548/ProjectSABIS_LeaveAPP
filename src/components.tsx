@@ -1,3 +1,4 @@
+import { EmployeeLabel } from './EmployeeLabel';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, X, FileText, Download, ArrowUpRight } from 'lucide-react';
 import type { Database, LeaveDocument, LeaveRequest, RequestStatus } from './domain/types';

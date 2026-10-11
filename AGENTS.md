@@ -12,6 +12,12 @@
 
 ## ภาพรวมและเทคโนโลยี
 
+- ตามคำขอ 11/10/2569 ชื่อฝ่าย/ตำแหน่งงานที่แสดงใช้ชื่ออังกฤษมาตรฐาน แปลเฉพาะค่าชุดทดลองที่รู้จักผ่าน src/labels.ts/EmployeeLabel ไม่เขียนทับฐานหรือแปลค่ากำหนดเองที่ไม่รู้จัก กล่องพื้นที่ทำงานและบัญชีแสดง Employee.position ไม่ใช้ role เป็นชื่อตำแหน่ง สิทธิ์ Employee/Manager/HR และชื่อเมนูไทยคงเดิม
+
+- แถบด้านบนใช้ “ค้นหาเมนูหรือคำขอ” และคีย์ลัดตามอุปกรณ์ ปุ่มกด 44px มีคำอธิบายเมื่อ hover/keyboard focus รูปบัญชีใช้ชื่อย่อจากชื่อพนักงานพร้อมชื่อเต็ม ท้ายหน้าใช้ “ข้อมูลและนโยบายตัวอย่าง” โดยเก็บคำแนะนำวันที่ไว้ใกล้ช่องกรอก
+
+- ข้อความบนหน้าจอใช้ภาษาไทยแบบระบบงานทั่วไป กระชับและบอกหน้าที่ตรง ๆ ตามคำขอ 11/10/2569 เช่น “เข้าสู่ระบบ”, “ยื่นคำขอลา”, “สิทธิ์วันลาคงเหลือ”, “สิทธิ์ที่ขอเพิ่มได้” หลีกเลี่ยงสโลแกน/คำโฆษณาหรือคำรับรองที่ระบบยืนยันไม่ได้ คงแบรนด์ ศัพท์มาตรฐาน การระบุข้อมูลทดลอง และข้อความที่ผู้ใช้กรอก/ประวัติเดิม
+
 - ระบบจัดการการลาภาษาไทย ชื่อ **Leave Management** สำหรับ `Employee`, `Manager` และ `HR`
 - ใช้ภาษาไทยกับเมนู ปุ่ม แบบฟอร์ม สถานะและคำแนะนำ; คงชื่อแบรนด์ `leave.`/`Leave Management`/`Space for your balance` เป็นอังกฤษพร้อม `lang="en"` และคงชื่อมาตรฐานไฟล์/คีย์ลัด คำย่อ HR/WFH ใช้คู่คำอธิบายไทย ใช้ `src/labels.ts` แปล enum เฉพาะการแสดงผล ห้ามเปลี่ยนค่าที่เก็บหรือแปลข้อความที่ผู้ใช้กรอก/ประวัติอัตโนมัติ ข้อผิดพลาดสำหรับผู้ใช้ไม่แสดงคำสั่ง server หรือชื่อตัวแปร environment แนวทางภาษาใน `docs/DESIGN.md`; UI ปัจจุบันยังไม่มีสวิตช์ภาษาอังกฤษทั้งระบบ
 - Frontend: React + TypeScript + Vite; icons: Lucide React
@@ -28,6 +34,7 @@
 | ตำแหน่ง | หน้าที่ |
 | --- | --- |
 | `src/App.tsx` | Login, layout, เมนูตามบทบาท, hash routing, ธีม และโหลด/รีเฟรชข้อมูล |
+| `src/NotificationPopover.tsx` | กล่องแจ้งเตือนจากกระดิ่ง ตัวกรองทั้งหมด/ยังไม่ได้อ่าน และอ่านทั้งหมดผ่านคำสั่งเดิม |
 | `src/Navigation.tsx` | เมนูพื้นที่ทำงาน และ drawer ทับหน้าบนโทรศัพท์พร้อมล็อก scroll/focus ของพื้นหลัง |
 | `src/EntryTransition.tsx`, `src/motion.ts` | สถานะตรวจสอบ/ต้อนรับ/เปิดพื้นที่ทำงาน และ timer ที่ยกเลิกได้พร้อมรองรับ Reduce Motion |
 | `src/Dashboard.tsx` | Dashboard และข้อมูลภาพรวมตามบทบาท |
@@ -39,7 +46,7 @@
 | `src/labels.ts` | คำแสดงผลกลางของบทบาท สถานะคำขอ ช่วงเวลา และสถานะงาน; ไม่เปลี่ยน enum ที่เก็บ |
 | `src/domain/types.ts` | โครงสร้างข้อมูล คำสั่ง และ repository interface |
 | `src/domain/date.ts` | แปลงวันที่ ตรวจวันที่ และคำนวณวันตามเขตเวลาไทย |
-| `src/domain/attachments.ts` | ค่ากลางชนิด/ขนาดเอกสาร 100 MiB และเพดาน HTTP สำหรับ base64 |
+| `src/domain/attachments.ts` | ค่ากลางชนิด/ขนาดเอกสาร 25 MiB และเพดาน HTTP สำหรับ base64 |
 | `src/domain/service.ts` | กฎการลา ตรวจสิทธิ์ กรองข้อมูล คำนวณโควตา และประมวลผลคำสั่ง |
 | `src/domain/colleagues.ts` | projection สถานะพื้นฐานของพนักงาน active สำหรับผู้ใช้ที่เข้าสู่ระบบ และรหัสแสดงผลจาก Employee.id |
 | `src/domain/seed.ts` | บัญชี ข้อมูลจำลอง และนโยบายตัวอย่าง |
@@ -69,22 +76,24 @@
 
 ## แหล่งข้อมูลและข้อจำกัดปัจจุบัน
 
+- จัดไฟล์ข้อมูลตามหน้าที่: source JSON และ repositories อยู่ใน src/data/, ตัวสร้างอยู่ scripts/, PostgreSQL setup/migration อยู่ database/supabase/, SQLite/SQL ชุด 10 คนอยู่ database/sqlite/, ตัวอย่างเก่าอยู่ database/legacy/, CSV ต้นฉบับอยู่ docs/reference/ ใช้ database/schema.sql เป็น schema กลาง ไม่สร้าง src/data/schema.sql ซ้ำ ดู database/README.md และ npm run data:check; อย่าย้าย runtime/reset ข้อมูลเพียงเพื่อจัดโฟลเดอร์
+
 - สำหรับ Supabase/Vercel มี PostgreSQL API แล้วใน `api/router.ts`/`server/cloudApi.ts` และ `server/postgresStore.ts` ใช้ schema `leave_app` จาก `database/supabase/setup-10-people.sql`; ฐานที่นำเข้าแล้วต้องรัน `002-cloud-api.sql` เพิ่ม App_Session/App_Upload/App_Upload_Part โดยไม่ล้างข้อมูลเดิม เปิด RLS ถอนสิทธิ์ PUBLIC/anon/authenticated รวม views ไม่มี browser policy ใช้ backend ตรวจ domain/session/สิทธิ์ภายใน transaction connection เดียวพร้อม advisory lock/SELECT FOR UPDATE และเขียน delta; snapshot ไม่โหลดเนื้อไฟล์และใช้ remote metadata ห้ามทำ data_url ของเอกสารเดิมหายจากการเขียน metadata
 - Vercel build เลือก API อัตโนมัติเมื่อไม่ได้ตั้ง mock; ตั้ง VITE_DATA_MODE=api, VITE_API_BASE_URL=/api และ POSTGRES_URL ฝั่ง server พร้อม deploy โค้ดใหม่ ไม่มี fallback ไป IndexedDB ไม่มีการย้ายข้อมูลเก่าข้ามโหมด API ใช้ session token สุ่มเก็บเฉพาะ hash ใน PostgreSQL อายุ 8 ชั่วโมง ตรวจ active/session ใหม่ทุก endpoint และ cookie HttpOnly/SameSite/Secure บน HTTPS บัญชียังเป็น demo ต้อง ENABLE_DEMO_LOGIN=true และยังไม่มี Supabase Auth users ดู docs/SUPABASE.md; ห้ามใส่ secret ใน VITE_* และห้ามนำ SQLite SQL มารันหรือเติม DROP/TRUNCATE เพื่อรัน setup ซ้ำ
-- Cloud รองรับ 100 MiB โดยส่ง base64 เป็น parts ขนาด 2 MiB ตัวอักษร (67 parts ที่ขนาดสูงสุด) body/response ต่ำกว่าเพดาน Vercel 4.5 MB ใช้ TEXT ใน PostgreSQL พร้อม upload staging ไม่ใช้ Supabase Storage ที่ Free จำกัด 50 MB/object พื้นที่ฐาน Free 500 MB ใช้ร่วมข้อมูล/เอกสารและ staging ชั่วคราว จึงเป็นทางเลือกสำหรับทดลอง ก่อนใช้งานจริงควรเปลี่ยนเป็น private object storage; ตรวจสิทธิ์ดาวน์โหลดทุก part ปุ่ม HR คืนค่าใน cloud มีผลทุกเครื่อง และ JSON export มีเฉพาะ metadata เอกสาร ไม่รวมไฟล์ remote
+- Cloud รองรับ 25 MiB โดยส่ง base64 เป็น parts ขนาด 2 MiB ตัวอักษร (17 parts ที่ขนาดสูงสุด) body/response ต่ำกว่าเพดาน Vercel 4.5 MB ใช้ TEXT ใน PostgreSQL พร้อม upload staging ไม่ใช้ Supabase Storage ที่ Free จำกัด 50 MB/object พื้นที่ฐาน Free 500 MB ใช้ร่วมข้อมูล/เอกสารและ staging ชั่วคราว จึงเป็นทางเลือกสำหรับทดลอง ก่อนใช้งานจริงควรเปลี่ยนเป็น private object storage; ตรวจสิทธิ์ดาวน์โหลดทุก part ปุ่ม HR คืนค่าใน cloud มีผลทุกเครื่อง และ JSON export มีเฉพาะ metadata เอกสาร ไม่รวมไฟล์ remote
 - โหมดเบราว์เซอร์ใช้ IndexedDB (`mock`) ชื่อ `leave-management-10-people-v1`; โหมด `api` ใช้ Node.js REST API บันทึกลง `server/data/leave-management-10-people.json` เป็นค่าเริ่มต้น หรือไฟล์จาก `MOCK_DATA_FILE`
 - ทั้งสองโหมดเริ่มต้นและคืนค่าผ่าน `createDemoDatabase()` ใน `src/data/demoDatabase.ts` ซึ่ง clone `src/data/leave-management-10-people.json` ชุด 10 คน: Employee 7, Manager 2 และ HR 1
 - เก็บฐานเดิม IndexedDB `leave-management-v1` และ `server/data/db.json` ไว้ ไม่ย้ายหรือเขียนทับอัตโนมัติ โหมดเบราว์เซอร์ใช้ session key `leave-10-people-demo-session` และ BroadcastChannel `leave-10-people-data` แยกจากเดิม
 - เลือก API ด้วย `VITE_DATA_MODE=api` และตั้ง URL ผ่าน `VITE_API_BASE_URL` ตาม `docs/API.md`
 - ข้อมูลสองโหมดเป็นคนละชุด ไม่มีการย้ายหรือซิงก์ข้อมูลระหว่างโหมดอัตโนมัติ
-- `src/data/leave-management-10-people.sqlite`/`.sql` เป็นไฟล์ส่งออกของชุด 10 คน; `database/mock.sqlite`, `database/schema.sql` และ `database/seed.sql` เป็นตัวอย่างเดิม Mock server ปัจจุบันใช้ JSON **ยังไม่ได้เชื่อม SQLite อัตโนมัติ** และการทำรายการไม่ซิงก์กลับ source JSON หรือไฟล์ส่งออก
+- `database/sqlite/leave-management-10-people.sqlite`/`.sql` เป็นไฟล์ส่งออกของชุด 10 คน; `database/legacy/` เก็บตัวอย่างเดิม และ `database/schema.sql` เป็น schema กลางไฟล์เดียว Mock server ปัจจุบันใช้ JSON **ยังไม่ได้เชื่อม SQLite อัตโนมัติ** และการทำรายการไม่ซิงก์กลับ source JSON หรือไฟล์ส่งออก
 - Mock JSON server serialize คำสั่งและเขียนไฟล์แบบ atomic เหมาะสำหรับ process เดียว หลังบ้านหลาย instance ต้องใช้ database transaction และ concurrency control จริง
 - บัญชีและการยืนยันตัวตนเป็น demo; session ของ mock server อยู่ใน memory อายุ 8 ชั่วโมงและหายเมื่อ restart ก่อนใช้ข้อมูลจริงต้องเปลี่ยนระบบ login/session และตรวจสิทธิ์ที่ server
 - ห้ามใส่ secret หรือรหัสฐานข้อมูลใน frontend/ตัวแปร `VITE_*` เพราะค่าเหล่านี้อยู่ในไฟล์เว็บ
-- เอกสารจำลองเก็บ base64/data URL รองรับ PDF/JPG/PNG ไม่เกิน 100 MiB ต่อไฟล์ (หน้าจอแสดง 100 MB ตามหน่วยเดิม) ใช้ค่ากลางใน `src/domain/attachments.ts`; ตรวจขนาดจริงจาก base64 กับ fileSize และ signature ทั้งสองโหมด Commands รับ HTTP body เผื่อ base64+metadata ส่วน Login จำกัด 64 KiB การเก็บ snapshot/JSON ยังใช้พื้นที่และหน่วยความจำตามขนาดเอกสาร พื้นที่/โควตาเบราว์เซอร์ยังมีผล หลังบ้านจริงควรใช้ upload/object storage โดยปรับ adapter และ contract ให้สอดคล้องกัน
+- เอกสารจำลองเก็บ base64/data URL รองรับ PDF/JPG/PNG ไม่เกิน 25 MiB ต่อไฟล์ (หน้าจอแสดง 25 MB ตามหน่วยเดิม) ใช้ค่ากลางใน `src/domain/attachments.ts`; ตรวจขนาดจริงจาก base64 กับ fileSize และ signature ทั้งสองโหมด Commands รับ HTTP body เผื่อ base64+metadata ส่วน Login จำกัด 64 KiB การเก็บ snapshot/JSON ยังใช้พื้นที่และหน่วยความจำตามขนาดเอกสาร พื้นที่/โควตาเบราว์เซอร์ยังมีผล หลังบ้านจริงควรใช้ upload/object storage โดยปรับ adapter และ contract ให้สอดคล้องกัน
 - IndexedDB แบ่ง data URL ใหญ่เป็น string chunks ไม่เกิน 4 MiB ต่อ record ใน object store เดิมและ database version 1; inline ต่อเอกสารไม่เกิน 1 MiB รวมไม่เกิน 4 MiB อ่านกลับเป็น `Database` เดิม และบันทึกคำขอ/เอกสาร/ล้าง chunks เก่าใน transaction เดียว รักษาการอ่านข้อมูล inline เดิมและการแปลงเมื่อเขียนสำเร็จ โดยไม่รีเซ็ตข้อมูล อ่าน snapshot แบบ readonly และไม่เขียน chunks ที่ไม่เปลี่ยนซ้ำ; รายละเอียดใน `docs/DATABASE.md`
 - วันหยุดต้องตั้งค่าเอง ไม่มีปฏิทินวันหยุดราชการอัตโนมัติ
-- การแก้ source JSON ไม่เขียนทับข้อมูล runtime ที่ใช้อยู่ จะมีผลเมื่อเริ่มฐานใหม่หรือคืนค่าข้อมูลจำลอง หากแก้ตัวสร้างข้อมูลให้สร้าง source ใหม่ด้วย `node --import tsx src/data/generate.ts` และส่งออก SQL/SQLite ด้วย `python src/data/build-sqlite.py` คำสั่งเหล่านี้เขียนเฉพาะไฟล์ใน `src/data/` ไม่แก้ฐาน runtime
+- การแก้ source JSON ไม่เขียนทับข้อมูล runtime ที่ใช้อยู่ จะมีผลเมื่อเริ่มฐานใหม่หรือคืนค่าข้อมูลจำลอง หากแก้ตัวสร้างข้อมูลให้สร้าง source ใหม่ด้วย `node --import tsx scripts/generate-demo.ts` และส่งออก SQL/SQLite ด้วย `python scripts/build-sqlite.py` คำสั่งเหล่านี้เขียน JSON ต้นทางใน `src/data/` และไฟล์ส่งออกใน `database/sqlite/` ไม่แก้ฐาน runtime ใช้ `npm run data:generate` เพื่อสร้างต้นทาง/SQLite/PostgreSQL พร้อมกัน หรือ `npm run data:check` เพื่อตรวจโดยไม่เขียน
 - Source JSON ถูก import เข้ามาในโปรแกรม หลังแก้ source ต้องรีสตาร์ต mock server/โหลด frontend ใหม่ (production ต้อง build และเผยแพร่ใหม่) ก่อนเรียกคืนค่าเพื่อใช้ source ที่เปลี่ยนแล้ว
 - HR คืนค่าข้อมูลจำลองในโหมดที่ใช้งานอยู่เพื่อโหลด source 10 คนใหม่ได้; โหมด API มี CLI `npm run seed -- --confirm` การคืนค่าล้างการแก้ไขในฐาน runtime ที่เลือก อย่ารีเซ็ตข้อมูลที่มีอยู่เพื่อทดสอบโดยไม่อยู่ในขอบเขตงานที่ผู้ใช้สั่ง
 - ชุด 10 คนจัดสรรสิทธิ์รายปี ค.ศ. 2026 และ 2027 ตาม source ตัวอย่างคงที่ ปีอื่นต้องให้ HR จัดสรร ส่วน `createSeed()` ใน `src/domain/seed.ts` ยังเป็นตัวสร้างพื้นฐานที่ใช้ปีปัจจุบัน/ถัดไป การเปลี่ยนโควตาตั้งต้นไม่แก้สิทธิ์ที่จัดสรรไปแล้ว
@@ -115,6 +124,7 @@
 - ตรวจสิทธิ์ทั้ง **การอ่านข้อมูล** และ **การทำรายการ** ไม่อาศัยเพียงการซ่อนเมนูหรือปุ่ม
 - พนักงานเห็นคำขอตัวเอง ผู้จัดการเห็นทีมที่ได้รับมอบหมายตาม `managerId` HR อ่านข้อมูลเพื่อดูแลสิทธิ์ได้ แต่ให้ความเห็นได้เฉพาะคำขอที่ได้รับมอบหมาย
 - รักษา snapshot ที่กรองตามบทบาท รวมถึงผลค้นหาด่วน เอกสาร โควตา และการแจ้งเตือนตามสิทธิ์
+- กระดิ่งเปิดกล่องแจ้งเตือนบนหน้าเดิม กรองเฉพาะเจ้าของบัญชีและแบ่งกลุ่มตามเขตเวลาไทย ไม่ทำเครื่องหมายอ่านเมื่อเปิด ใช้ readNotifications เดิมจากปุ่มอ่านทั้งหมดพร้อมรอผลสำเร็จ ป้องกันส่งซ้ำ และให้ลองใหม่ได้ ปิดกล่องเมื่อ Escape/คลิกนอก/โฟกัสออก/เปลี่ยนหน้า/เปิด overlay อื่น และคืนโฟกัสกระดิ่งเมื่อใช้ปุ่มปิดหรือ Escape; หน้ารายการเต็มเข้าผ่านดูทั้งหมดหรือเมนูเดิม
 - เมนูสถานะเพื่อนร่วมงานเป็นสิทธิ์อ่านสถานะพื้นฐานข้ามฝ่ายสำหรับผู้ใช้ Employee/Manager/HR ที่เข้าสู่ระบบและ active ผ่าน `LeaveRepository.searchColleagues()`/`GET /api/colleagues`; ส่งเฉพาะ employeeId/name/position/department/date/workStatus/leaveDuration/updatedAt ไม่ขยาย private snapshot หรือเปิดอีเมล/เบอร์โทร/เพศ/รายละเอียดคำขอ ตรวจ session ที่ server รหัส EMP-00001 คำนวณจาก Employee.id ไม่เพิ่ม field/tables; ไม่มี Work_Status ให้แสดง “ยังไม่ได้ระบุสถานะ” ใช้วันลา Approved เท่านั้นและแยก Full/AM/PM
 - ในโหมด API ผู้กระทำต้องมาจาก session ฝั่ง server ไม่รับ `actorId` หรือ role จาก request body เป็นหลักฐานสิทธิ์ เมื่อเชื่อมหลังบ้านจริงต้องตรวจ session, role และ manager assignment ที่ server ทุกครั้ง
 - Employee ยื่นลา แนบเอกสาร ตรวจสอบก่อนส่ง และติดตามสถานะได้
@@ -152,6 +162,10 @@ npm run preview
 `npm run dev` ไม่เปิด mock server เอง หากเปิดสอง terminal ให้ตั้ง `VITE_DATA_MODE=api` แล้วใช้ `npm run mock:server` ร่วมกับ `npm run dev` ดู proxy/port ใน `vite.config.ts` และ README
 
 ## การตรวจสอบและรายงานผล
+
+- ปรับข้อความไทยเป็นภาษาระบบงานทั่วไป (11/10/2569): แก้ App/EntryTransition/Navigation/Dashboard/ui/pages/ColleaguesPage และข้อความอ้างอิงใน tests/docs ไม่แก้ seed ประวัติ enum สิทธิ์ หรือขั้นตอนการลา คงไฟล์แนบใหม่ 25 MB npm test ผ่าน 165 รายการ typecheck/build ผ่าน (VERCEL=1) ตรวจ Edge headless 154 ครบ Employee/Manager/HR สองธีม 320/390/1440px ผ่าน 90 หน้าจอ รวม Login/Dashboard/ฟอร์ม/รายละเอียด/โควตา/รายการ/ปฏิทิน/หน้าจอ HR ไม่พบ page error หรือ horizontal overflow ตรวจภาพ Login และ Dashboard แล้ว ใช้ฐานทดสอบแยก ยังไม่ได้ deploy ข้อความใหม่หรือทดสอบบนโทรศัพท์จริง
+
+- ลดไฟล์แนบใหม่เป็น 25 MiB (หน้าจอ 25 MB) ตามคำขอ 11/10/2569: ค่ากลางใช้ทั้ง UI/domain/IndexedDB/REST/cloud staging และเพดาน mock JSON body ดาวน์โหลด/เก็บเอกสารเดิมถึง 100 MiB ต่อได้ ใช้ MAX_STORED_DOCUMENT_BASE64_LENGTH แยกจากเพดานแนบใหม่ ห้ามใช้เพดานแนบใหม่ปิดการดาวน์โหลดไฟล์เก่า ไม่ล้างข้อมูลและไม่ต้องรัน SQL เพิ่ม npm test ผ่าน 165 รายการ typecheck/build ผ่าน (VERCEL=1) ตรวจ exact/+1 byte, metadata/signature, API โดยตรง, edit/approve/download ไฟล์เก่า และ cloud multipart 25 MiB ตรวจ Edge headless สองธีม 320/390/1440px ผ่าน 14 กรณี รวมปฏิเสธเกิน 1 ไบต์ ส่ง 17 parts เห็นจากอีกเซสชัน อนุมัติ ดาวน์โหลดขนาด/SHA-256 ตรงต้นฉบับ ไม่พบ page error/overflow และตรวจภาพแล้ว ใช้ฐานทดสอบแยก ยังไม่ได้ deploy เพดาน 25 MB หรือทดสอบบนโทรศัพท์จริง
 
 - Cloud API ใช้ native Node ESM: relative runtime imports ต้องมี .js และ JSON import ต้องมี `with { type: 'json' }` รักษา tests/cloud-boot.test.ts ที่ compile แล้วเปิด JavaScript ผ่าน Node โดยไม่ใช้ tsx/bundler; การผ่าน Vite/tsx อย่างเดียวไม่ยืนยัน function boot วันที่ 11/10/2569 ตรวจเว็บจริง leave-app-coral.vercel.app พบ API ตอบ 500 FUNCTION_INVOCATION_FAILED เป็น text/plain ปรับ imports/API error response แล้ว npm test ผ่าน 163 รายการ typecheck/build ผ่าน (VERCEL=1) ยังไม่ได้ deploy ชุดแก้และไม่มี Runtime Logs จึงยังไม่ยืนยันสาเหตุเฉพาะหรือการเชื่อมฐานจริง
 

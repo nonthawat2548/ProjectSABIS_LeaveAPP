@@ -45,15 +45,19 @@ Vercel build เลือก `api` โดยอัตโนมัติเมื
 
 ไม่ใส่ POSTGRES_PASSWORD, POSTGRES_URL, service-role/secret key ใน `VITE_*` หรือ source code ตัวแปรจาก Vercel integration ใช้ฝั่ง server; prefix สาธารณะ `VITE_` ใช้ได้เฉพาะ URL/publishable key ที่ออกแบบไว้ให้เปิดเผย ชื่อจริงของตัวแปรอาจขึ้นกับ integration ให้ตรวจชื่อโดยไม่เผยแพร่ค่า
 
-## เอกสาร 100 MB
+## เอกสาร 25 MB
 
-รักษาข้อกำหนด **100 MiB** ไว้ โดยแบ่ง base64 เป็นส่วนละ 2 MiB ตัวอักษร (67 ส่วนสำหรับไฟล์ 100 MiB) ทุก request/response ต่ำกว่าเพดาน Vercel 4.5 MB โหมด cloud นี้ **ไม่ใช้ Supabase Storage** จึงไม่ติดเพดาน 50 MB ต่อ object ของ Storage Free
+เพดานนี้ใช้กับไฟล์ที่แนบใหม่เท่านั้น เอกสารเดิมถึง 100 MiB ยังดาวน์โหลดได้ตามสิทธิ์ การแก้ไขที่เก็บเอกสารเดิมและการอนุมัติยังทำได้ ไม่ลบหรือย่อไฟล์เก่า ไม่ต้องรัน SQL เพิ่ม เพียง deploy โค้ดใหม่ให้เพดานหน้าเว็บและ API ตรงกัน
+
+ผลตรวจเพดานใหม่ 11/10/2569: npm test ผ่าน 165 รายการ typecheck/build ผ่าน (VERCEL=1) รวมไฟล์ 25 MiB พอดี/เกิน 1 ไบต์ การส่ง API โดยตรง และ legacy download/edit/approve เกิน 25 MiB ตรวจ Edge headless สองธีม 320/390/1440px ผ่าน 14 กรณี ส่งไฟล์จริง 25 MiB 17 parts เห็นจากอีกเซสชัน ผู้จัดการอนุมัติ และดาวน์โหลดขนาด/SHA-256 ตรงต้นฉบับ ตรวจภาพแล้ว ไม่พบ page error/overflow ใช้ฐานทดสอบแยก ไม่แก้ฐาน Supabase ของผู้ใช้และยังไม่ได้ deploy เพดานใหม่
+
+รักษาข้อกำหนด **25 MiB** ไว้ โดยแบ่ง base64 เป็นส่วนละ 2 MiB ตัวอักษร (17 ส่วนสำหรับไฟล์ 25 MiB) ทุก request/response ต่ำกว่าเพดาน Vercel 4.5 MB โหมด cloud นี้ **ไม่ใช้ Supabase Storage** จึงไม่ติดเพดาน 50 MB ต่อ object ของ Storage Free
 
 ApiRepository ขอ upload ID ส่ง parts แล้วส่งคำสั่งอ้างอิง upload ID; server ตรวจ owner/session/อายุไฟล์/จำนวนส่วน/ขนาดจริง/ชนิดและ signature ใช้ metadata จาก staging ที่ server ตรวจ ไม่เชื่อ metadata ใน command ลำดับเพศ/กรณีลาคลอดตรวจใน domain ก่อนข้อความไฟล์ผิดเงื่อนไข บันทึกคำขอ/เอกสารและ consume staging ใน transaction เดียว Error รักษาคำขอเดิมและ rollback ทั้งชุด upload หมดอายุ 1 ชั่วโมง ล้างเมื่อเริ่ม upload ใหม่ จำกัด staging 3 ไฟล์ต่อคน client ล้างหลัง error แบบ best effort
 
-เนื้อไฟล์ยังเก็บ base64 ใน Leave_Document.Data_url สำหรับชุดทดลอง ใช้โควตาฐาน Free **500 MB ร่วมกับข้อมูลธุรกิจ** Base64 เพิ่มพื้นที่ประมาณหนึ่งในสาม staging ใช้พื้นที่ชั่วคราวก่อน commit เหมาะกับชุดทดลอง สำหรับข้อมูลจริง/เอกสารจำนวนมากควรใช้ private object storage ที่รองรับ 100 MiB แล้วปรับ contract/adapter/สิทธิ์ร่วมกัน
+เนื้อไฟล์ยังเก็บ base64 ใน Leave_Document.Data_url สำหรับชุดทดลอง ใช้โควตาฐาน Free **500 MB ร่วมกับข้อมูลธุรกิจ** Base64 เพิ่มพื้นที่ประมาณหนึ่งในสาม staging ใช้พื้นที่ชั่วคราวก่อน commit เหมาะกับชุดทดลอง สำหรับข้อมูลจริง/เอกสารจำนวนมากควรใช้ private object storage ที่รองรับ 25 MiB แล้วปรับ contract/adapter/สิทธิ์ร่วมกัน
 
-Cloud snapshot คืน metadata เอกสาร `remote:true,dataUrl:''` (remote ไม่ใช่คอลัมน์ SQL) ไม่โหลดไฟล์ใหญ่ตอน Login/รีเฟรช ดาวน์โหลดเมื่อกดปุ่มเท่านั้นผ่าน endpoints ที่ตรวจ canView ใหม่ทุกส่วน รวมเป็น Blob และตรวจขนาดในเบราว์เซอร์ มีสถานะกำลังดาวน์โหลด/ลองใหม่ และป้องกันกดซ้ำ การส่งออก JSON ในหน้า HR จาก cloud จึงส่ง metadata เอกสารไม่รวมเนื้อไฟล์ ขนาด 100 MB ยังขึ้นกับพื้นที่ฐาน/ความเร็วเครือข่าย/หน่วยความจำของอุปกรณ์
+Cloud snapshot คืน metadata เอกสาร `remote:true,dataUrl:''` (remote ไม่ใช่คอลัมน์ SQL) ไม่โหลดไฟล์ใหญ่ตอน Login/รีเฟรช ดาวน์โหลดเมื่อกดปุ่มเท่านั้นผ่าน endpoints ที่ตรวจ canView ใหม่ทุกส่วน รวมเป็น Blob และตรวจขนาดในเบราว์เซอร์ มีสถานะกำลังดาวน์โหลด/ลองใหม่ และป้องกันกดซ้ำ การส่งออก JSON ในหน้า HR จาก cloud จึงส่ง metadata เอกสารไม่รวมเนื้อไฟล์ ขนาด 25 MB ยังขึ้นกับพื้นที่ฐาน/ความเร็วเครือข่าย/หน่วยความจำของอุปกรณ์
 
 ## สร้างไฟล์ใหม่และตรวจสอบ
 

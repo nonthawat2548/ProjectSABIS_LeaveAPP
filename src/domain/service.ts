@@ -46,7 +46,7 @@ export function validateAttachment(a:AttachmentInput):void {
  const decodedSize=Math.floor(encoded.length*3/4)-padding;
  if(decodedSize>MAX_ATTACHMENT_BYTES)fail(sizeMessage);
  if(decodedSize!==a.fileSize)fail('ขนาดเอกสารไม่ตรงกับข้อมูล');
- // Validate the signature without materializing a second 100 MB binary string.
+ // Validate the signature without materializing a second large binary string.
  try {const header=atob(encoded.slice(0,12));const valid=a.fileType==='application/pdf'?header.startsWith('%PDF-'):a.fileType==='image/png'?header.startsWith('\x89PNG\r\n\x1a\n'):header.startsWith('\xff\xd8\xff');if(!valid)fail('เนื้อหาเอกสารไม่ตรงกับชนิดไฟล์');}catch(e){if(e instanceof DomainError)throw e;fail('ข้อมูลเอกสารไม่ถูกต้อง')}
 }
 /** Uses the stored owner's gender, never a field supplied with a leave command. */

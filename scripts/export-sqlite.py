@@ -3,8 +3,8 @@ import json, sqlite3
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
-source = json.loads((root / 'database/mock-db.json').read_text(encoding='utf-8'))
-db_path = root / 'database/mock.sqlite'
+source = json.loads((root / 'database/legacy/mock-db.json').read_text(encoding='utf-8'))
+db_path = root / 'database/legacy/mock.sqlite'
 if db_path.exists():
     db_path.unlink()
 db = sqlite3.connect(db_path)
@@ -36,6 +36,6 @@ db.commit()
 assert db.execute('PRAGMA foreign_key_check').fetchall() == []
 assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
 dump = '\n'.join(line for line in db.iterdump() if line.startswith('INSERT INTO'))
-(root / 'database/seed.sql').write_text('-- Load after schema.sql into an empty database.\nPRAGMA foreign_keys=ON;\nBEGIN TRANSACTION;\nPRAGMA defer_foreign_keys=ON;\n'+dump+'\nCOMMIT;\n',encoding='utf-8')
+(root / 'database/legacy/seed.sql').write_text('-- Load after database/schema.sql into an empty database.\nPRAGMA foreign_keys=ON;\nBEGIN TRANSACTION;\nPRAGMA defer_foreign_keys=ON;\n'+dump+'\nCOMMIT;\n',encoding='utf-8')
 print('SQLite seed created; foreign keys and integrity verified.')
 db.close()
