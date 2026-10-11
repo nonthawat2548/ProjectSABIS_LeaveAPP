@@ -11,6 +11,7 @@ import { ApiRepository } from '../src/data/apiRepository';
 import { createDemoDatabase } from '../src/data/demoDatabase';
 import { DomainError } from '../src/domain/service';
 import { searchColleagues } from '../src/domain/colleagues';
+import { employeeProfile } from '../src/domain/employeeProfile';
 import { addDays, today } from '../src/domain/date';
 import { pdfAttachment, requestWithAttachment } from './upload-fixtures';
 
@@ -47,6 +48,7 @@ test('IndexedDB colleague lookup requires a session, uses minimal data and skips
     repository.searchColleagues('8', date),
     (error: unknown) => error instanceof DomainError && error.code === 'UNAUTHENTICATED',
   );
+  await assert.rejects(repository.getEmployeeProfile(8), DomainError);
   for (const email of [
     'employee@demo.local',
     'manager@demo.local',
@@ -54,6 +56,13 @@ test('IndexedDB colleague lookup requires a session, uses minimal data and skips
     'hr@demo.local',
   ]) {
     const actor = await repository.login(email, '1234');
+    if (actor.role === 'Employee')
+      await assert.rejects(
+        repository.getEmployeeProfile(8),
+        (error) => error instanceof DomainError && error.code === 'FORBIDDEN',
+      );
+    else
+      assert.deepEqual(await repository.getEmployeeProfile(8), employeeProfile(full, actor.id, 8));
     assert.deepEqual(
       await repository.searchColleagues('EMP-00008', date),
       searchColleagues(full, actor.id, '8', date),
@@ -81,6 +90,12 @@ test('IndexedDB colleague lookup requires a session, uses minimal data and skips
     'Looking up work availability must not decode unrelated large documents',
   );
   assert(!('documents' in results[0]));
+  await assert.rejects(
+    repository.getEmployeeProfile(8),
+    (error) => error instanceof DomainError && error.code === 'FORBIDDEN',
+  );
+  assert.deepEqual(await repository.getEmployeeProfile(1), employeeProfile(full, 1, 1));
+  assert.equal(chunkReads, 0, 'Profile lookup must not decode attachment chunks');
   const before = await repository.snapshot();
   assert(before.requests.every((request) => request.employeeId === 1));
   await repository.searchColleagues('8', date);
@@ -150,6 +165,7 @@ test('HTTP colleague lookup authenticates on the server and preserves private sn
       { headers: cookie ? { Cookie: cookie } : {} },
     );
   assert.equal((await search('8')).status, 401);
+  assert.equal((await fetch(base + '/employee-profile?employeeId=8')).status, 401);
   for (const email of [
     'employee@demo.local',
     'manager@demo.local',
@@ -163,6 +179,22 @@ test('HTTP colleague lookup authenticates on the server and preserves private sn
     });
     const actor = (await login.json()).employee;
     const cookie = login.headers.get('set-cookie')!.split(';')[0];
+    const profile = await fetch(base + '/employee-profile?employeeId=8&actorId=5&role=HR', {
+      headers: { Cookie: cookie },
+    });
+    if (actor.role === 'Employee') {
+      assert.equal(profile.status, 403);
+      assert(!('employee' in (await profile.json())));
+    } else {
+      assert.equal(profile.status, 200);
+      assert.deepEqual(await profile.json(), employeeProfile(full, actor.id, 8));
+    }
+    for (const id of ['0', 'bad', '1e0', '9007199254740993'])
+      assert.equal(
+        (await fetch(base + '/employee-profile?employeeId=' + id, { headers: { Cookie: cookie } }))
+          .status,
+        400,
+      );
     const response = await search('EMP-00008', date, cookie);
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), searchColleagues(full, actor.id, '8', date));

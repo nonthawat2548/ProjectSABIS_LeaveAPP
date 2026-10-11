@@ -21,9 +21,10 @@ import {
 import { dataMode, repository } from './data';
 import { DEMO_DATA_CHANNEL } from './data/demoDatabase';
 import { DomainError } from './domain/service';
+import { canReadEmployeeProfile } from './domain/employeeProfile';
 import { formatDate, today } from './domain/date';
 import { createWorkspaceRoutes, WorkspaceRoutes } from './routes';
-import { Avatar, BrandMark, CommandMenu } from './ui';
+import { BrandMark, CommandMenu } from './ui';
 import { WorkspaceNavigation } from './Navigation';
 import { EntryTransition } from './EntryTransition';
 import { ENTRY_TIMING, motionDelay } from './motion';
@@ -31,6 +32,10 @@ import { NotificationPopover } from './NotificationPopover';
 import { NotificationToasts } from './NotificationToasts';
 import { Login } from './Login';
 import { ThemeButton } from './ThemeButton';
+import { Dialog } from './components';
+import { EmployeeProfileContext } from './EmployeeProfileLink';
+import { AccountMenu } from './AccountMenu';
+import { EmployeeProfilePage } from './pages/EmployeeProfilePage';
 
 export { Login } from './Login';
 export { ThemeButton } from './ThemeButton';
@@ -53,6 +58,7 @@ function Workspace() {
     [toast, setToast] = useState(''),
     [mobile, setMobile] = useState(false),
     [commandOpen, setCommandOpen] = useState(false);
+  const [profile, setProfile] = useState(null);
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   );
@@ -89,6 +95,36 @@ function Workspace() {
     }
   }, [entry, actor]);
   const closeMobile = useCallback(() => setMobile(false), []);
+  const closeProfile = useCallback(() => setProfile(null), []);
+  function openProfile(employeeId, trigger) {
+    if (
+      entry ||
+      !canReadEmployeeProfile(actor, employeeId) ||
+      !Number.isSafeInteger(employeeId) ||
+      employeeId < 1
+    )
+      return;
+    setMobile(false);
+    setCommandOpen(false);
+    setProfile({ employeeId, trigger });
+  }
+  function restoreProfileFocus() {
+    const trigger = profile?.trigger;
+    const mobileTrigger =
+      trigger?.closest('.sidebar') && window.matchMedia('(max-width: 760px)').matches;
+    const target = mobileTrigger
+      ? document.querySelector('.mobile-toggle')
+      : trigger?.isConnected
+        ? trigger
+        : main.current;
+    target?.focus();
+  }
+  useEffect(() => {
+    setProfile(null);
+  }, [route, actor?.id, entry?.action]);
+  useEffect(() => {
+    if (profile && !canReadEmployeeProfile(actor, profile.employeeId)) setProfile(null);
+  }, [actor, profile]);
   useEffect(() => {
     const viewport = window.matchMedia('(max-width: 760px)');
     const closeOnDesktop = () => {
@@ -108,14 +144,14 @@ function Workspace() {
   }, [theme]);
   useEffect(() => {
     const shortcut = (e) => {
-      if (actor && !entry && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      if (actor && !entry && !profile && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setCommandOpen((v) => !v);
       }
     };
     window.addEventListener('keydown', shortcut);
     return () => window.removeEventListener('keydown', shortcut);
-  }, [actor, entry]);
+  }, [actor, entry, profile]);
   const reload = useCallback(async () => {
     const version = sessionVersion.current;
     const snapshot = await repository.snapshot();
@@ -331,16 +367,14 @@ function Workspace() {
   const matchedRoute = matchRoutes(routes, route)?.at(-1);
   const invalidRequestId = matchedRoute?.params.id && !/^\d+$/.test(matchedRoute.params.id);
   const title = invalidRequestId ? 'ไม่พบหน้า' : (matchedRoute?.route.title ?? 'ไม่พบหน้า');
-  const unread = db.notifications.filter((n) => !n.read).length;
   const appleKeyboard = /Mac|iPhone|iPad|iPod/i.test(globalThis.navigator?.platform ?? '');
   const searchShortcut = appleKeyboard ? '⌘ + K' : 'Ctrl + K';
   return (
-    <>
-      <div className="app-shell" inert={!!entry} aria-busy={!!entry}>
+    <EmployeeProfileContext.Provider value={openProfile}>
+      <div className="app-shell" inert={!!entry || !!profile} aria-busy={!!entry}>
         <WorkspaceNavigation
           actor={actor}
-          menus={menus}
-          unread={unread}
+          menus={menus.filter((menu) => menu.path !== '/notifications')}
           open={mobile}
           onClose={closeMobile}
           onLogout={() => void logout()}
@@ -401,13 +435,15 @@ function Workspace() {
                 notifications={db.notifications}
                 employeeId={actor.id}
                 route={route}
-                disabled={mobile || commandOpen || !!entry}
+                disabled={mobile || commandOpen || !!entry || !!profile}
                 onReadAll={() => run({ type: 'readNotifications' })}
               />
 
-              <div className="header-avatar toolbar-hint" data-tooltip={actor.name} tabIndex={0}>
-                <Avatar person={actor} size="small" />
-              </div>
+              <AccountMenu
+                actor={actor}
+                route={route}
+                disabled={mobile || commandOpen || !!entry || !!profile}
+              />
             </div>
           </header>
           <div className="mode-bar flex items-center justify-between gap-[16px]">
@@ -469,13 +505,25 @@ function Workspace() {
               key={actor.id + ':' + sessionVersion.current}
               notifications={db.notifications}
               employeeId={actor.id}
-              paused={mobile || commandOpen || !!entry}
+              paused={mobile || commandOpen || !!entry || !!profile}
             />
           )}
         </div>
         {commandOpen && <CommandMenu menus={menus} db={db} onClose={() => setCommandOpen(false)} />}
       </div>
+      {profile && !entry && canReadEmployeeProfile(actor, profile.employeeId) && (
+        <div className="employee-profile-overlay">
+          <Dialog
+            title="ประวัติพนักงาน"
+            className="employee-profile-dialog"
+            onClose={closeProfile}
+            restoreFocus={restoreProfileFocus}
+          >
+            <EmployeeProfilePage {...props} employeeId={profile.employeeId} embedded />
+          </Dialog>
+        </div>
+      )}
       {entry && <EntryTransition {...entry} />}
-    </>
+    </EmployeeProfileContext.Provider>
   );
 }

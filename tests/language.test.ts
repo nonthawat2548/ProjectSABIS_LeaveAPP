@@ -122,7 +122,6 @@ test('Brand names keep English language metadata while operational and administr
   const navigation = render(WorkspaceNavigation, {
     actor,
     menus: [],
-    unread: 0,
     route: '/dashboard',
     open: false,
     onClose() {},

@@ -8,7 +8,6 @@ import { ENTRY_TIMING, motionDelay, prefersReducedMotion } from './motion';
 export function WorkspaceNavigation({
   actor,
   menus,
-  unread,
   route,
   open,
   onClose,
@@ -145,7 +144,6 @@ export function WorkspaceNavigation({
             >
               {menu.icon}
               <span>{menu.label}</span>
-              {menu.path === '/notifications' && unread > 0 && <b>{unread}</b>}
             </a>
           ))}
         </nav>

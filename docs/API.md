@@ -34,6 +34,7 @@ API คืน JSON ทุก response วันที่ของข้อมู
 | GET | `/api/session` | session cookie | `{employee}` หรือ 401 |
 | DELETE | `/api/session` | — | `{message}` ล้าง session |
 | GET | `/api/snapshot` | session cookie | `Database` ที่กรองตามบทบาท |
+| GET | `/api/employee-profile` | session cookie, `employeeId` จำนวนเต็มบวก | `{employee, manager}` ประวัติพนักงานข้ามฝ่าย |
 | GET | `/api/colleagues` | session cookie, `query`, `date` (ISO ค.ศ.) | `ColleagueStatus[]` ข้อมูลสถานะเพื่อนร่วมงาน |
 | POST | `/api/commands` | `Command` | `{message, id?}` |
 | POST | `/api/demo/reset` | `{}` + HR session | `{message}` |
@@ -41,6 +42,10 @@ API คืน JSON ทุก response วันที่ของข้อมู
 API จะเลือกผู้กระทำจาก session **ไม่รับ actorId/role จาก body** พนักงานเห็นข้อมูลคำขอตัวเอง ผู้จัดการเห็นทีมที่เป็นผู้จัดการโดยตรง HR มองเห็นข้อมูลการลาเพื่อดูแลสิทธิ์ แต่ส่งความเห็นได้เฉพาะคำขอที่ได้รับมอบหมาย
 
 Login ของชุดทดลองรับชื่อผู้ใช้หรืออีเมลผ่าน field `email` เดิม เช่น `{ "email": "pimchanok", "password": "1234" }` หรืออีเมลเต็ม ชื่อผู้ใช้ของทั้ง 10 คนเป็นชื่อเฉพาะบุคคลจาก mapping อีเมลเดิมใน `src/domain/auth.js` ไม่ใช้ role/position และไม่เพิ่มคอลัมน์หรือตาราง บัญชีนอกชุดทดลองที่ไม่อยู่ใน mapping ใช้ส่วนก่อน @ ของอีเมลเป็น alias ไม่แยกตัวพิมพ์เล็ก/ใหญ่และตัดช่องว่างหัวท้าย หากชื่อซ้ำกันต้องใช้อีเมลเต็ม; บัญชี inactive เข้าสู่ระบบไม่ได้ ใช้กฎร่วมทั้ง IndexedDB, mock JSON และ PostgreSQL ชื่อเดิม `employee`/`manager`/`hr`/`sales-manager`/`other` และรหัสเดิม `demo1234` ใช้ไม่ได้หลังเผยแพร่โค้ดใหม่ อีเมลเต็มยังใช้ได้ ไม่ต้องคืนค่าข้อมูลหรือรัน SQL migration
+
+## ประวัติพนักงาน
+
+`GET /api/employee-profile?employeeId=6` ตรวจ session และบัญชี active ทุกครั้ง Employee อ่านประวัติได้เฉพาะตนเอง Manager/HR อ่านประวัติพนักงาน active ได้ข้ามฝ่าย คืน `{employee: Employee, manager: {id, name} | null}` จากข้อมูลเดิมเท่านั้น บัญชี inactive อ่านได้เฉพาะ HR ไม่คืนคำขอ เอกสาร โควตา หรือแจ้งเตือน และไม่เปลี่ยน scope ของ snapshot/colleagues ไม่เชื่อ actorId/role จาก query ไม่มี session คืน 401 รหัสผิดคืน 400 พนักงานเปิดประวัติคนอื่นคืน 403 FORBIDDEN โดยไม่ส่งข้อมูล และไม่พบพนักงานคืน 404 ใช้ได้กับ Go JSON/PostgreSQL, Node legacy และ IndexedDB ผ่าน `LeaveRepository.getEmployeeProfile()` โดยไม่ต้อง migration หรือ reset ข้อมูล
 
 ## ค้นหาสถานะเพื่อนร่วมงาน
 

@@ -1,4 +1,5 @@
 import { EmployeeLabel } from '../EmployeeLabel';
+import { EmployeeProfileLink } from '../EmployeeProfileLink';
 import { useState } from 'react';
 import { Check, ChevronLeft, Clock3, Send, Users, X } from 'lucide-react';
 
@@ -70,7 +71,11 @@ export function RequestDetail({ db, actor, run, id }) {
             <div className="person">
               <span className="avatar">{person.name[0]}</span>
               <div>
-                <strong>{person.name}</strong>
+                <strong>
+                  <EmployeeProfileLink actor={actor} employee={person}>
+                    {person.name}
+                  </EmployeeProfileLink>
+                </strong>
                 <small>
                   <EmployeeLabel kind="position" value={person.position} />
                   {' · '}

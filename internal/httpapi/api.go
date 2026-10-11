@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -49,6 +50,7 @@ func New(store repository.Store, options Options) http.Handler {
 	private.GET("/session", a.session)
 	private.GET("/snapshot", a.snapshot)
 	private.GET("/colleagues", a.colleagues)
+	private.GET("/employee-profile", a.employeeProfile)
 	private.POST("/commands", a.command)
 	private.POST("/demo/reset", a.reset)
 	private.POST("/uploads", a.createUpload)
@@ -314,6 +316,22 @@ func (a *API) colleagues(c *gin.Context) {
 			return nil, err
 		}
 		return service.Colleagues(db, id, c.Query("query"), c.Query("date"))
+	})
+}
+func (a *API) employeeProfile(c *gin.Context) {
+	a.run(c, false, func(tx repository.Tx, id int) (any, error) {
+		db, err := tx.Load()
+		if err != nil {
+			return nil, err
+		}
+		if !regexp.MustCompile(`^\d+$`).MatchString(c.Query("employeeId")) {
+			return nil, service.Invalid("รหัสพนักงานไม่ถูกต้อง")
+		}
+		employeeID, err := strconv.Atoi(c.Query("employeeId"))
+		if err != nil {
+			return nil, service.Invalid("รหัสพนักงานไม่ถูกต้อง")
+		}
+		return service.Profile(db, id, employeeID)
 	})
 }
 func (a *API) command(c *gin.Context) {

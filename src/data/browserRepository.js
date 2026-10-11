@@ -8,6 +8,7 @@ import {
   DEMO_DATA_CHANNEL,
 } from './demoDatabase';
 import { searchColleagues } from '../domain/colleagues';
+import { employeeProfile } from '../domain/employeeProfile';
 const DB_NAME = DEMO_DATASET_ID,
   STORE = 'database',
   KEY = 'state',
@@ -181,12 +182,18 @@ function notifyDataChanged() {
     channel.close();
   }
 }
+/** @implements {import('../domain/types').LeaveRepository} */
 export class BrowserRepository {
   actorId() {
     const id = Number(sessionStorage.getItem(SESSION));
     if (!id) throw new DomainError('กรุณาเข้าสู่ระบบ', 'UNAUTHENTICATED');
     return id;
   }
+  /**
+   * @param {string} identifier
+   * @param {string} password
+   * @returns {Promise<import('../domain/types').Employee>}
+   */
   async login(identifier, password) {
     const employee = await transaction(true, (db) => {
       const e = findLoginAccount(db.employees, identifier);
@@ -197,6 +204,7 @@ export class BrowserRepository {
     sessionStorage.setItem(SESSION, String(employee.id));
     return employee;
   }
+  /** @returns {Promise<import('../domain/types').Employee | null>} */
   async session() {
     if (!sessionStorage.getItem(SESSION)) return null;
     return transaction(false, (db) => {
@@ -207,20 +215,39 @@ export class BrowserRepository {
       }
     });
   }
+  /** @returns {Promise<void>} */
   async logout() {
     sessionStorage.removeItem(SESSION);
   }
+  /** @returns {Promise<import('../domain/types').Database>} */
   async snapshot() {
     return transaction(false, (db) => visibleSnapshot(db, this.actorId()));
   }
+  /**
+   * @param {number} employeeId
+   * @returns {Promise<import('../domain/types').EmployeeProfile>}
+   */
+  async getEmployeeProfile(employeeId) {
+    return transaction(false, (db) => employeeProfile(db, this.actorId(), employeeId), false);
+  }
+  /**
+   * @param {string} query
+   * @param {string} date
+   * @returns {Promise<import('../domain/types').ColleagueStatus[]>}
+   */
   async searchColleagues(query, date) {
     return transaction(false, (db) => searchColleagues(db, this.actorId(), query, date), false);
   }
+  /**
+   * @param {import('../domain/types').Command} command
+   * @returns {Promise<import('../domain/types').CommandResult>}
+   */
   async execute(command) {
     const result = await transaction(true, (db) => applyCommand(db, this.actorId(), command));
     notifyDataChanged();
     return result;
   }
+  /** @returns {Promise<void>} */
   async resetDemo() {
     await transaction(true, (db) => {
       if (actorById(db, this.actorId()).role !== 'HR')

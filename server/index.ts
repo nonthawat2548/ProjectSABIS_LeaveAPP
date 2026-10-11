@@ -8,6 +8,7 @@ import { createDemoDatabase } from '../src/data/demoDatabase';
 import type { Command } from '../src/domain/types';
 import { MAX_COMMAND_BODY_BYTES } from '../src/domain/attachments';
 import { searchColleagues } from '../src/domain/colleagues';
+import { employeeProfile, parseEmployeeProfileId } from '../src/domain/employeeProfile';
 const host = process.env.MOCK_HOST || '127.0.0.1';
 const port = Number(process.env.MOCK_PORT || 3001);
 const sessions = new Map<string, { id: number; expires: number }>();
@@ -138,6 +139,14 @@ export const server = createServer(async (req, res) => {
       return send(res, 200, { message: 'ออกจากระบบแล้ว' });
     }
     const actorId = authenticate(req);
+    if (path === '/api/employee-profile' && req.method === 'GET')
+      return send(
+        res,
+        200,
+        await transact((db) =>
+          employeeProfile(db, actorId, parseEmployeeProfileId(url.searchParams.get('employeeId'))),
+        ),
+      );
     if (path === '/api/session' && req.method === 'GET')
       return send(res, 200, { employee: await transact((db) => actorById(db, actorId)) });
     if (path === '/api/snapshot' && req.method === 'GET')

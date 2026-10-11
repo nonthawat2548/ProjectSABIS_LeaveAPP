@@ -10,6 +10,7 @@ import { DEMO_PASSWORD } from '../src/domain/seed.js';
 import { findLoginAccount, LOGIN_ERROR } from '../src/domain/auth.js';
 import { createDemoDatabase } from '../src/data/demoDatabase.js';
 import { searchColleagues } from '../src/domain/colleagues.js';
+import { employeeProfile, parseEmployeeProfileId } from '../src/domain/employeeProfile.js';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   CLOUD_PART_CHARACTERS,
@@ -280,6 +281,16 @@ export function createCloudHandler(
               await authenticate(client, request),
               url.searchParams.get('query') ?? '',
               url.searchParams.get('date') ?? '',
+            ),
+          ),
+        );
+      if (path === '/employee-profile' && method === 'GET')
+        return send(
+          await store.transaction(async (client) =>
+            employeeProfile(
+              await loadDatabase(client),
+              await authenticate(client, request),
+              parseEmployeeProfileId(url.searchParams.get('employeeId')),
             ),
           ),
         );

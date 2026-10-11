@@ -1,4 +1,5 @@
 import { EmployeeLabel } from '../EmployeeLabel';
+import { EmployeeProfileLink } from '../EmployeeProfileLink';
 import { useEffect, useState } from 'react';
 import { Info } from 'lucide-react';
 
@@ -16,7 +17,11 @@ function WorkStatusCards({ db, people, actor, date }) {
         return (
           <li key={person.id}>
             <div>
-              <strong>{person.name}</strong>
+              <strong>
+                <EmployeeProfileLink actor={actor} employee={person}>
+                  {person.name}
+                </EmployeeProfileLink>
+              </strong>
               <small>
                 <EmployeeLabel kind="department" value={person.department} />
                 {person.id === actor.id && ' · คุณ'}
@@ -85,7 +90,9 @@ export function WorkPage({ db, actor, run }) {
                     {people.map((e) => (
                       <tr key={e.id}>
                         <td>
-                          {e.name}
+                          <EmployeeProfileLink actor={actor} employee={e}>
+                            {e.name}
+                          </EmployeeProfileLink>
                           {e.id === actor.id && <small>คุณ</small>}
                         </td>
                         <td>

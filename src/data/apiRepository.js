@@ -1,9 +1,11 @@
 import { DomainError, validateAttachment } from '../domain/service';
 import { CLOUD_PART_CHARACTERS, MAX_STORED_DOCUMENT_BASE64_LENGTH } from '../domain/attachments';
 import { documentBlob } from '../domain/documentCodec';
+/** @implements {import('../domain/types').LeaveRepository} */
 export class ApiRepository {
   capabilities;
 
+  /** @param {string} [base] */
   constructor(base = (import.meta.env?.VITE_API_BASE_URL || '/api').replace(/\/$/, '')) {
     this.base = base;
   }
@@ -39,9 +41,15 @@ export class ApiRepository {
       throw new DomainError(data.message ?? 'การเชื่อมต่อมีปัญหา', data.code ?? 'API');
     return data;
   }
+  /**
+   * @param {string} identifier
+   * @param {string} password
+   * @returns {Promise<import('../domain/types').Employee>}
+   */
   async login(identifier, password) {
     return (await this.request('/session', 'POST', { email: identifier, password })).employee;
   }
+  /** @returns {Promise<import('../domain/types').Employee | null>} */
   async session() {
     try {
       return (await this.request('/session')).employee;
@@ -50,15 +58,35 @@ export class ApiRepository {
       throw e;
     }
   }
+  /** @returns {Promise<void>} */
   async logout() {
     await this.request('/session', 'DELETE');
   }
+  /** @returns {Promise<import('../domain/types').Database>} */
   async snapshot() {
     return this.request('/snapshot');
   }
+  /**
+   * @param {number} employeeId
+   * @returns {Promise<import('../domain/types').EmployeeProfile>}
+   */
+  async getEmployeeProfile(employeeId) {
+    return this.request(
+      '/employee-profile?' + new URLSearchParams({ employeeId: String(employeeId) }),
+    );
+  }
+  /**
+   * @param {string} query
+   * @param {string} date
+   * @returns {Promise<import('../domain/types').ColleagueStatus[]>}
+   */
   async searchColleagues(query, date) {
     return this.request('/colleagues?' + new URLSearchParams({ query, date }).toString());
   }
+  /**
+   * @param {import('../domain/types').Command} command
+   * @returns {Promise<import('../domain/types').CommandResult>}
+   */
   async execute(command) {
     const attachment =
       command.type === 'submit' || command.type === 'edit' ? command.input.attachment : null;
@@ -106,6 +134,10 @@ export class ApiRepository {
       throw error;
     }
   }
+  /**
+   * @param {import('../domain/types').LeaveDocument} document
+   * @returns {Promise<Blob>}
+   */
   async downloadDocument(document) {
     if (!document.remote) return documentBlob(document);
     const metadata = await this.request('/documents/' + document.id);
@@ -140,6 +172,7 @@ export class ApiRepository {
       throw new DomainError('ขนาดเอกสารไม่ตรงกับข้อมูล กรุณาลองอีกครั้ง');
     return blob;
   }
+  /** @returns {Promise<void>} */
   async resetDemo() {
     await this.request('/demo/reset', 'POST', {});
   }

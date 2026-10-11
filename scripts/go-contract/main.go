@@ -11,13 +11,14 @@ import (
 )
 
 type input struct {
-	Database  *model.Database `json:"database"`
-	ActorID   int             `json:"actorId"`
-	Command   model.Command   `json:"command"`
-	Operation string          `json:"operation"`
-	Query     string          `json:"query"`
-	Date      string          `json:"date"`
-	Now       string          `json:"now"`
+	Database   *model.Database `json:"database"`
+	ActorID    int             `json:"actorId"`
+	EmployeeID int             `json:"employeeId"`
+	Command    model.Command   `json:"command"`
+	Operation  string          `json:"operation"`
+	Query      string          `json:"query"`
+	Date       string          `json:"date"`
+	Now        string          `json:"now"`
 }
 type output struct {
 	Database *model.Database `json:"database,omitempty"`
@@ -41,6 +42,8 @@ func main() {
 			result, err = service.Snapshot(db, c.ActorID)
 		case "colleagues":
 			result, err = service.Colleagues(db, c.ActorID, c.Query, c.Date)
+		case "profile":
+			result, err = service.Profile(db, c.ActorID, c.EmployeeID)
 		default:
 			now, _ := time.Parse(time.RFC3339, c.Now)
 			result, err = service.Apply(db, c.ActorID, c.Command, now)

@@ -1,4 +1,5 @@
 import { EmployeeLabel } from './EmployeeLabel';
+import { EmployeeProfileLink } from './EmployeeProfileLink';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Clock3, LoaderCircle, Search, Users } from 'lucide-react';
 
@@ -171,7 +172,12 @@ export function ColleaguesPage({ actor, db }) {
                       <Avatar person={{ id: person.employeeId, name: person.name }} />
                       <div>
                         <strong>
-                          {person.name}
+                          <EmployeeProfileLink
+                            actor={actor}
+                            employee={{ id: person.employeeId, name: person.name, active: true }}
+                          >
+                            {person.name}
+                          </EmployeeProfileLink>
                           {person.employeeId === actor.id && <small>{' · คุณ'}</small>}
                         </strong>
                         <span>{employeeCode(person.employeeId)}</span>

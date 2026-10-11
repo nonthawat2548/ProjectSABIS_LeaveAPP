@@ -417,7 +417,7 @@ export function DocumentRow({ document: doc }) {
     </div>
   );
 }
-export function Dialog({ title, children, onClose }) {
+export function Dialog({ title, children, onClose, className = '', restoreFocus = null }) {
   const ref = useRef(null);
   const previous = useRef(null);
   useEffect(() => {
@@ -430,7 +430,8 @@ export function Dialog({ title, children, onClose }) {
     )?.focus();
     return () => {
       document.body.style.overflow = old;
-      previous.current?.focus();
+      if (restoreFocus) restoreFocus();
+      else previous.current?.focus();
     };
   }, []);
   return (
@@ -441,7 +442,7 @@ export function Dialog({ title, children, onClose }) {
       }}
     >
       <div
-        className="dialog"
+        className={'dialog' + (className ? ' ' + className : '')}
         ref={ref}
         role="dialog"
         aria-modal="true"

@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { createDemoDatabase } from '../src/data/demoDatabase';
 import { applyCommand, DomainError, visibleSnapshot } from '../src/domain/service';
 import { searchColleagues } from '../src/domain/colleagues';
+import { employeeProfile } from '../src/domain/employeeProfile';
 import type { Command, Database, RequestInput } from '../src/domain/types';
 
 // go.mjs is plain ESM, shared by npm scripts and this test bridge.
@@ -12,6 +13,7 @@ type Case = {
   name: string;
   database: Database;
   actorId: number;
+  employeeId?: number;
   command?: Command;
   operation?: string;
   query?: string;
@@ -251,6 +253,24 @@ for (const query of ['', 'EMP-00008', '8', 'ชุติมา', 'unknown', '  '
   });
   expected.push({ database: db, result: searchColleagues(db, 1, query, '2026-12-05') });
 }
+for (const actorId of [1, 4, 5, 7, 999])
+  for (const employeeId of [1, 4, 5, 6, 7, 10, 999, -1, 0]) {
+    const db = createDemoDatabase();
+    cases.push({
+      name: `profile ${actorId}/${employeeId}`,
+      database: db,
+      actorId,
+      employeeId,
+      operation: 'profile',
+      now: now.toISOString(),
+    });
+    try {
+      expected.push({ database: db, result: employeeProfile(db, actorId, employeeId) });
+    } catch (error) {
+      assert(error instanceof DomainError);
+      expected.push({ error: { Message: error.message, Code: error.code } });
+    }
+  }
 function normalize(value: any): any {
   if (Array.isArray(value)) return value.map(normalize);
   if (value && typeof value === 'object') {

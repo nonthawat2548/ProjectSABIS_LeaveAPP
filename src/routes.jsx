@@ -1,6 +1,7 @@
 import { Link, useParams, useRoutes } from 'react-router-dom';
 import { Heading } from './components';
 import { ColleaguesPage } from './ColleaguesPage';
+import { EmployeeProfilePage } from './pages/EmployeeProfilePage';
 import {
   AdminPage,
   CalendarPage,
@@ -35,6 +36,12 @@ function RequestRoute({ pageProps, edit = false }) {
   );
 }
 
+function EmployeeProfileRoute({ pageProps }) {
+  const { id } = useParams();
+  if (!/^\d+$/.test(id) || !Number.isSafeInteger(Number(id)) || Number(id) < 1) return <NotFound />;
+  return <EmployeeProfilePage {...pageProps} employeeId={Number(id)} />;
+}
+
 // Page access is a presentation rule. The repository and Go API also check rights.
 export function createWorkspaceRoutes(props) {
   const employee = props.actor.role === 'Employee';
@@ -50,6 +57,11 @@ export function createWorkspaceRoutes(props) {
     { path: '/request/:id', title: 'รายละเอียดคำขอ', element: <RequestRoute pageProps={props} /> },
     { path: '/work', title: 'สถานะการทำงาน', element: <WorkPage {...props} /> },
     { path: '/colleagues', title: 'สถานะเพื่อนร่วมงาน', element: <ColleaguesPage {...props} /> },
+    {
+      path: '/employee/:id',
+      title: 'ประวัติพนักงาน',
+      element: <EmployeeProfileRoute pageProps={props} />,
+    },
     { path: '/notifications', title: 'การแจ้งเตือน', element: <NotificationsPage {...props} /> },
   ];
   if (employee)

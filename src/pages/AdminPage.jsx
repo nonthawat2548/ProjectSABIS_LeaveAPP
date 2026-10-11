@@ -1,4 +1,5 @@
 import { EmployeeLabel } from '../EmployeeLabel';
+import { EmployeeProfileLink } from '../EmployeeProfileLink';
 import { useEffect, useState } from 'react';
 
 import { today } from '../domain/date';
@@ -7,7 +8,7 @@ import { Card, Heading, KeyRow, roleLabels } from '../components';
 import { useTask } from './useTask';
 
 /** @param {import('./types').PageProps} props */
-export function AdminPage({ db, run }) {
+export function AdminPage({ actor, db, run }) {
   const [employeeId, setEmployeeId] = useState(1),
     [typeId, setTypeId] = useState(1),
     [year, setYear] = useState(String(Number(today().slice(0, 4)) + 543)),
@@ -81,6 +82,9 @@ export function AdminPage({ db, run }) {
                 <dd>{db.employees.find((e) => e.id === selected.managerId)?.name ?? 'ไม่กำหนด'}</dd>
               </div>
             </dl>
+            <EmployeeProfileLink actor={actor} employee={selected} className="text-link">
+              ดูประวัติพนักงาน
+            </EmployeeProfileLink>
             <p className="tiny">เลือกบัญชีเพื่อดูข้อมูลพนักงานและจัดสรรสิทธิ์การลา</p>
           </Card>
           <Card title="กรณีลาคลอด">

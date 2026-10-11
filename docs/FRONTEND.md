@@ -23,6 +23,9 @@ npm run dev:api
 | `src/App.jsx` | บัญชีที่เข้าสู่ระบบ โหลดข้อมูล และ layout หลัก |
 | `src/routes.jsx` | เส้นทางกับหน้าจอของแต่ละบทบาท |
 | `src/Login.jsx` | `useState`, event และการกรอกบัญชีทดลอง |
+| `src/pages/EmployeeProfilePage.jsx` | โหลดประวัติผ่าน repository แยก Employee เฉพาะตนเอง Manager/HR ข้ามฝ่าย แสดงแบบเต็มหน้าหรือในป๊อปอัป |
+| `src/AccountMenu.jsx` | เมนูรูปบัญชีมุมขวาบน เลือกโปรไฟล์เพื่อเปิดประวัติตนเองแบบเต็มหน้า |
+| `src/EmployeeProfileLink.jsx` | ใช้ Context เปิดป๊อปอัปประวัติจากชื่อพนักงาน |
 | `src/NotificationToasts.jsx` | เทียบแจ้งเตือนใหม่ของบัญชี คิวป๊อปอัป 3 วินาที และ cleanup timer |
 | `src/pages/LeaveForm.jsx` | state ของฟอร์ม ตรวจข้อมูล และตรวจสอบก่อนส่ง |
 | `src/data/apiRepository.js` | `fetch`, JSON, cookie และการเรียก API |
@@ -31,7 +34,7 @@ npm run dev:api
 
 ไฟล์ `.jsx` คือ JavaScript ที่เขียน JSX สำหรับหน้าจอ ส่วน `.js` ใช้กับฟังก์ชันและการเชื่อมข้อมูล ไม่มี type annotation ในโค้ดที่เบราว์เซอร์รัน
 
-`src/domain/types.d.ts`, `src/pages/types.d.ts` และ declaration ของ repository/domain เก็บคำอธิบายชนิดข้อมูลไว้ให้เครื่องมือและชุดทดสอบ TypeScript เดิม ไม่ใช่ implementation อีกชุดและไม่ถูกโหลดเข้าเบราว์เซอร์ ส่วน `server/*.ts`, ตัวสร้างข้อมูล และการทดสอบกฎเดิมยังเก็บไว้เพื่อใช้โหมด Node อ้างอิงและตรวจเทียบกับ Go
+`src/data/apiRepository.js`, `browserRepository.js`, `demoDatabase.js` และ `index.js` ใช้ JSDoc ในไฟล์ JavaScript เพื่อบอกชนิดพารามิเตอร์และผลลัพธ์ให้เครื่องมือ/ชุดทดสอบ แทน `.d.ts` ที่เคยอยู่ข้างไฟล์ทั้งสี่ ส่วน `src/domain/types.d.ts`, `src/pages/types.d.ts` และ declaration ของ domain ยังคงเป็นสัญญาข้อมูลกลาง ไม่ใช่ implementation อีกชุดและไม่ถูกโหลดเข้าเบราว์เซอร์ โค้ด `server/*.ts`, ตัวสร้างข้อมูล และการทดสอบกฎเดิมยังเก็บไว้เพื่อใช้โหมด Node อ้างอิงและตรวจเทียบกับ Go
 
 ## เปลี่ยนหน้าอย่างไร
 

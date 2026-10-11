@@ -57,7 +57,6 @@ test('Phone drawer motion keeps closing controls inaccessible and supports inter
         actor,
         route: '/dashboard',
         menus: [{ path: '/dashboard', label: 'หน้าหลัก', icon: null }],
-        unread: 0,
         open,
         onClose: () => setOpen(false),
         onLogout: () => {},

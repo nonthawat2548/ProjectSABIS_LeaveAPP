@@ -4,12 +4,18 @@ export const DEMO_DATASET_ID = 'leave-management-10-people-v1';
 export const DEMO_SESSION_KEY = 'leave-10-people-demo-session';
 export const DEMO_DATA_CHANNEL = 'leave-10-people-data';
 
-/** Every repository gets its own copy; mutations never change the source fixture. */
+/**
+ * Every repository gets its own copy; mutations never change the source fixture.
+ * @returns {import('../domain/types').Database}
+ */
 export function createDemoDatabase() {
   return structuredClone(sample);
 }
 
-/** Public account choices for the demo login, derived from the same source as repositories. */
+/**
+ * Public account choices for the demo login, derived from the same source as repositories.
+ * @returns {Pick<import('../domain/types').Employee, 'id' | 'name' | 'email' | 'role' | 'department'>[]}
+ */
 export function getDemoAccounts() {
   return sample.employees
     .filter((employee) => employee.active)

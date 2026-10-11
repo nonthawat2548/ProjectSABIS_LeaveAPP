@@ -124,11 +124,7 @@ test('Phone navigation closes reliably and contains focus without changing page 
       createElement(WorkspaceNavigation, {
         actor,
         route: '/dashboard',
-        menus: [
-          { path: '/dashboard', label: 'หน้าหลัก', icon: null },
-          { path: '/notifications', label: 'การแจ้งเตือน', icon: null },
-        ],
-        unread: 3,
+        menus: [{ path: '/dashboard', label: 'หน้าหลัก', icon: null }],
         open,
         onClose: () => setOpen(false),
         onLogout: () => {},
@@ -175,7 +171,7 @@ test('Phone navigation closes reliably and contains focus without changing page 
       assert.equal(document.body.style.overflow, 'hidden');
       assert.equal(document.activeElement, close());
       assert.equal(panel().querySelector('[aria-current="page"]')?.textContent, 'หน้าหลัก');
-      assert.equal(panel().querySelector('nav b')?.textContent, '3');
+      assert.equal(panel().querySelector('nav a[href="#/notifications"]'), null);
     },
   );
 

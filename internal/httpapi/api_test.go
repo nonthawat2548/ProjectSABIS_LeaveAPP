@@ -424,9 +424,31 @@ func TestPostgresTransport(t *testing.T) {
 	if status != 200 || data["mode"] != "cloud-postgres" {
 		t.Fatal(status, data)
 	}
+	c.login("pimchanok")
+	status, data = c.request("GET", "/employee-profile?employeeId=6", nil)
+	if status != 403 || data["employee"] != nil {
+		t.Fatal(status, data)
+	}
+	status, data = c.request("GET", "/employee-profile?employeeId=1", nil)
+	if status != 200 || data["employee"].(map[string]any)["id"] != float64(1) {
+		t.Fatal(status, data)
+	}
+	status, data = c.request("GET", "/snapshot", nil)
+	if status != 200 {
+		t.Fatal(status, data)
+	}
+	for _, row := range data["requests"].([]any) {
+		if row.(map[string]any)["employeeId"] != float64(1) {
+			t.Fatal("profile lookup widened request scope")
+		}
+	}
 	testDocumentTransport(t, store, handler)
 	m := testClient{t: t, handler: handler}
 	m.login("thanawat")
+	status, data = m.request("GET", "/employee-profile?employeeId=6", nil)
+	if status != 200 || data["employee"].(map[string]any)["id"] != float64(6) {
+		t.Fatal(status, data)
+	}
 	status, data = m.request("GET", "/snapshot", nil)
 	if status != 200 {
 		t.Fatal(status, data)

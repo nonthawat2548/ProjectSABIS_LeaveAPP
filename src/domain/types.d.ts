@@ -178,12 +178,17 @@ export interface CommandResult {
   id?: number;
   message: string;
 }
+export interface EmployeeProfile {
+  employee: Employee;
+  manager: Pick<Employee, 'id' | 'name'> | null;
+}
 export interface LeaveRepository {
   /** Demo accepts a unique personal username or the full email. */
   login(identifier: string, password: string): Promise<Employee>;
   session(): Promise<Employee | null>;
   logout(): Promise<void>;
   snapshot(): Promise<Database>;
+  getEmployeeProfile(employeeId: number): Promise<EmployeeProfile>;
   searchColleagues(query: string, date: string): Promise<ColleagueStatus[]>;
   execute(command: Command): Promise<CommandResult>;
   downloadDocument?(document: LeaveDocument): Promise<Blob>;

@@ -1,17 +1,19 @@
 import { jest, beforeEach, afterEach, test, expect } from '@jest/globals';
-import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createDemoDatabase } from '../../src/data/demoDatabase.js';
 import { findLoginAccount } from '../../src/domain/auth.js';
 import { applyCommand, DomainError, visibleSnapshot } from '../../src/domain/service.js';
 import { ENTRY_TIMING } from '../../src/motion.js';
 import { searchColleagues } from '../../src/domain/colleagues.js';
+import { employeeProfile } from '../../src/domain/employeeProfile.js';
 
 const repository = {
   session: jest.fn(),
   login: jest.fn(),
   logout: jest.fn(),
   snapshot: jest.fn(),
+  getEmployeeProfile: jest.fn(),
   execute: jest.fn(),
   searchColleagues: jest.fn(),
   resetDemo: jest.fn(),
@@ -39,6 +41,9 @@ beforeEach(() => {
     account = null;
   });
   repository.snapshot.mockImplementation(async () => visibleSnapshot(database, account.id));
+  repository.getEmployeeProfile
+    .mockReset()
+    .mockImplementation(async (id) => employeeProfile(database, account.id, id));
   repository.execute.mockImplementation(async (command) =>
     applyCommand(database, account.id, command, now),
   );
@@ -441,6 +446,11 @@ test('notification bell opens a popover without navigating or marking items as r
   const user = userEvent.setup();
   await openWorkspace();
   const bell = screen.getByRole('button', { name: /^การแจ้งเตือน \d+ รายการใหม่$/ });
+  expect(
+    within(screen.getByRole('navigation', { name: 'เมนูหลัก' })).queryByRole('link', {
+      name: 'การแจ้งเตือน',
+    }),
+  ).not.toBeInTheDocument();
   await user.click(bell);
   const popover = screen.getByRole('dialog', { name: 'การแจ้งเตือน' });
   expect(window.location.hash).toBe('#/dashboard');
@@ -452,6 +462,12 @@ test('notification bell opens a popover without navigating or marking items as r
   await user.keyboard('{Escape}');
   expect(screen.queryByRole('dialog', { name: 'การแจ้งเตือน' })).not.toBeInTheDocument();
   expect(bell).toHaveFocus();
+  await user.click(bell);
+  await user.click(screen.getByRole('link', { name: 'ดูการแจ้งเตือนทั้งหมด' }));
+  expect(window.location.hash).toBe('#/notifications');
+  expect(
+    await screen.findByRole('heading', { level: 1, name: 'การแจ้งเตือน' }),
+  ).toBeInTheDocument();
 });
 
 test('colleague status loads everyone and only applies draft text after search', async () => {
@@ -466,4 +482,169 @@ test('colleague status loads everyone and only applies draft text after search',
   await waitFor(() => expect(repository.searchColleagues.mock.lastCall[0]).toBe('EMP-00008'));
   await user.click(screen.getByRole('button', { name: 'แสดงทุกคน', exact: true }));
   await waitFor(() => expect(repository.searchColleagues.mock.lastCall[0]).toBe(''));
+});
+
+test('Account menu opens the full own profile, while the sidebar account is plain text', async () => {
+  const user = userEvent.setup();
+  await openWorkspace();
+  const name = database.employees[0].name;
+  expect(document.querySelector('.sidebar-person').tagName).toBe('DIV');
+  expect(
+    within(document.querySelector('.sidebar-person')).queryByRole('link'),
+  ).not.toBeInTheDocument();
+  const trigger = screen.getByRole('button', { name: 'เมนูบัญชีของ ' + name });
+  await user.click(trigger);
+  expect(window.location.hash).toBe('#/dashboard');
+  const item = within(screen.getByRole('menu', { name: 'บัญชีผู้ใช้' })).getByRole('menuitem', {
+    name: 'โปรไฟล์',
+  });
+  expect(item).toHaveFocus();
+  await user.keyboard('{Escape}');
+  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  expect(trigger).toHaveFocus();
+  await user.keyboard('{ArrowDown}');
+  await user.click(screen.getByRole('menuitem', { name: 'โปรไฟล์' }));
+  expect(window.location.hash).toBe('#/employee/1');
+  await screen.findByText(database.employees[0].email);
+  expect(screen.queryByRole('dialog', { name: 'ประวัติพนักงาน' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+});
+
+test.each([4, 5, 7])(
+  'Account %i can open every active colleague across departments without changing the page',
+  async (actorId) => {
+    const user = userEvent.setup();
+    await openWorkspace(actorId, '/colleagues');
+    await screen.findByText(/พนักงานทั้งหมด/);
+    const draft = screen.getByLabelText('ชื่อหรือรหัสพนักงาน');
+    await user.type(draft, 'เตรียมค้นหา');
+    const scrollCalls = window.scrollTo.mock.calls.length;
+    for (const employee of database.employees) {
+      const trigger = screen.getByRole('link', { name: employee.name, exact: true });
+      await user.click(trigger);
+      const popup = screen.getByRole('dialog', { name: 'ประวัติพนักงาน' });
+      expect(popup).toHaveAttribute('aria-modal', 'true');
+      await within(popup).findByText(employee.email);
+      expect(window.location.hash).toBe('#/colleagues');
+      expect(document.querySelector('.app-shell')).toHaveAttribute('inert');
+      const close = within(popup).getByRole('button', { name: 'ปิด', exact: true });
+      expect(close).toHaveFocus();
+      await user.tab();
+      expect(close).toHaveFocus();
+      await user.keyboard('{Escape}');
+      expect(screen.queryByRole('dialog', { name: 'ประวัติพนักงาน' })).not.toBeInTheDocument();
+      expect(document.querySelector('.app-shell')).not.toHaveAttribute('inert');
+      expect(trigger).toHaveFocus();
+    }
+    expect(draft).toHaveValue('เตรียมค้นหา');
+    expect(window.scrollTo.mock.calls.length).toBe(scrollCalls);
+    expect(repository.snapshot.mock.results.at(-1)).toBeDefined();
+  },
+);
+
+test('Popup closes with its button or backdrop and restores the existing scroll setting', async () => {
+  const user = userEvent.setup();
+  await openWorkspace(4, '/colleagues');
+  const trigger = await screen.findByRole('link', {
+    name: database.employees[5].name,
+    exact: true,
+  });
+  document.body.style.overflow = 'auto';
+  await user.click(trigger);
+  await within(screen.getByRole('dialog', { name: 'ประวัติพนักงาน' })).findByText(
+    database.employees[5].email,
+  );
+  await user.click(screen.getByRole('button', { name: 'ปิด', exact: true }));
+  expect(trigger).toHaveFocus();
+  await user.click(trigger);
+  fireEvent.mouseDown(document.querySelector('.employee-profile-overlay .dialog-shade'));
+  expect(screen.queryByRole('dialog', { name: 'ประวัติพนักงาน' })).not.toBeInTheDocument();
+  expect(window.location.hash).toBe('#/colleagues');
+  expect(document.body.style.overflow).toBe('auto');
+  document.body.style.overflow = '';
+});
+
+test('Account menu closes on outside clicks and keeps profile navigation available on phones', async () => {
+  motionTimers(true, true);
+  const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+  await openWorkspace();
+  const trigger = screen.getByRole('button', {
+    name: 'เมนูบัญชีของ ' + database.employees[0].name,
+  });
+  await user.click(trigger);
+  await user.click(screen.getByRole('heading', { level: 1 }));
+  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  await user.click(trigger);
+  await user.click(screen.getByRole('menuitem', { name: 'โปรไฟล์' }));
+  await screen.findByText(database.employees[0].email);
+  expect(window.location.hash).toBe('#/employee/1');
+});
+
+test('A failed profile can retry and a response arriving after close is ignored', async () => {
+  const user = userEvent.setup();
+  await openWorkspace(4, '/colleagues');
+  const employee = database.employees[5];
+  const trigger = await screen.findByRole('link', { name: employee.name, exact: true });
+  repository.getEmployeeProfile.mockRejectedValueOnce(new Error('private server details'));
+  await user.click(trigger);
+  expect(await screen.findByRole('alert')).toHaveTextContent('ไม่สามารถโหลดประวัติพนักงานได้');
+  expect(screen.queryByText('private server details')).not.toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'ลองอีกครั้ง' }));
+  await screen.findByText(employee.email);
+  await user.keyboard('{Escape}');
+  const response = deferred();
+  repository.getEmployeeProfile.mockImplementationOnce(() => response.promise);
+  await user.click(screen.getByRole('link', { name: employee.name, exact: true }));
+  expect(
+    within(screen.getByRole('dialog', { name: 'ประวัติพนักงาน' })).getByRole('status'),
+  ).toHaveTextContent('กำลังโหลดประวัติ');
+  await user.keyboard('{Escape}');
+  await act(async () => response.resolve(employeeProfile(database, account.id, employee.id)));
+  expect(screen.queryByRole('dialog', { name: 'ประวัติพนักงาน' })).not.toBeInTheDocument();
+  expect(screen.queryByText(employee.email)).not.toBeInTheDocument();
+});
+
+test('Direct cross-department employee links load a full profile', async () => {
+  await openWorkspace(4, '/employee/6');
+  expect(screen.getByRole('heading', { level: 1, name: 'ประวัติพนักงาน' })).toBeInTheDocument();
+  await screen.findByText(database.employees[5].email);
+});
+
+test.each(['/employee/not-a-number', '/employee/9007199254740993'])(
+  'Invalid profile URL %s does not request or show personal data',
+  async (path) => {
+    await openWorkspace(4, path);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('ไม่มีสิทธิ์เข้าถึง');
+    expect(repository.getEmployeeProfile).not.toHaveBeenCalled();
+  },
+);
+
+test('A missing employee has a readable error rather than an empty or invented profile', async () => {
+  await openWorkspace(4, '/employee/999999');
+  await screen.findByRole('alert');
+  expect(screen.queryByRole('heading', { name: 'ข้อมูลส่วนตัว' })).not.toBeInTheDocument();
+});
+
+test('Employees see all colleague positions but can only open their own profile', async () => {
+  const user = userEvent.setup();
+  await openWorkspace(1, '/colleagues');
+  await screen.findByText(/พนักงานทั้งหมด/);
+  for (const employee of database.employees.filter((person) => person.id !== 1)) {
+    expect(screen.getByText(employee.name, { exact: true })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: employee.name, exact: true }),
+    ).not.toBeInTheDocument();
+  }
+  expect(screen.getByText(/Sales Representative/)).toBeInTheDocument();
+  await user.click(screen.getByRole('link', { name: database.employees[0].name, exact: true }));
+  await within(screen.getByRole('dialog', { name: 'ประวัติพนักงาน' })).findByText(
+    database.employees[0].email,
+  );
+});
+
+test('An employee direct link to another profile cannot disclose private data', async () => {
+  await openWorkspace(1, '/employee/6');
+  await screen.findByRole('alert');
+  expect(screen.queryByText(database.employees[5].email)).not.toBeInTheDocument();
+  expect(screen.queryByText(database.employees[5].phone)).not.toBeInTheDocument();
 });

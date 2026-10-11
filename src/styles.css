@@ -670,6 +670,9 @@ summary:focus-visible {
 }
 
 .header-avatar {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   padding-left: 11px;
   margin-left: 3px;
   border-left: 1px solid var(--border);
@@ -2387,6 +2390,102 @@ tbody tr:hover {
   overflow-wrap: anywhere;
 }
 
+.employee-profile-link {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.account-menu {
+  position: relative;
+}
+.account-trigger {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 14px;
+}
+.account-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 45;
+  min-width: 180px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+}
+.account-popover a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  color: var(--ink);
+}
+.account-popover a:hover,
+.account-popover a:focus-visible {
+  background: var(--surface-soft);
+}
+
+.employee-profile-link:hover {
+  color: var(--ink);
+}
+
+.employee-profile-summary {
+  margin-bottom: 24px;
+}
+
+.employee-profile-summary .person {
+  margin: 0;
+}
+
+.employee-profile-summary h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.employee-profile-details {
+  margin-bottom: 0;
+}
+
+.employee-profile-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.employee-profile-overlay > .dialog-shade {
+  z-index: 70;
+}
+
+.dialog.employee-profile-dialog {
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.employee-profile-dialog > .dialog-head {
+  flex-shrink: 0;
+}
+
+.employee-profile-dialog > .employee-profile-page {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+@media (max-width: 960px) {
+  .employee-profile-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .section-title {
   margin-bottom: 11px;
 }
@@ -4013,7 +4112,9 @@ tbody tr:hover {
   }
 
   .header-avatar {
-    display: none;
+    padding-left: 0;
+    margin-left: 0;
+    border-left: 0;
   }
 
   .topbar-actions {
