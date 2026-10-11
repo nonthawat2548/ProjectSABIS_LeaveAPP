@@ -12,8 +12,33 @@ import { CLOUD_PART_CHARACTERS, MAX_ATTACHMENT_BYTES, MAX_CLOUD_BODY_BYTES } fro
 import type { Database } from '../src/domain/types';
 import { balance, DomainError } from '../src/domain/service';
 import { PostgresStore } from '../server/postgresStore';
+import { loginUsername } from '../src/domain/auth';
 
 const requestInput={leaveTypeId:1,maternityCaseId:null,startDate:'2026-11-16',endDate:'2026-11-16',duration:'Full' as const,reason:'ทดสอบข้อมูลร่วมกัน'};
+
+test('Cloud login accepts every username, preserves scope and rejects invalid, ambiguous or inactive accounts', async () => {
+ const fixture = await cloudFixture();
+ try {
+  for (const account of createDemoDatabase().employees) {
+   const client = fixture.client();
+   const login = await client.request('/session', 'POST', {email: ` ${loginUsername(account.email).toUpperCase()} `, password:'1234', actorId:5, role:'HR'});
+   assert.equal(login.status, 200);
+   assert.equal((await login.json()).employee.id, account.id);
+   const db: Database = await (await client.request('/snapshot')).json();
+   if (account.role === 'Employee') assert(db.requests.every(r => r.employeeId === account.id));
+  }
+  for (const input of [null, {email:'pimchanok.w',password:'demo1234'}, {email:'missing',password:'1234'}, {email:1,password:'1234'}, ...['employee','manager','hr','sales-manager','other'].map(email=>({email,password:'1234'}))]) {
+   const client = fixture.client();
+   assert.equal((await client.request('/session','POST',input)).status,401);
+   assert.equal(client.cookie, '');
+  }
+  await fixture.db.exec('UPDATE leave_app.employee SET active=0 WHERE employee_id=1');
+  for (const identifier of ['pimchanok.w', 'employee@demo.local']) assert.equal((await fixture.client().login(identifier)).status,401);
+  await fixture.db.exec("UPDATE leave_app.employee SET email='natthaphong.s@other.local' WHERE employee_id=1");
+  assert.equal((await fixture.client().login('natthaphong.s')).status,401, 'Even an inactive duplicate must not silently select another person');
+  assert.equal((await fixture.client().login('nat@demo.local')).status,200);
+ } finally { await fixture.close() }
+});
 
 test('Cloud PostgreSQL: shared data, scoped snapshots and persistent hashed sessions across handlers',async()=>{
  const fixture=await cloudFixture();
@@ -141,7 +166,7 @@ test('ApiRepository sends multiple bounded cloud parts and downloads exact bytes
    replies.push(Buffer.byteLength(await response.clone().text()));return response;
   };
   const a={cookie:''},b={cookie:''};const first=new ApiRepository('https://leave.test/api'),second=new ApiRepository('https://leave.test/api');
-  await context.run(a,()=>first.login('employee@demo.local','demo1234'));await context.run(b,()=>second.login('employee@demo.local','demo1234'));
+  await context.run(a,()=>first.login('employee@demo.local','1234'));await context.run(b,()=>second.login('employee@demo.local','1234'));
   const file=Buffer.alloc(MAX_ATTACHMENT_BYTES,71);file.write('%PDF-1.7\n');
   const posted=await context.run(a,()=>first.execute({type:'submit',input:{...requestInput,attachment:{fileName:'หลายส่วน.pdf',fileType:'application/pdf',fileSize:file.length,dataUrl:'data:application/pdf;base64,'+file.toString('base64')}}}));
   const state:Database=await context.run(b,()=>second.snapshot()),doc=state.documents.find(item=>item.leaveId===posted.id)!;

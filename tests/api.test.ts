@@ -5,6 +5,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import type { Database } from '../src/domain/types';
+import { loginUsername } from '../src/domain/auth';
 
 function startServer(file: string) {
     const child = spawn(process.execPath, ['--import', 'tsx', 'server/index.ts'], { cwd: process.cwd(), env: { ...process.env, MOCK_PORT: '0', MOCK_HOST: '127.0.0.1', MOCK_DATA_FILE: file }, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -31,7 +32,7 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
     let server = startServer(file);
     try {
         let base = await server.ready;
-        const session = async (email: string) => { const response = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: 'demo1234' }) }); assert.equal(response.status, 200); return response.headers.get('set-cookie')!.split(';')[0] };
+        const session = async (email: string) => { const response = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: '1234' }) }); assert.equal(response.status, 200); return response.headers.get('set-cookie')!.split(';')[0] };
         const get = async (cookie?: string) => fetch(base + '/snapshot', { headers: cookie ? { Cookie: cookie } : {} });
         const snapshot = async (cookie: string): Promise<Database> => { const response = await get(cookie); assert.equal(response.status, 200); return response.json() };
         const send = async (cookie: string, command: unknown) => fetch(base + '/commands', { method: 'POST', headers: { Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify(command) });
@@ -50,6 +51,19 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
         assert.equal(hrSnapshot.employees.filter(e => e.role === 'HR').length, 1);
         assert.equal(hrSnapshot.requests.length, 14);
         assert.deepEqual(initial, JSON.parse(await readFile('src/data/leave-management-10-people.json', 'utf8')));
+
+        for (const account of initial.employees) {
+            const cookie = await session(` ${loginUsername(account.email).toUpperCase()} `);
+            const current = await fetch(base + '/session', { headers: { Cookie: cookie } });
+            assert.equal((await current.json()).employee.id, account.id);
+            const scoped = await snapshot(cookie);
+            if (account.role === 'Employee') assert(scoped.requests.every(r => r.employeeId === account.id));
+        }
+        for (const credentials of [null, { email: 'pimchanok.w', password: 'demo1234' }, { email: 'missing', password: '1234' }, { email: 1, password: '1234' }, ...['employee', 'manager', 'hr', 'sales-manager', 'other'].map(email => ({email,password:'1234'}))]) {
+            const denied = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(credentials) });
+            assert.equal(denied.status, 401);
+            assert.equal(denied.headers.get('set-cookie'), null);
+        }
 
         const employeeSnapshot = await snapshot(employee); assert(employeeSnapshot.requests.every(r => r.employeeId === 1));
         const salesSnapshot = await snapshot(salesManager);

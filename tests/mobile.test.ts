@@ -137,7 +137,7 @@ test('Phone navigation closes reliably and contains focus without changing page 
         const { default: App } = await import('../src/App');
         const { repository } = await import('../src/data');
         try {
-            await repository.login(actor.email, 'demo1234');
+            await repository.login(actor.email, '1234');
             await act(() => root.render(createElement(App)));
             await act(async () => { await repository.snapshot(); await repository.snapshot() });
             const trigger = document.querySelector<HTMLButtonElement>('.mobile-toggle')!;

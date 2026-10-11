@@ -4,6 +4,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import { BrowserRepository } from '../src/data/browserRepository';
 import { createDemoDatabase, DEMO_DATASET_ID, DEMO_DATA_CHANNEL, DEMO_SESSION_KEY } from '../src/data/demoDatabase';
 import { createSeed, DEMO_PASSWORD } from '../src/domain/seed';
+import { loginUsername } from '../src/domain/auth';
 import { balance, DomainError, totalDays, visibleSnapshot } from '../src/domain/service';
 import type { Database } from '../src/domain/types';
 
@@ -95,17 +96,23 @@ test('Browser repository uses the ten-person dataset with isolated storage and r
 
     await t.test('All ten demo accounts authenticate with their configured role and scope', async () => {
         for (const employee of expected.employees) {
+          for (const identifier of [employee.email, loginUsername(employee.email)]) {
             await repository.logout();
-            const account = await repository.login(` ${employee.email.toUpperCase()} `, DEMO_PASSWORD);
+            const account = await repository.login(` ${identifier.toUpperCase()} `, DEMO_PASSWORD);
             assert.deepEqual(account, employee);
             assert.equal(storage.getItem(DEMO_SESSION_KEY), String(employee.id));
             assert.deepEqual(await repository.session(), employee);
             const snapshot = await repository.snapshot();
             assert.deepEqual(snapshot, visibleSnapshot(expected, employee.id));
+          }
         }
         await repository.logout();
         await assert.rejects(repository.login('chutima@demo.local', 'incorrect'), hasCode('UNAUTHENTICATED'));
         await assert.rejects(repository.login('missing@demo.local', DEMO_PASSWORD), hasCode('UNAUTHENTICATED'));
+        await assert.rejects(repository.login('pimchanok.w', 'demo1234'), hasCode('UNAUTHENTICATED'));
+        for (const username of ['employee', 'manager', 'hr', 'sales-manager', 'other']) {
+            await assert.rejects(repository.login(username, DEMO_PASSWORD), hasCode('UNAUTHENTICATED'));
+        }
         assert.equal(await repository.session(), null);
     });
 

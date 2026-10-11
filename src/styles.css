@@ -3695,42 +3695,10 @@ tbody tr:hover {
     box-shadow: 0 5px 13px color-mix(in srgb, var(--primary) 15%, transparent)
 }
 
-.login-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 15px;
-    margin-top: 25px
-}
 
-.login-note>svg {
-    color: var(--subtle);
-    margin-top: 2px
-}
 
-.login-note strong {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted)
-}
 
-.login-note p {
-    color: var(--subtle);
-    font-size: 12px;
-    line-height: 1.8;
-    margin-top: 4px
-}
 
-.login-note code {
-    background: var(--surface-inset);
-    color: var(--muted);
-    border-radius: 4px;
-    padding: 2px 5px;
-    font-size: 12px
-}
 
 .login-bottom {
     display: flex;
@@ -4520,9 +4488,6 @@ tbody tr:hover {
         font-size: 12px
     }
 
-    .login-note {
-        margin-top: 23px
-    }
 
     .login-story>p br {
         display: none
@@ -4978,9 +4943,6 @@ tbody tr:hover {
         gap: 12px
     }
 
-    .login-note {
-        padding: 14px
-    }
 
     .login-story h1 .story-star {
         font-size: 23px;
@@ -5418,9 +5380,6 @@ tbody tr:hover {
 
     .demo-accounts strong,
     .demo-accounts small,
-    .login-note p {
-        font-size: 12px
-    }
 
     .login-bottom {
         flex-wrap: wrap;

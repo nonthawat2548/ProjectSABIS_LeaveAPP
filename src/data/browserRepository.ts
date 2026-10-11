@@ -1,5 +1,6 @@
 import type { Command, Database, Employee, LeaveRepository } from '../domain/types';
 import { DEMO_PASSWORD } from '../domain/seed';
+import { findLoginAccount, LOGIN_ERROR } from '../domain/auth';
 import { actorById, applyCommand, DomainError, visibleSnapshot } from '../domain/service';
 import { createDemoDatabase, DEMO_DATASET_ID, DEMO_SESSION_KEY, DEMO_DATA_CHANNEL } from './demoDatabase';
 import { searchColleagues } from '../domain/colleagues';
@@ -94,7 +95,7 @@ function persistDocuments(store: IDBObjectStore, data: Database, previous: Map<n
 function notifyDataChanged() { window.dispatchEvent(new Event('leave-data-updated')); if (typeof BroadcastChannel !== 'undefined') { const channel = new BroadcastChannel(DEMO_DATA_CHANNEL); channel.postMessage('updated'); channel.close() } }
 export class BrowserRepository implements LeaveRepository {
     private actorId(): number { const id = Number(sessionStorage.getItem(SESSION)); if (!id) throw new DomainError('กรุณาเข้าสู่ระบบ', 'UNAUTHENTICATED'); return id }
-    async login(email: string, password: string): Promise<Employee> { const employee = await transaction(true, db => { const e = db.employees.find(e => e.email.toLowerCase() === email.trim().toLowerCase() && e.active); if (!e || password !== DEMO_PASSWORD) throw new DomainError('อีเมลหรือรหัสผ่านตัวอย่างไม่ถูกต้อง', 'UNAUTHENTICATED'); return structuredClone(e) }); sessionStorage.setItem(SESSION, String(employee.id)); return employee }
+    async login(identifier: string, password: string): Promise<Employee> { const employee = await transaction(true, db => { const e = findLoginAccount(db.employees, identifier); if (!e?.active || password !== DEMO_PASSWORD) throw new DomainError(LOGIN_ERROR, 'UNAUTHENTICATED'); return structuredClone(e) }); sessionStorage.setItem(SESSION, String(employee.id)); return employee }
     async session(): Promise<Employee | null> { if (!sessionStorage.getItem(SESSION)) return null; return transaction(false, db => { try { return structuredClone(actorById(db, this.actorId())) } catch { return null } }) }
     async logout() { sessionStorage.removeItem(SESSION) }
     async snapshot() { return transaction(false, db => visibleSnapshot(db, this.actorId())) }

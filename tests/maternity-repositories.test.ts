@@ -42,7 +42,7 @@ test('IndexedDB transactions enforce maternity rules against fresh stored data',
         for (const [name, descriptor] of saved) { if (descriptor) Object.defineProperty(globalThis, name, descriptor); else Reflect.deleteProperty(globalThis, name) }
     });
     const repository = new BrowserRepository();
-    const login = (email: string) => repository.login(email, 'demo1234');
+    const login = (email: string) => repository.login(email, '1234');
     await t.test('Gender from storage wins over a forged body and stale login identity', async () => {
         const db = fixture(); await save(db); await login('nat@demo.local');
         await assert.rejects(repository.execute({ type: 'submit', input: { ...input(), startDate: '', reason: '', gender: 'Female' } } as never), issue(/พนักงานชาย/));
@@ -97,7 +97,7 @@ test('Direct REST commands cannot bypass maternity eligibility, case or fresh ap
         child.once('exit', code => { clearTimeout(timer); reject(new Error('Mock API exited: ' + code + ' ' + errors)) });
     });
     const login = async (email: string) => {
-        const response = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: 'demo1234' }) });
+        const response = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: '1234' }) });
         assert.equal(response.status, 200); return response.headers.get('set-cookie')!.split(';')[0];
     };
     const send = async (cookie: string | undefined, command: unknown) => fetch(base + '/commands', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) }, body: JSON.stringify(command) });

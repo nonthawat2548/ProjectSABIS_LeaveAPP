@@ -34,7 +34,8 @@ export type Command =
  | {type:'policy'; policy:LeaveType};
 export interface CommandResult { id?: number; message: string }
 export interface LeaveRepository {
- login(email:string,password:string):Promise<Employee>;
+ /** Demo accepts a unique personal username or the full email. */
+ login(identifier:string,password:string):Promise<Employee>;
  session():Promise<Employee|null>;
  logout():Promise<void>;
  snapshot():Promise<Database>;

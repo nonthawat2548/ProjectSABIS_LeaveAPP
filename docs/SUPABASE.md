@@ -24,7 +24,7 @@
 
 API ใช้ HttpOnly, SameSite=Lax cookie (Secure เมื่อ HTTPS) token สุ่ม 256 บิต เก็บเฉพาะ SHA-256 ใน App_Session อายุ 8 ชั่วโมง คงอยู่ข้าม cold start ตรวจ session/บัญชี active ใหม่ทุก endpoint และ write transaction ปฏิเสธ mutation ข้าม origin logout ล้างเฉพาะ session ของเครื่องนั้น ไม่เชื่อ actorId/role/gender จาก body
 
-บัญชี Employee ใน seed ยังเป็นข้อมูลทดลอง รหัส demo1234 บนหน้า Login เปิดใช้ผ่าน `ENABLE_DEMO_LOGIN=true` เท่านั้น **ยังไม่ใช่ระบบยืนยันตัวตนสำหรับข้อมูลพนักงานจริง** ก่อนใช้จริงต้องเปลี่ยน login/session และการจัดการบัญชีเป็นระบบองค์กรหรือ Supabase Auth integration นี้ไม่ได้สร้าง Supabase Auth users และไม่บันทึกรหัส demo ลงฐาน
+บัญชี Employee ใน seed ยังเป็นข้อมูลทดลอง รหัส `1234` เปิดใช้ผ่าน `ENABLE_DEMO_LOGIN=true` เท่านั้น Login รับชื่อผู้ใช้เฉพาะบุคคล เช่น `pimchanok.w`/`thanawat.k` จาก mapping ใน `src/domain/auth.ts` หรืออีเมลเต็ม ไม่ต้องสร้างคอลัมน์เพิ่มหรือ reset ฐาน การเปลี่ยนชื่อผู้ใช้/รหัสทดลองมีผลเมื่อ deploy โค้ดใหม่ **ยังไม่ใช่ระบบยืนยันตัวตนสำหรับข้อมูลพนักงานจริง** ก่อนใช้จริงต้องเปลี่ยน login/session และการจัดการบัญชีเป็นระบบองค์กรหรือ Supabase Auth integration นี้ไม่ได้สร้าง Supabase Auth users และไม่บันทึกรหัส demo ลงฐาน
 
 ## เปิดใช้งานบน Vercel
 

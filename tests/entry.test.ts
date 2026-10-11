@@ -60,6 +60,14 @@ test('Sign-in prepares the workspace before revealing it and remains recoverable
         await act(() => root.render(createElement(App, { key: ++mount })));
         assert(form(), 'An unauthenticated app must show the sign-in form');
         await act(() => document.querySelector<HTMLButtonElement>('.demo-accounts button')!.click());
+        await choosePerson();
+    }
+    async function choosePerson() {
+        await act(() => {
+            const select = document.querySelector<HTMLSelectElement>('#login-account')!;
+            select.value = 'employee@demo.local';
+            select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+        });
     }
     async function submit() {
         await act(async () => {
@@ -173,6 +181,7 @@ test('Sign-in prepares the workspace before revealing it and remains recoverable
         let calls = 0;
         await act(() => root.render(createElement(Login, { onLogin: () => { calls++; return pending.promise }, initialError: '', theme: 'dark', onToggleTheme: () => { } })));
         await act(() => document.querySelector<HTMLButtonElement>('.demo-accounts button')!.click());
+        await choosePerson();
         await act(() => {
             const loginForm = form();
             loginForm.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));

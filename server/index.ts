@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { randomBytes } from 'node:crypto';
 import { actorById, applyCommand, DomainError, visibleSnapshot } from '../src/domain/service';
 import { DEMO_PASSWORD } from '../src/domain/seed';
+import { findLoginAccount, LOGIN_ERROR } from '../src/domain/auth';
 import { databasePath, transact } from './store';
 import { createDemoDatabase } from '../src/data/demoDatabase';
 import type { Command } from '../src/domain/types';
@@ -39,8 +40,8 @@ export const server=createServer(async(req,res)=>{
   if(!['GET','HEAD'].includes(req.method||'GET')&&req.headers.origin){const origin=new URL(req.headers.origin);const allowed=['localhost','127.0.0.1','[::1]'];if(!allowed.includes(origin.hostname))throw new DomainError('Origin นี้ไม่ได้รับอนุญาต','FORBIDDEN')}
   if(path==='/api/health'&&req.method==='GET')return send(res,200,{status:'ok',mode:'mock-json'});
   if(path==='/api/session'&&req.method==='POST'){
-   const input=await body(req);if(typeof input.email!=='string'||input.password!==DEMO_PASSWORD)throw new DomainError('อีเมลหรือรหัสผ่านตัวอย่างไม่ถูกต้อง','UNAUTHENTICATED');
-   const employee=await transact(db=>{const e=db.employees.find(e=>e.email.toLowerCase()===input.email.trim().toLowerCase()&&e.active);if(!e)throw new DomainError('อีเมลหรือรหัสผ่านตัวอย่างไม่ถูกต้อง','UNAUTHENTICATED');return e},true);
+   const input=await body(req);if(!input||typeof input.email!=='string'||input.email.length>255||input.password!==DEMO_PASSWORD)throw new DomainError(LOGIN_ERROR,'UNAUTHENTICATED');
+   const employee=await transact(db=>{const e=findLoginAccount(db.employees,input.email);if(!e?.active)throw new DomainError(LOGIN_ERROR,'UNAUTHENTICATED');return e},true);
    const token=randomBytes(32).toString('hex');const old=sessionToken(req);if(old)sessions.delete(old);
    sessions.set(token,{id:employee.id,expires:Date.now()+8*3600000});res.setHeader('Set-Cookie',`leave_session=${token}; HttpOnly; SameSite=Lax; Path=/api; Max-Age=28800`);
    return send(res,200,{employee});

@@ -28,11 +28,11 @@ test('IndexedDB colleague lookup requires a session, uses minimal data and skips
     const repository = new BrowserRepository(), full = createDemoDatabase(), date = '2026-12-05';
     await assert.rejects(repository.searchColleagues('8', date), (error: unknown) => error instanceof DomainError && error.code === 'UNAUTHENTICATED');
     for (const email of ['employee@demo.local', 'manager@demo.local', 'sales-manager@demo.local', 'hr@demo.local']) {
-        const actor = await repository.login(email, 'demo1234');
+        const actor = await repository.login(email, '1234');
         assert.deepEqual(await repository.searchColleagues('EMP-00008', date), searchColleagues(full, actor.id, '8', date));
         assert.deepEqual(await repository.searchColleagues('', date), searchColleagues(full, actor.id, '', date));
     }
-    await repository.login('employee@demo.local', 'demo1234');
+    await repository.login('employee@demo.local', '1234');
     let on = addDays(today(), 20);
     while ([0, 6].includes(new Date(on + 'T00:00:00Z').getUTCDay())) on = addDays(on, 1);
     const input = requestWithAttachment(pdfAttachment(3 * 1024 * 1024), on);
@@ -73,7 +73,7 @@ test('HTTP colleague lookup authenticates on the server and preserves private sn
     const search = (query: string, on = date, cookie?: string) => fetch(base + '/colleagues?' + new URLSearchParams({ query, date: on, actorId: '5', role: 'HR' }), { headers: cookie ? { Cookie: cookie } : {} });
     assert.equal((await search('8')).status, 401);
     for (const email of ['employee@demo.local', 'manager@demo.local', 'sales-manager@demo.local', 'hr@demo.local']) {
-        const login = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: 'demo1234' }) });
+        const login = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: '1234' }) });
         const actor = (await login.json()).employee;
         const cookie = login.headers.get('set-cookie')!.split(';')[0];
         const response = await search('EMP-00008', date, cookie);

@@ -1,6 +1,6 @@
 import type { Database, LeaveRequest } from './types';
 import { addDays, nextWorkingDay, today, workingDates } from './date.js';
-export const DEMO_PASSWORD='demo1234';
+export const DEMO_PASSWORD='1234';
 export function createSeed(now=new Date()):Database {
  const base=today(now);const year=Number(base.slice(0,4));const at=now.toISOString();
  const db:Database={schemaVersion:1,employees:[

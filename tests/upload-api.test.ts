@@ -67,7 +67,7 @@ test('HTTP attachments: 25 MiB persistence, direct validation and bounded JSON r
         child.once('error', error => { clearTimeout(timer); reject(error) });
         child.once('exit', code => { clearTimeout(timer); reject(new Error('Upload API exited: ' + code + ': ' + errors)) });
     });
-    const login = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'employee@demo.local', password: 'demo1234' }) });
+    const login = await fetch(base + '/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'employee@demo.local', password: '1234' }) });
     assert.equal(login.status, 200);
     const cookie = login.headers.get('set-cookie')!.split(';')[0];
     const attachment = (fileSize: number): AttachmentInput => ({ fileName: 'large.pdf', fileType: 'application/pdf', fileSize, dataUrl: dataPrefix });

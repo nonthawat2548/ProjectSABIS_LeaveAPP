@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { LayoutDashboard, FilePlus2, ClipboardList, Wallet, CalendarDays, Laptop, Bell, Settings, Users, ChevronLeft, Menu, RefreshCw, Database as DatabaseIcon, Check, X, Sun, Moon, Search, ArrowRight, UserRound, ShieldCheck, Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { LayoutDashboard, FilePlus2, ClipboardList, Wallet, CalendarDays, Laptop, Bell, Settings, Users, ChevronLeft, Menu, RefreshCw, Check, X, Sun, Moon, Search, ArrowRight, UserRound, ShieldCheck, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import type { Command, CommandResult, Database, Employee, Role } from './domain/types';
 import { dataMode, repository } from './data';
 import { DEMO_DATA_CHANNEL, getDemoAccounts } from './data/demoDatabase';
 import { DEMO_PASSWORD } from './domain/seed';
+import { findLoginAccount, loginUsername } from './domain/auth';
 import { DomainError } from './domain/service';
 import { formatDate, today } from './domain/date';
 import { roleLabels, Heading } from './components';
@@ -105,17 +106,18 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
     const accounts = getDemoAccounts();
     const roles = ['Employee', 'Manager', 'HR'] as const;
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-    const [email, setEmail] = useState(''), [password, setPassword] = useState(DEMO_PASSWORD), [error, setError] = useState(initialError), [busy, setBusy] = useState(false), [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState(''), [password, setPassword] = useState(''), [error, setError] = useState(initialError), [busy, setBusy] = useState(false), [showPassword, setShowPassword] = useState(false);
     const submitting = useRef(false), mounted = useRef(true), emailInput = useRef<HTMLInputElement>(null);
     useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, []);
     useEffect(() => { if (error && !busy) emailInput.current?.focus() }, [error, busy]);
-    const selectedAccount = accounts.find(account => account.email.toLowerCase() === email.trim().toLowerCase());
+    const selectedAccount = findLoginAccount(accounts, email);
     const roleAccounts = accounts.filter(account => account.role === selectedRole);
-    function chooseAccount(accountEmail: string) { setEmail(accountEmail); setPassword(DEMO_PASSWORD); setError('') }
-    function chooseRole(role: Role) { setSelectedRole(role); chooseAccount(accounts.find(account => account.role === role)?.email ?? '') }
+    function chooseAccount(accountEmail: string) { setEmail(accountEmail ? loginUsername(accountEmail) : ''); setPassword(accountEmail ? DEMO_PASSWORD : ''); setError(''); setShowPassword(false) }
+    function chooseRole(role: Role) { setSelectedRole(role); chooseAccount('') }
     function changeEmail(value: string) {
         setEmail(value);
-        const account = accounts.find(account => account.email.toLowerCase() === value.trim().toLowerCase());
+        const account = findLoginAccount(accounts, value);
+        setError('');
         if (account) setSelectedRole(account.role);
     }
     async function submit(e: React.FormEvent) {
@@ -146,7 +148,7 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
             <div className="login-card">
                 <span className="login-kicker"><span className="status-dot" />ระบบจัดการการลา</span>
                 <h2>เข้าสู่ระบบ<span> ✦</span></h2>
-                <p>กรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ</p>
+                <p>กรอกชื่อผู้ใช้หรืออีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ</p>
                 <div className="demo-label">เลือกบทบาทก่อนเลือกบัญชีทดลอง</div>
                 <div className="demo-accounts" role="group" aria-label="เลือกบทบาท">{roles.map(role => {
                     const members = accounts.filter(account => account.role === role);
@@ -161,16 +163,15 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }: { onLogin
                     <div className="field">
                         <label htmlFor="login-account">{selectedRole ? `เลือกบัญชี${roleLabels[selectedRole]} (${roleAccounts.length} คน)` : 'เลือกบัญชีทดลอง'}</label>
                         <select id="login-account" value={selectedAccount?.email ?? ''} onChange={e => chooseAccount(e.target.value)} disabled={busy || !selectedRole}>
-                            <option value="">{selectedRole ? 'กรอกอีเมลเอง' : 'เลือกบทบาทด้านบนก่อน'}</option>
-                            {roleAccounts.map(account => <option key={account.id} value={account.email}>{account.name} · {account.email}</option>)}
+                            <option value="">{selectedRole ? 'เลือกบัญชีทดลอง หรือกรอกชื่อผู้ใช้เอง' : 'เลือกบทบาทด้านบนก่อน'}</option>
+                            {roleAccounts.map(account => <option key={account.id} value={account.email}>{account.name} · {loginUsername(account.email)}</option>)}
                         </select>
                     </div>
-                    <div className="field"><label htmlFor="login-email">อีเมล</label><input ref={emailInput} id="login-email" type="email" value={email} onChange={e => changeEmail(e.target.value)} autoComplete="username" disabled={busy} required /></div>
+                    <div className="field"><label htmlFor="login-email">ชื่อผู้ใช้หรืออีเมล</label><input ref={emailInput} id="login-email" type="text" value={email} onChange={e => changeEmail(e.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} disabled={busy} required /></div>
                     <div className="field"><label htmlFor="login-password">รหัสผ่าน</label><div className="password-input"><input id="login-password" type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" disabled={busy} required /><button type="button" className="icon-btn" aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'} onClick={() => setShowPassword(v => !v)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
                     {error && <div className="error" role="alert">{error}</div>}
                     <button className={'btn primary login-submit' + (busy ? ' is-busy' : '')} disabled={busy}><span>{busy ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่ระบบ'}</span>{busy ? <LoaderCircle size={18} className="button-spinner" aria-hidden="true" /> : <ArrowRight size={18} />}</button>
                 </form>
-                <div className="login-note"><DatabaseIcon size={18} /><div><strong>บัญชีทดลอง</strong><p>ทุกบัญชีใช้รหัสผ่าน <code>{DEMO_PASSWORD}</code><br />{dataMode === 'mock' ? 'ข้อมูลของคุณบันทึกในเบราว์เซอร์นี้' : 'ข้อมูลจากระบบกลาง'}</p></div></div>
             </div>
             <div className="login-bottom">ระบบจัดการการลาสำหรับพนักงาน<span lang="en">© {new Date().getFullYear()} Leave Management</span></div>
         </div>

@@ -7,6 +7,7 @@ import {
   visibleSnapshot,
 } from "../src/domain/service.js";
 import { DEMO_PASSWORD } from "../src/domain/seed.js";
+import { findLoginAccount, LOGIN_ERROR } from "../src/domain/auth.js";
 import { createDemoDatabase } from "../src/data/demoDatabase.js";
 import { searchColleagues } from "../src/domain/colleagues.js";
 import {
@@ -250,16 +251,12 @@ export function createCloudHandler(
           input.email.length > 255 ||
           input.password !== DEMO_PASSWORD
         )
-          fail("อีเมลหรือรหัสผ่านตัวอย่างไม่ถูกต้อง", "UNAUTHENTICATED");
+          fail(LOGIN_ERROR, "UNAUTHENTICATED");
         const value = randomBytes(32).toString("hex");
         const employee = await store.transaction(async (client) => {
           const db = await loadDatabase(client, true);
-          const employee =
-            db.employees.find(
-              (item) =>
-                item.active &&
-                item.email.toLowerCase() === input.email.trim().toLowerCase(),
-            ) ?? fail("อีเมลหรือรหัสผ่านตัวอย่างไม่ถูกต้อง", "UNAUTHENTICATED");
+          const employee = findLoginAccount(db.employees, input.email) ?? fail(LOGIN_ERROR, "UNAUTHENTICATED");
+          if (!employee.active) fail(LOGIN_ERROR, "UNAUTHENTICATED");
           const old = token(request);
           if (old)
             await client.query(

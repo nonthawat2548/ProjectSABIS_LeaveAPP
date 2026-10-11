@@ -61,8 +61,8 @@ export class ApiRepository implements LeaveRepository {
             );
         return data;
     }
-    async login(email: string, password: string): Promise<Employee> {
-        return (await this.request("/session", "POST", { email, password }))
+    async login(identifier: string, password: string): Promise<Employee> {
+        return (await this.request("/session", "POST", { email: identifier, password }))
             .employee;
     }
     async session() {

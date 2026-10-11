@@ -117,7 +117,7 @@ test('IndexedDB preserves larger documents on submit and edit, and rejects inval
         tx.oncomplete = () => resolve(); tx.onabort = () => reject(tx.error);
     });
     const repository = new BrowserRepository();
-    await repository.login('employee@demo.local', 'demo1234');
+    await repository.login('employee@demo.local', '1234');
     let date = addDays(today(), 7);
     while ([0, 6].includes(new Date(date + 'T00:00:00Z').getUTCDay())) date = addDays(date, 1);
     const attachment = pdfAttachment(3 * megabyte, 'submitted.pdf');

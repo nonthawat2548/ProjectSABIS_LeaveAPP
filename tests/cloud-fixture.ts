@@ -28,7 +28,7 @@ export async function cloudFixture() {
      const next=response.headers.get('set-cookie');if(next)this.cookie=next.split(';')[0];
      return response;
     },
-    async login(email:string){return this.request('/session','POST',{email,password:'demo1234'})},
+    async login(email:string){return this.request('/session','POST',{email,password:'1234'})},
    };
   },
   close:()=>db.close(),

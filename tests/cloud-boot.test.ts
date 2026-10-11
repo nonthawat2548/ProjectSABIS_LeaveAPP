@@ -78,7 +78,7 @@ test('API adapter rejects platform errors and invalid successful responses witho
             new Response('"unexpected"', { status: 200 }),
         ]) {
             globalThis.fetch = async () => response;
-            await assert.rejects(repository.login('employee@demo.local', 'demo1234'), (error: unknown) => {
+            await assert.rejects(repository.login('employee@demo.local', '1234'), (error: unknown) => {
                 assert(error instanceof DomainError);
                 assert.equal(error.code, response.status >= 500 ? 'UNAVAILABLE' : 'API');
                 assert.doesNotMatch(error.message, /FUNCTION_INVOCATION_FAILED|stack trace|<html>/);

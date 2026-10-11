@@ -6,6 +6,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import { BrowserRepository } from '../src/data/browserRepository';
 import { getDemoAccounts } from '../src/data/demoDatabase';
 import { DEMO_PASSWORD } from '../src/domain/seed';
+import { loginUsername } from '../src/domain/auth';
 import type { Employee } from '../src/domain/types';
 
 test('Login account controls submit the selected person to the connected repository', async t => {
@@ -86,12 +87,17 @@ test('Login account controls submit the selected person to the connected reposit
             assert.equal(select().options.length, 1);
             assert.equal(select().options[0].textContent, 'เลือกบทบาทด้านบนก่อน');
             assert.equal(emailInput().value, '');
+            assert.equal(passwordInput().value, '');
+            assert.equal(emailInput().type, 'text');
+            assert.equal(dom.window.document.querySelector('.login-note'), null);
             assert(roleButtons().every(button => button.getAttribute('aria-pressed') === 'false'));
             assert(!form().checkValidity(), 'An empty account cannot be submitted through native form validation');
             for (const role of roles) {
                 await chooseRole(role);
                 assert(!select().disabled);
-                assert.equal(emailInput().value, accounts.find(account => account.role === role)!.email);
+                assert.equal(emailInput().value, '');
+                assert.equal(passwordInput().value, '');
+                assert.equal(select().value, '');
                 assert.deepEqual(roleButtons().map(button => button.getAttribute('aria-pressed')), roles.map(value => String(value === role)));
             }
         }
@@ -102,12 +108,12 @@ test('Login account controls submit the selected person to the connected reposit
         for (const account of accounts) {
             await chooseRole(account.role);
             await choose(account.email);
-            assert.equal(emailInput().value, account.email);
+            assert.equal(emailInput().value, loginUsername(account.email));
             assert.equal(passwordInput().value, DEMO_PASSWORD);
             assert.deepEqual(roleButtons().map(button => button.getAttribute('aria-pressed')), roles.map(role => String(role === account.role)));
             await submit();
             const result = signIns.at(-1)!;
-            assert.equal(result.email, account.email);
+            assert.equal(result.email, loginUsername(account.email));
             assert.equal(result.password, DEMO_PASSWORD);
             assert.equal(result.actor.id, account.id);
             assert.equal(result.actor.role, account.role);
@@ -121,10 +127,13 @@ test('Login account controls submit the selected person to the connected reposit
         await render();
         for (const role of roles) {
             await chooseRole(role);
-            assert.equal(select().value, accounts.find(account => account.role === role)!.email);
-            assert.equal(emailInput().value, select().value);
+            assert.equal(select().value, '');
+            assert.equal(emailInput().value, '');
+            assert.equal(passwordInput().value, '');
         }
         await type(emailInput(), 'SALES-MANAGER@DEMO.LOCAL');
+        assert.equal(passwordInput().value, '', 'Typing an account must not fill a password');
+        await type(passwordInput(), '1234');
         assert.equal(select().value, 'sales-manager@demo.local');
         assert.deepEqual([...select().options].filter(option => option.value).map(option => option.value), accounts.filter(account => account.role === 'Manager').map(account => account.email));
         await submit();
@@ -135,13 +144,24 @@ test('Login account controls submit the selected person to the connected reposit
         assert.deepEqual(roleButtons().map(button => button.getAttribute('aria-pressed')), ['false', 'true', 'false']);
         await choose('');
         assert.equal(emailInput().value, '');
+        assert.equal(passwordInput().value, '');
         await chooseRole('Employee');
-        assert.equal(select().value, accounts.find(account => account.role === 'Employee')!.email);
+        assert.equal(select().value, '');
+
+        await type(emailInput(), ' THANAWAT.K ');
+        assert.equal(select().value, 'manager@demo.local');
+        assert.equal(passwordInput().value, '');
+        await type(passwordInput(), '1234');
+        assert(form().checkValidity(), 'A username must pass native form validation');
+        await submit();
+        assert.equal(signIns.at(-1)!.actor.role, 'Manager');
+        await repository.logout();
     });
 
     await t.test('Choosing another account clears a login error and restores the demo password', async () => {
         await render(onLogin, 'dark');
         await chooseRole('Employee');
+        await choose('employee@demo.local');
         await type(passwordInput(), 'wrong-password');
         await submit();
         assert(dom.window.document.querySelector('[role="alert"]'));
@@ -158,6 +178,7 @@ test('Login account controls submit the selected person to the connected reposit
         const pending = new Promise<void>(resolve => { finish = resolve });
         await render(() => pending);
         await chooseRole('Employee');
+        await choose('employee@demo.local');
         await act(() => { form().dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true })) });
         const submitButton = dom.window.document.querySelector<HTMLButtonElement>('.login-submit')!;
         assert(select().disabled && emailInput().disabled && passwordInput().disabled && submitButton.disabled);

@@ -77,7 +77,7 @@ test('IndexedDB stores large files in bounded records while preserving atomic tr
         assert.deepEqual(await records(), before);
         await assert.rejects(repository.login('employee@demo.local', 'wrong'), error => error instanceof DomainError && error.code === 'UNAUTHENTICATED');
         assert.deepEqual(await records(), before);
-        await repository.login('employee@demo.local', 'demo1234');
+        await repository.login('employee@demo.local', '1234');
         const saved = await raw();
         assert.equal(saved.state.documents[0].dataUrl, ''); assert.equal(saved.manifest?.documents.length, 1);
         assert.equal((await repository.snapshot()).documents[0].dataUrl, legacyAttachment.dataUrl);
@@ -142,7 +142,7 @@ test('IndexedDB stores large files in bounded records while preserving atomic tr
     });
 
     await t.test('Concurrent approvals still commit once with chunked documents', async () => {
-        await repository.login('manager@demo.local', 'demo1234');
+        await repository.login('manager@demo.local', '1234');
         const before = await repository.snapshot(), request = before.requests.find(request => request.id === secondId)!;
         const year = Number(request.startDate.slice(0, 4)), used = balance(before, 1, 2, year).used;
         const command = { type: 'approve' as const, id: secondId, version: 1, comment: '' };
@@ -168,7 +168,7 @@ test('IndexedDB stores large files in bounded records while preserving atomic tr
             // Restore the bounded wrapper used by all repository writes below.
             FakeObjectStore.prototype.put = boundedPut;
         }
-        await repository.login('manager@demo.local', 'demo1234');
+        await repository.login('manager@demo.local', '1234');
         const saved = await raw();
         assert(saved.state.documents.reduce((sum, document) => sum + document.dataUrl.length, 0) <= 4 * megabyte);
         assert(saved.manifest!.documents.length > 0);
@@ -176,7 +176,7 @@ test('IndexedDB stores large files in bounded records while preserving atomic tr
     });
 
     await t.test('HR reset removes all chunk records atomically and preserves the database version', async () => {
-        await repository.login('hr@demo.local', 'demo1234');
+        await repository.login('hr@demo.local', '1234');
         await repository.resetDemo();
         const saved = await raw();
         assert(!saved.keys.some(isChunkKey)); assert.equal(saved.manifest, undefined);
