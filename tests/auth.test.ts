@@ -19,6 +19,7 @@ test('All ten demo usernames are unique and resolve the same account as the full
 });
 
 test('Ambiguous usernames are rejected while distinct full emails remain usable', () => {
+  assert.equal(loginUsername('jane.d@example.local'), 'jane.d');
   const employees = [
     { id: 1, email: 'same@first.local' },
     { id: 2, email: 'same@second.local' },
@@ -35,14 +36,19 @@ test('Ambiguous usernames are rejected while distinct full emails remain usable'
   );
 });
 
-test('Demo usernames identify people rather than roles, positions or the former generic aliases', () => {
+test('Demo usernames use first names without surname initials and identify the same people', () => {
   const employees = createDemoDatabase().employees;
   for (const [email, username] of [
-    ['employee@demo.local', 'pimchanok.w'],
-    ['manager@demo.local', 'thanawat.k'],
-    ['hr@demo.local', 'siriporn.j'],
-    ['other@demo.local', 'kan.p'],
-    ['sales-manager@demo.local', 'pakorn.r'],
+    ['employee@demo.local', 'pimchanok'],
+    ['nat@demo.local', 'natthaphong'],
+    ['orn@demo.local', 'orathai'],
+    ['manager@demo.local', 'thanawat'],
+    ['hr@demo.local', 'siriporn'],
+    ['other@demo.local', 'kan'],
+    ['sales-manager@demo.local', 'pakorn'],
+    ['chutima@demo.local', 'chutima'],
+    ['malinee@demo.local', 'malinee'],
+    ['weeraphat@demo.local', 'weeraphat'],
   ]) {
     const account = employees.find((e) => e.email === email)!;
     assert.equal(loginUsername(email), username);

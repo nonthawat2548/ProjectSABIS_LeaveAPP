@@ -46,7 +46,7 @@ paths:
                   type: string
                   maxLength: 255
                   description: Personal username or full email; field name retained for compatibility.
-                  example: pimchanok.w
+                  example: pimchanok
                 password: { type: string, example: '1234' }
       responses:
         '200':

@@ -158,7 +158,7 @@ test('Browser repository uses the ten-person dataset with isolated storage and r
         repository.login('missing@demo.local', DEMO_PASSWORD),
         hasCode('UNAUTHENTICATED'),
       );
-      await assert.rejects(repository.login('pimchanok.w', 'demo1234'), hasCode('UNAUTHENTICATED'));
+      await assert.rejects(repository.login('pimchanok', 'demo1234'), hasCode('UNAUTHENTICATED'));
       for (const username of ['employee', 'manager', 'hr', 'sales-manager', 'other']) {
         await assert.rejects(repository.login(username, DEMO_PASSWORD), hasCode('UNAUTHENTICATED'));
       }

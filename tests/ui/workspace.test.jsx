@@ -282,7 +282,7 @@ test('login starts empty and role selection only lists accounts in that category
   expect(emails).not.toContain('manager@demo.local');
   expect(password).toHaveValue('');
   await user.selectOptions(select, 'orn@demo.local');
-  expect(username).toHaveValue('orathai.m');
+  expect(username).toHaveValue('orathai');
   expect(password).toHaveValue('1234');
 });
 
@@ -294,11 +294,11 @@ test('manual personal username authenticates with the repository role', async ()
       name: /พนักงาน/,
     }),
   );
-  await user.type(await screen.findByLabelText('ชื่อผู้ใช้หรืออีเมล'), 'thanawat.k');
+  await user.type(await screen.findByLabelText('ชื่อผู้ใช้หรืออีเมล'), 'thanawat');
   await user.type(screen.getByLabelText('รหัสผ่าน'), '1234');
   await user.click(screen.getByRole('button', { name: 'เข้าสู่ระบบ', exact: true }));
   await waitFor(() => expect(document.querySelector('.app-shell')).toBeInTheDocument());
-  expect(repository.login).toHaveBeenCalledWith('thanawat.k', '1234');
+  expect(repository.login).toHaveBeenCalledWith('thanawat', '1234');
   expect(screen.getByRole('link', { name: 'รายการคำขอของทีม', exact: true })).toBeInTheDocument();
   expect(screen.queryByRole('link', { name: 'ยื่นคำขอลา', exact: true })).not.toBeInTheDocument();
 });
@@ -313,7 +313,7 @@ test('login waits for the scoped snapshot and recovers if it fails', async () =>
       }),
   );
   render(<App />);
-  await user.type(await screen.findByLabelText('ชื่อผู้ใช้หรืออีเมล'), 'pimchanok.w');
+  await user.type(await screen.findByLabelText('ชื่อผู้ใช้หรืออีเมล'), 'pimchanok');
   await user.type(screen.getByLabelText('รหัสผ่าน'), '1234');
   await user.click(screen.getByRole('button', { name: 'เข้าสู่ระบบ', exact: true }));
   await waitFor(() => expect(repository.snapshot).toHaveBeenCalled());

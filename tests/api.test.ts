@@ -112,7 +112,7 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
     }
     for (const credentials of [
       null,
-      { email: 'pimchanok.w', password: 'demo1234' },
+      { email: 'pimchanok', password: 'demo1234' },
       { email: 'missing', password: '1234' },
       { email: 1, password: '1234' },
       ...['employee', 'manager', 'hr', 'sales-manager', 'other'].map((email) => ({

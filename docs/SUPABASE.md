@@ -26,9 +26,15 @@
 
 API ใช้ HttpOnly, SameSite=Lax cookie (Secure เมื่อ HTTPS) token สุ่ม 256 บิต เก็บเฉพาะ SHA-256 ใน App_Session อายุ 8 ชั่วโมง คงอยู่ข้าม cold start ตรวจ session/บัญชี active ใหม่ทุก endpoint และ write transaction ปฏิเสธ mutation ข้าม origin logout ล้างเฉพาะ session ของเครื่องนั้น ไม่เชื่อ actorId/role/gender จาก body
 
-บัญชี Employee ใน seed ยังเป็นข้อมูลทดลอง รหัส `1234` เปิดใช้ผ่าน `ENABLE_DEMO_LOGIN=true` เท่านั้น Login รับชื่อผู้ใช้เฉพาะบุคคล เช่น `pimchanok.w`/`thanawat.k` จาก mapping ใน `src/domain/auth.js` หรืออีเมลเต็ม ไม่ต้องสร้างคอลัมน์เพิ่มหรือ reset ฐาน การเปลี่ยนชื่อผู้ใช้/รหัสทดลองมีผลเมื่อ deploy โค้ดใหม่ **ยังไม่ใช่ระบบยืนยันตัวตนสำหรับข้อมูลพนักงานจริง** ก่อนใช้จริงต้องเปลี่ยน login/session และการจัดการบัญชีเป็นระบบองค์กรหรือ Supabase Auth integration นี้ไม่ได้สร้าง Supabase Auth users และไม่บันทึกรหัส demo ลงฐาน
+บัญชี Employee ใน seed ยังเป็นข้อมูลทดลอง รหัส `1234` เปิดใช้ผ่าน `ENABLE_DEMO_LOGIN=true` เท่านั้น Login รับชื่อผู้ใช้เฉพาะบุคคล เช่น `pimchanok`/`thanawat` จาก mapping ใน `src/domain/auth.js` หรืออีเมลเต็ม ไม่ต้องสร้างคอลัมน์เพิ่มหรือ reset ฐาน การเปลี่ยนชื่อผู้ใช้/รหัสทดลองมีผลเมื่อ deploy โค้ดใหม่ **ยังไม่ใช่ระบบยืนยันตัวตนสำหรับข้อมูลพนักงานจริง** ก่อนใช้จริงต้องเปลี่ยน login/session และการจัดการบัญชีเป็นระบบองค์กรหรือ Supabase Auth integration นี้ไม่ได้สร้าง Supabase Auth users และไม่บันทึกรหัส demo ลงฐาน
 
 ## เปิดใช้งานบน Vercel
+
+Go ใช้ pgx simple protocol และปิด statement/description cache เพื่อรองรับ Supabase Transaction pooler ซึ่งไม่รองรับ named prepared statements พารามิเตอร์ยังผ่านการแปลงและ escape ของ pgx ไม่ประกอบค่าผู้ใช้เป็น SQL เอง และยังใช้ transaction/lock เดิม ดู [ข้อกำหนดของ Supabase](https://supabase.com/docs/guides/troubleshooting/disabling-prepared-statements-qL8lEL)
+
+หากหน้าเว็บขึ้น “ไม่สามารถทำรายการได้” และ API ตอบ 500 ให้ดู Runtime Logs ของ deployment ใหม่ Go จะบันทึก `sqlstate` และ method/route โดยไม่บันทึก SQL ค่าพารามิเตอร์ หรือรายละเอียดข้อมูลใน error ตัวอย่าง `26000` คือ prepared statement ไม่มีอยู่ และ `42P05` คือชื่อ prepared statement ซ้ำ ส่วน `42P01`/`42703` เกี่ยวกับตาราง/คอลัมน์ที่ไม่มีอยู่ ต้องตรวจจากรหัสจริงก่อนสรุปสาเหตุ ชุด log 11/10/2569 ที่มีเพียง `Go API error (*pgconn.PgError)` ยังไม่ยืนยันว่าเกิดจาก pooler
+
+หลังแก้ ต้อง commit/push โค้ดล่าสุดผ่านช่องทาง deploy เดิมให้ Vercel สร้าง deployment ใหม่ การ Redeploy deployment เก่าไม่รวมโค้ดที่ยังอยู่ในเครื่อง ไม่ต้องรัน setup/reset ฐานข้อมูลเพื่อใช้การแก้นี้
 
 ที่ leave-app → Settings → Environment Variables สำหรับ **Production**:
 

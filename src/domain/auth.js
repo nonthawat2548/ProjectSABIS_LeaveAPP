@@ -1,15 +1,15 @@
-/** Personal usernames for the existing demo accounts, independent of job/role. */
+/** First-name usernames for the existing demo accounts, independent of job/role. */
 const demoUsernames = {
-  'employee@demo.local': 'pimchanok.w',
-  'nat@demo.local': 'natthaphong.s',
-  'orn@demo.local': 'orathai.m',
-  'manager@demo.local': 'thanawat.k',
-  'hr@demo.local': 'siriporn.j',
-  'other@demo.local': 'kan.p',
-  'sales-manager@demo.local': 'pakorn.r',
-  'chutima@demo.local': 'chutima.s',
-  'malinee@demo.local': 'malinee.s',
-  'weeraphat@demo.local': 'weeraphat.t',
+  'employee@demo.local': 'pimchanok',
+  'nat@demo.local': 'natthaphong',
+  'orn@demo.local': 'orathai',
+  'manager@demo.local': 'thanawat',
+  'hr@demo.local': 'siriporn',
+  'other@demo.local': 'kan',
+  'sales-manager@demo.local': 'pakorn',
+  'chutima@demo.local': 'chutima',
+  'malinee@demo.local': 'malinee',
+  'weeraphat@demo.local': 'weeraphat',
 };
 
 /** Preserve existing emails/database records; unknown accounts use their email alias. */

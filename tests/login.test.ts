@@ -212,7 +212,7 @@ test('Login account controls submit the selected person to the connected reposit
       await chooseRole('Employee');
       assert.equal(select().value, '');
 
-      await type(emailInput(), ' THANAWAT.K ');
+      await type(emailInput(), ' THANAWAT ');
       assert.equal(select().value, 'manager@demo.local');
       assert.equal(passwordInput().value, '');
       await type(passwordInput(), '1234');

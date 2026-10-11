@@ -86,13 +86,22 @@ func command(input map[string]any) map[string]any {
 
 func TestPersonalLoginAndSessionScope(t *testing.T) {
 	_, handler := newFixture(t)
-	for _, email := range []string{"employee@demo.local", "nat@demo.local", "orn@demo.local", "manager@demo.local", "hr@demo.local", "other@demo.local", "sales-manager@demo.local", "chutima@demo.local", "malinee@demo.local", "weeraphat@demo.local"} {
-		t.Run(email, func(t *testing.T) {
+	for _, account := range []struct{ email, username string }{
+		{"employee@demo.local", "pimchanok"}, {"nat@demo.local", "natthaphong"},
+		{"orn@demo.local", "orathai"}, {"manager@demo.local", "thanawat"},
+		{"hr@demo.local", "siriporn"}, {"other@demo.local", "kan"},
+		{"sales-manager@demo.local", "pakorn"}, {"chutima@demo.local", "chutima"},
+		{"malinee@demo.local", "malinee"}, {"weeraphat@demo.local", "weeraphat"},
+	} {
+		t.Run(account.username, func(t *testing.T) {
 			c := testClient{t: t, handler: handler}
-			c.login(service.Username(email))
-			status, _ := c.request("GET", "/session", nil)
+			c.login(" " + strings.ToUpper(account.username) + " ")
+			status, data := c.request("GET", "/session", nil)
 			if status != 200 {
 				t.Fatal(status)
+			}
+			if data["employee"].(map[string]any)["email"] != account.email {
+				t.Fatal("username resolved another account", data)
 			}
 			if status, _ = c.request("DELETE", "/session", nil); status != 200 {
 				t.Fatal(status)
@@ -109,7 +118,7 @@ func TestPersonalLoginAndSessionScope(t *testing.T) {
 			t.Fatalf("role alias %s accepted", name)
 		}
 	}
-	c.login("pimchanok.w")
+	c.login("pimchanok")
 	status, data := c.request("GET", "/snapshot", nil)
 	if status != 200 {
 		t.Fatal(data)
@@ -119,7 +128,7 @@ func TestPersonalLoginAndSessionScope(t *testing.T) {
 			t.Fatal("private request leaked")
 		}
 	}
-	r := httptest.NewRequest("POST", "https://leave.test/api/session", strings.NewReader(`{"email":"pimchanok.w","password":"1234"}`))
+	r := httptest.NewRequest("POST", "https://leave.test/api/session", strings.NewReader(`{"email":"pimchanok","password":"1234"}`))
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, r)
 	cookie := w.Header().Get("Set-Cookie")
@@ -142,7 +151,7 @@ func TestDirectAPIEligibilityOrder(t *testing.T) {
 				db.MaternityCases = []model.MaternityCase{}
 			})
 			c := testClient{t: t, handler: handler}
-			c.login("orathai.m")
+			c.login("orathai")
 			i := maternityInput()
 			i["startDate"] = "invalid"
 			i["reason"] = ""
@@ -164,7 +173,7 @@ func TestDirectAPIEligibilityOrder(t *testing.T) {
 			store, handler := newFixture(t)
 			change(t, store, tc.mutate)
 			c := testClient{t: t, handler: handler}
-			c.login("orathai.m")
+			c.login("orathai")
 			i := maternityInput()
 			i["maternityCaseId"] = tc.caseID
 			status, data := c.request("POST", "/commands", command(i))
@@ -184,7 +193,7 @@ func TestMaternityEditCrossYearAndLatestRights(t *testing.T) {
 		db.Notifications = []model.Notification{}
 	})
 	c := testClient{t: t, handler: handler}
-	c.login("orathai.m")
+	c.login("orathai")
 	status, result := c.request("POST", "/commands", command(maternityInput()))
 	if status != 200 {
 		t.Fatal(result)
@@ -196,7 +205,7 @@ func TestMaternityEditCrossYearAndLatestRights(t *testing.T) {
 		t.Fatal("edit double counted quota", result)
 	}
 	manager := testClient{t: t, handler: handler}
-	manager.login("thanawat.k")
+	manager.login("thanawat")
 	change(t, store, func(db *model.Database) { db.MaternityCases[0].MaximumDays = 3 })
 	status, result = manager.request("POST", "/commands", map[string]any{"type": "approve", "id": id, "version": 2, "comment": ""})
 	if status != 409 {
@@ -242,7 +251,7 @@ func TestOverlapHalfDayAndQuota(t *testing.T) {
 			store, handler := newFixture(t)
 			change(t, store, tc.mutate)
 			c := testClient{t: t, handler: handler}
-			c.login("orathai.m")
+			c.login("orathai")
 			i := maternityInput()
 			tc.input(i)
 			status, data := c.request("POST", "/commands", command(i))
@@ -253,7 +262,7 @@ func TestOverlapHalfDayAndQuota(t *testing.T) {
 	}
 	_, handler := newFixture(t)
 	c := testClient{t: t, handler: handler}
-	c.login("orathai.m")
+	c.login("orathai")
 	status, data := c.request("POST", "/commands", command(maternityInput()))
 	if status != 200 {
 		t.Fatal(data)
@@ -271,7 +280,7 @@ func TestHTTPAuthorizationBodyLimitAndCSRF(t *testing.T) {
 		t.Fatal(w.Code)
 	}
 	c := testClient{t: t, handler: handler}
-	c.login("pimchanok.w")
+	c.login("pimchanok")
 	r := httptest.NewRequest("POST", "http://leave.test/api/commands", strings.NewReader(`{}`))
 	r.Header.Set("Cookie", c.cookie)
 	r.Header.Set("Origin", "https://evil.test")
@@ -296,14 +305,14 @@ func TestHTTPAuthorizationBodyLimitAndCSRF(t *testing.T) {
 func TestAtomicConcurrentApproval(t *testing.T) {
 	_, handler := newFixture(t)
 	c := testClient{t: t, handler: handler}
-	c.login("pimchanok.w")
+	c.login("pimchanok")
 	status, data := c.request("POST", "/commands", command(annualInput()))
 	if status != 200 {
 		t.Fatal(data)
 	}
 	id := int(data["id"].(float64))
 	m := testClient{t: t, handler: handler}
-	m.login("thanawat.k")
+	m.login("thanawat")
 	var group sync.WaitGroup
 	codes := make(chan int, 2)
 	for range 2 {
@@ -332,7 +341,7 @@ func TestAtomicConcurrentApproval(t *testing.T) {
 }
 func testDocumentTransport(t *testing.T, store repository.Store, handler http.Handler) {
 	c := testClient{t: t, handler: handler}
-	c.login("pimchanok.w")
+	c.login("pimchanok")
 	raw := []byte("%PDF-1.7\nทดสอบไฟล์\n%%EOF")
 	encoded := base64.StdEncoding.EncodeToString(raw)
 	status, data := c.request("POST", "/uploads", map[string]any{"fileName": "test.pdf", "fileType": "application/pdf", "fileSize": len(raw), "encodedLength": len(encoded)})
@@ -374,7 +383,7 @@ func testDocumentTransport(t *testing.T, store repository.Store, handler http.Ha
 		t.Fatal(status, data)
 	}
 	other := testClient{t: t, handler: handler}
-	other.login("natthaphong.s")
+	other.login("natthaphong")
 	status, _ = other.request("GET", path, nil)
 	if status != 403 {
 		t.Fatal("document leaked", status)
@@ -417,7 +426,7 @@ func TestPostgresTransport(t *testing.T) {
 	}
 	testDocumentTransport(t, store, handler)
 	m := testClient{t: t, handler: handler}
-	m.login("thanawat.k")
+	m.login("thanawat")
 	status, data = m.request("GET", "/snapshot", nil)
 	if status != 200 {
 		t.Fatal(status, data)
@@ -427,7 +436,7 @@ func TestPostgresTransport(t *testing.T) {
 		t.Fatal(status, data)
 	}
 	hr := testClient{t: t, handler: handler}
-	hr.login("siriporn.j")
+	hr.login("siriporn")
 	status, data = hr.request("POST", "/demo/reset", map[string]any{})
 	if status != 200 {
 		t.Fatal(status, data)

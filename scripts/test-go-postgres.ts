@@ -15,7 +15,17 @@ try {
   const url = 'postgresql://postgres:postgres@' + socket.getServerConn() + '/postgres';
   const child = spawn(
     findGo(),
-    ['test', './internal/httpapi', '-run', '^TestPostgresTransport$', '-v', '-count=1'],
+    [
+      'test',
+      './internal/repository',
+      './internal/httpapi',
+      '-p',
+      '1',
+      '-run',
+      '^TestPostgres(TransactionPooler|Transport)$',
+      '-v',
+      '-count=1',
+    ],
     {
       stdio: 'inherit',
       windowsHide: true,

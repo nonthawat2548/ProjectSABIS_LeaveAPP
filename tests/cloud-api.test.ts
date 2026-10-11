@@ -46,7 +46,7 @@ test('Cloud login accepts every username, preserves scope and rejects invalid, a
     }
     for (const input of [
       null,
-      { email: 'pimchanok.w', password: 'demo1234' },
+      { email: 'pimchanok', password: 'demo1234' },
       { email: 'missing', password: '1234' },
       { email: 1, password: '1234' },
       ...['employee', 'manager', 'hr', 'sales-manager', 'other'].map((email) => ({
@@ -59,13 +59,13 @@ test('Cloud login accepts every username, preserves scope and rejects invalid, a
       assert.equal(client.cookie, '');
     }
     await fixture.db.exec('UPDATE leave_app.employee SET active=0 WHERE employee_id=1');
-    for (const identifier of ['pimchanok.w', 'employee@demo.local'])
+    for (const identifier of ['pimchanok', 'employee@demo.local'])
       assert.equal((await fixture.client().login(identifier)).status, 401);
     await fixture.db.exec(
-      "UPDATE leave_app.employee SET email='natthaphong.s@other.local' WHERE employee_id=1",
+      "UPDATE leave_app.employee SET email='natthaphong@other.local' WHERE employee_id=1",
     );
     assert.equal(
-      (await fixture.client().login('natthaphong.s')).status,
+      (await fixture.client().login('natthaphong')).status,
       401,
       'Even an inactive duplicate must not silently select another person',
     );

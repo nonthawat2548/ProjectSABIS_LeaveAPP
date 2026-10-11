@@ -39,6 +39,11 @@ func OpenPostgres(ctx context.Context, dsn, ca string, local bool) (*PostgresSto
 	cfg.MaxConns = 2
 	cfg.MaxConnIdleTime = 10 * time.Second
 	cfg.ConnConfig.ConnectTimeout = 15 * time.Second
+	// Transaction poolers cannot retain named prepared statements across transactions.
+	// pgx handles parameter quoting; simple protocol also preserves SQL date/JSON types.
+	cfg.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	cfg.ConnConfig.StatementCacheCapacity = 0
+	cfg.ConnConfig.DescriptionCacheCapacity = 0
 	// Always verify cloud TLS. Local integration tests must opt in and use loopback.
 	host := cfg.ConnConfig.Host
 	ip := net.ParseIP(host)

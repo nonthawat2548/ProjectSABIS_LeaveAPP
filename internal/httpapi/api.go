@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"io"
 	"leave-management/internal/model"
 	"leave-management/internal/repository"
@@ -195,7 +196,13 @@ func (a *API) send(c *gin.Context, data any) {
 func (a *API) fail(c *gin.Context, err error) {
 	var problem *service.Error
 	if !errors.As(err, &problem) {
-		log.Printf("Go API error (%T)", err)
+		var postgresError *pgconn.PgError
+		if errors.As(err, &postgresError) {
+			// SQLSTATE diagnoses pooler/schema errors without logging SQL, values or credentials.
+			log.Printf("Go API error (%T) sqlstate=%q route=%s %s", err, postgresError.Code, c.Request.Method, c.FullPath())
+		} else {
+			log.Printf("Go API error (%T) route=%s %s", err, c.Request.Method, c.FullPath())
+		}
 		problem = &service.Error{Message: "ไม่สามารถทำรายการได้ กรุณาลองอีกครั้งหรือติดต่อผู้ดูแลระบบ", Code: "SERVER"}
 	}
 	status := map[string]int{"UNAUTHENTICATED": 401, "FORBIDDEN": 403, "NOT_FOUND": 404, "CONFLICT": 409, "PAYLOAD_TOO_LARGE": 413, "UNAVAILABLE": 503, "SERVER": 500}[problem.Code]
