@@ -99,6 +99,8 @@
 
 ## แหล่งข้อมูลและข้อจำกัดปัจจุบัน
 
+- เมื่อต้องล้างประวัติเพื่อทดสอบ ใช้ `database/supabase/clear-leave-history.sql` กับฐาน cloud และ `npm run history:clear -- --confirm` กับ Go JSON ที่หยุด server แล้ว คงพนักงาน นโยบาย granted entitlements กรณีลาคลอด วันหยุด session และสถานะงานอิสระ ล้าง FK children ก่อนคำขอ พร้อมเอกสารและ uploads ค้าง SQL ใช้ transaction/advisory lock เดิม ไม่ DROP/TRUNCATE ไฟล์ local สร้าง backup ก่อน atomic rename อย่าแก้ source/fixtures หรือ reset ทั้งฐานแทนการล้างประวัติ และอย่ารายงานว่า cloud/IndexedDB ถูกล้างหากยังไม่ได้เข้าถึงและตรวจผลจริง
+
 - จัดไฟล์ข้อมูลตามหน้าที่: source JSON และ repositories อยู่ใน src/data/, ตัวสร้างอยู่ scripts/, PostgreSQL setup/migration อยู่ database/supabase/, SQLite/SQL ชุด 10 คนอยู่ database/sqlite/, ตัวอย่างเก่าอยู่ database/legacy/, CSV ต้นฉบับอยู่ docs/reference/ ใช้ database/schema.sql เป็น schema กลาง ไม่สร้าง src/data/schema.sql ซ้ำ ดู database/README.md และ npm run data:check; อย่าย้าย runtime/reset ข้อมูลเพียงเพื่อจัดโฟลเดอร์
 
 - สำหรับ Supabase/Vercel ใช้ `api/go.go`, `internal/httpapi/` และ `internal/repository/postgres.go` กับ schema `leave_app` จาก `database/supabase/setup-10-people.sql`; ฐานที่นำเข้าแล้วต้องมี migration `002-cloud-api.sql` สำหรับ App_Session/App_Upload/App_Upload_Part โดยไม่ล้างข้อมูลเดิม ไม่รัน setup ซ้ำเพียงเพราะย้ายเป็น Go เปิด RLS ถอนสิทธิ์ PUBLIC/anon/authenticated รวม views ไม่มี browser policy ใช้ backend ตรวจ domain/session/สิทธิ์ภายใน transaction connection เดียวพร้อม advisory lock/SELECT FOR UPDATE และเขียน delta; snapshot ไม่โหลดเนื้อไฟล์และใช้ remote metadata ห้ามทำ data_url ของเอกสารเดิมหายจากการเขียน metadata โค้ด Node เดิมอยู่ใน `server/cloudApi.ts`/`server/postgresStore.ts` เพื่ออ้างอิงและตรวจเทียบ

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ล้างประวัติคำขอลาในเบราว์เซอร์</title>
+    <style>
+      body {
+        font:
+          18px/1.7 system-ui,
+          sans-serif;
+        background: #effbf6;
+        color: #16483f;
+        margin: 40px auto;
+        max-width: 620px;
+        padding: 20px;
+      }
+      button,
+      a {
+        font: inherit;
+      }
+      button {
+        background: #08785f;
+        color: white;
+        border: 0;
+        border-radius: 12px;
+        padding: 14px 24px;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      a {
+        color: #08785f;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ล้างประวัติคำขอลาในเบราว์เซอร์</h1>
+    <p>
+      ล้างคำขอลา ไฟล์แนบ ผลอนุมัติ และการแจ้งเตือนที่เกี่ยวข้อง เฉพาะข้อมูลบน
+      <strong id="origin"></strong> ในเบราว์เซอร์นี้ บัญชีและสิทธิ์วันลายังคงเดิม
+    </p>
+    <button id="clear" type="button" disabled>ล้างประวัติคำขอลา</button>
+    <p id="result" role="status">กำลังตรวจสอบหน้าเครื่องมือ…</p>
+    <a href="/#/requests">กลับไปหน้าประวัติคำขอ</a>
+    <script type="module">
+      import { clearBrowserHistory } from './clear-browser-history.js';
+      const button = document.querySelector('#clear');
+      const result = document.querySelector('#result');
+      document.querySelector('#origin').textContent = location.origin;
+      if (import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
+        button.disabled = false;
+        result.textContent = 'กดปุ่มเพื่อล้างข้อมูลหนึ่งครั้ง';
+      } else {
+        result.textContent = 'หน้านี้ใช้ได้เฉพาะเว็บทดลองในเครื่องเท่านั้น';
+      }
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          const count = await clearBrowserHistory();
+          result.textContent = `ล้างเรียบร้อย: เดิม ${count.before} คำขอ เหลือ ${count.after} คำขอ`;
+        } catch (error) {
+          result.textContent = error.message;
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

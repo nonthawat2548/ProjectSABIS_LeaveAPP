@@ -29,6 +29,7 @@
     "data:generate": "node --import tsx scripts/generate-demo.ts && python scripts/build-sqlite.py && node scripts/generate-supabase.mjs",
     "data:check": "node --import tsx scripts/generate-demo.ts --check && python scripts/build-sqlite.py --check && node scripts/generate-supabase.mjs --check",
     "seed": "node --env-file-if-exists=.env --import tsx server/seed.ts",
+    "history:clear": "node --import tsx scripts/clear-local-history.ts",
     "test:unit": "node --import tsx --test tests/*.test.ts",
     "test:ui": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "lint": "eslint src"
