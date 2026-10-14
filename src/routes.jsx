@@ -73,17 +73,16 @@ export function createWorkspaceRoutes(props) {
     },
     { path: '/notifications', title: 'การแจ้งเตือน', element: <NotificationsPage {...props} /> },
   ];
-  if (employee)
-    routes.push(
-      { path: '/new', title: 'ยื่นคำขอลา', element: <LeaveForm {...props} /> },
-      { path: '/quota', title: 'สิทธิ์และโควตา', element: <Quotas {...props} /> },
-      {
-        path: '/request/:id/edit',
-        title: 'รายละเอียดคำขอ',
-        element: <RequestRoute pageProps={props} edit />,
-      },
-    );
-  else
+  routes.push(
+    { path: '/new', title: 'ยื่นคำขอลา', element: <LeaveForm {...props} /> },
+    { path: '/quota', title: 'สิทธิ์และโควตา', element: <Quotas {...props} /> },
+    {
+      path: '/request/:id/edit',
+      title: 'รายละเอียดคำขอ',
+      element: <RequestRoute pageProps={props} edit />,
+    },
+  );
+  if (!employee)
     routes.push({ path: '/calendar', title: 'ปฏิทินการลา', element: <CalendarPage {...props} /> });
   if (!employee)
     routes.push({
@@ -93,9 +92,20 @@ export function createWorkspaceRoutes(props) {
     });
   if (hr)
     routes.push(
+      {
+        path: '/approvals',
+        title: 'อนุมัติคำขอผู้จัดการ',
+        element: <Requests {...props} decisionsOnly />,
+      },
       { path: '/admin', title: 'ข้อมูลและสิทธิ์การลา', element: <AdminPage {...props} /> },
       { path: '/settings', title: 'การตั้งค่า', element: <SettingsPage {...props} /> },
     );
+  if (!employee)
+    routes.push({
+      path: '/my-requests',
+      title: 'ประวัติคำขอของฉัน',
+      element: <Requests {...props} personal />,
+    });
   routes.push({ path: '*', title: 'ไม่พบหน้า', element: <NotFound /> });
   return routes;
 }

@@ -401,7 +401,8 @@ export function createCloudHandler(store, options = {}) {
         await store.transaction(async (client) => {
           const actorId = await authenticate(client, request),
             actor = actorById(await loadDatabase(client), actorId);
-          if (actor.role !== 'Employee') fail('เฉพาะพนักงานที่ยื่นคำขอเท่านั้น', 'FORBIDDEN');
+          if (!['Employee', 'Manager', 'HR'].includes(actor.role))
+            fail('เฉพาะผู้ยื่นคำขอที่เข้าสู่ระบบเท่านั้น', 'FORBIDDEN');
           await client.query(
             'DELETE FROM leave_app.app_upload WHERE expires_at<=CURRENT_TIMESTAMP',
           );

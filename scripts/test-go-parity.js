@@ -96,11 +96,23 @@ sequence('maternity/edit/approve', fresh(), [
 ]);
 sequence('half days', fresh(), [
   [1, { type: 'submit', input: { ...base, duration: 'AM' } }],
-  [1, { type: 'submit', input: { ...base, duration: 'PM' } }],
+  [1, { type: 'submit', input: { ...base, startDate: '2026-12-07', endDate: '2026-12-07', duration: 'PM' } }],
   [1, { type: 'withdraw', id: 1001, version: 1 }],
 ]);
 for (const actor of [999, 4, 5, 7])
   add(`submit authority ${actor}`, fresh(), actor, { type: 'submit', input: base });
+for (const [owner, reviewer] of [[4,5],[7,5],[5,4]]) {
+  const db = fresh();
+  applyCommand(db, owner, {type:'submit',input:base},now);
+  add(`personal self approval ${owner}`, db, owner, {type:'approve',id:1001,version:1,comment:''});
+  sequence(`personal review ${owner}`, fresh(), [[owner,{type:'submit',input:base}],[reviewer,{type:'approve',id:1001,version:1,comment:''}]]);
+}
+{
+  const db = fresh();
+  applyCommand(db,1,{type:'submit',input:{...base,duration:'AM'}},now);
+  add('same date opposite half overlaps', db, 1, {type:'submit',input:{...base,duration:'PM'}});
+  add('sick range starts beyond thirty days', fresh(), 1, {type:'submit',input:{...base,leaveTypeId:2,startDate:'2026-09-09',endDate:'2026-10-10'}});
+}
 for (const gender of ['Male', 'Other', '', 'female', 'Unknown', null]) {
   const db = fresh();
   Object.assign(db.employees[2], { gender, managerId: null });

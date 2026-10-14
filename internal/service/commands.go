@@ -32,8 +32,8 @@ func Apply(db *model.Database, actorID int, c model.Command, now time.Time) (mod
 		r.Version++
 		r.Timeline = append(r.Timeline, model.TimelineEvent{Action: "ยกเลิกคำขอ", ActorID: actorID, At: at})
 		cancelApprovals(db, r.ID)
-		if actor.ManagerID != nil {
-			notify(db, *actor.ManagerID, pointer(r.ID), actor.Name+"ยกเลิก "+RequestCode(r), at)
+		if reviewer := requestReviewer(db, actor); reviewer != nil {
+			notify(db, reviewer.ID, pointer(r.ID), actor.Name+"ยกเลิก "+RequestCode(r), at)
 		}
 		return model.Result{ID: r.ID, Message: "ยกเลิกคำขอแล้ว ไม่มีการหักโควตา"}, nil
 	case "approve", "reject", "refer":
@@ -44,8 +44,8 @@ func Apply(db *model.Database, actorID int, c model.Command, now time.Time) (mod
 		if _, err := ParseDate(c.Date); err != nil || c.StatusType != "In-office" && c.StatusType != "WFH" && c.StatusType != "Outside" {
 			return model.Result{}, Invalid("สถานะหรือวันที่ไม่ถูกต้อง")
 		}
-		if approvedUnits(db, actor.ID, c.Date) >= 1 {
-			return model.Result{}, Invalid("วันนี้มีการลาเต็มวันที่อนุมัติแล้ว")
+		if approvedUnits(db, actor.ID, c.Date) > 0 {
+			return model.Result{}, Invalid("วันที่เลือกมีการลาที่อนุมัติแล้ว ระบบแสดงสถานะให้อัตโนมัติ")
 		}
 		for i := range db.WorkStatuses {
 			w := &db.WorkStatuses[i]
@@ -70,7 +70,7 @@ func Apply(db *model.Database, actorID int, c model.Command, now time.Time) (mod
 }
 
 func submit(db *model.Database, actor *model.Employee, c model.Command, now time.Time) (model.Result, error) {
-	if actor.Role != "Employee" {
+	if actor.Role != "Employee" && actor.Role != "Manager" && actor.Role != "HR" {
 		return model.Result{}, Problem("ขั้นตอนยื่นลานี้เปิดให้บทบาทพนักงาน", "FORBIDDEN")
 	}
 	var r *model.LeaveRequest
@@ -130,10 +130,11 @@ func submit(db *model.Database, actor *model.Employee, c model.Command, now time
 		}
 		db.Documents = append(db.Documents, model.LeaveDocument{ID: nextID(db.Documents), LeaveID: r.ID, DocumentType: name, FileName: a.FileName, FileType: a.FileType, FileSize: a.FileSize, DataURL: a.DataURL, StorageKey: fmt.Sprintf("mock/%d/%s", r.ID, a.FileName), UploadedAt: at})
 	}
-	db.Approvals = append(db.Approvals, model.LeaveApproval{ID: nextID(db.Approvals), LeaveID: r.ID, ApproverID: *actor.ManagerID, StepNo: approvalStep(db, r.ID), ReviewRole: "Manager", ReviewType: "Decision", Status: "Pending", AssignedAt: at})
+	reviewer := requestReviewer(db, actor)
+	db.Approvals = append(db.Approvals, model.LeaveApproval{ID: nextID(db.Approvals), LeaveID: r.ID, ApproverID: reviewer.ID, StepNo: approvalStep(db, r.ID), ReviewRole: reviewer.Role, ReviewType: "Decision", Status: "Pending", AssignedAt: at})
 	action := "ยื่นคำขอ"
 	verb := "ส่ง"
-	text := "ส่งคำขอแล้ว รอผู้จัดการพิจารณา"
+	text := "ส่งคำขอแล้ว รอผู้พิจารณา"
 	message := "ส่งคำขอเรียบร้อยแล้ว"
 	if editing {
 		action = "แก้ไขคำขอ / เริ่มพิจารณาใหม่"
@@ -142,7 +143,7 @@ func submit(db *model.Database, actor *model.Employee, c model.Command, now time
 		message = "บันทึกการแก้ไขแล้ว"
 	}
 	r.Timeline = append(r.Timeline, model.TimelineEvent{Action: action, ActorID: actor.ID, At: at})
-	notify(db, *actor.ManagerID, pointer(r.ID), actor.Name+verb+"คำขอ "+RequestCode(r), at)
+	notify(db, reviewer.ID, pointer(r.ID), actor.Name+verb+"คำขอ "+RequestCode(r), at)
 	notify(db, actor.ID, pointer(r.ID), text, at)
 	return model.Result{ID: r.ID, Message: message}, nil
 }
@@ -179,7 +180,7 @@ func decision(db *model.Database, actor *model.Employee, c model.Command, now ti
 		return model.Result{}, err
 	}
 	owner := employee(db, r.EmployeeID)
-	if actor.Role != "Manager" || owner == nil || owner.Role == "HR" || valueOf(owner.ManagerID) != actor.ID {
+	if !isDecisionReviewer(db, actor, *r) {
 		return model.Result{}, Problem("คุณไม่มีสิทธิ์พิจารณาคำขอนี้", "FORBIDDEN")
 	}
 	t, err := leaveType(db, r.LeaveTypeID)
@@ -203,6 +204,9 @@ func decision(db *model.Database, actor *model.Employee, c model.Command, now ti
 	}
 	at := timestamp(now)
 	if c.Type == "refer" {
+		if actor.Role != "Manager" || c.HRID == r.EmployeeID {
+			return model.Result{}, Problem("ส่งปรึกษาได้เฉพาะ HR ที่ไม่ได้เป็นผู้ยื่นคำขอ", "FORBIDDEN")
+		}
 		text, err := comment(c.Comment)
 		if err != nil {
 			return model.Result{}, err
@@ -331,8 +335,8 @@ func consult(db *model.Database, actor *model.Employee, c model.Command, at stri
 	if err != nil {
 		return model.Result{}, err
 	}
-	if actor.Role != "HR" {
-		return model.Result{}, Problem("เฉพาะ HR ที่ได้รับมอบหมายเท่านั้น", "FORBIDDEN")
+	if actor.Role != "HR" || r.EmployeeID == actor.ID {
+		return model.Result{}, Problem("เฉพาะ HR ที่ได้รับมอบหมายและไม่ได้เป็นผู้ยื่นเท่านั้น", "FORBIDDEN")
 	}
 	for i := range db.Approvals {
 		a := &db.Approvals[i]

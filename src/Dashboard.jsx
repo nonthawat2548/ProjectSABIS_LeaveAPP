@@ -43,7 +43,7 @@ export function Dashboard({ db, actor }) {
       (actor.role !== 'HR' || a.approverId === actor.id),
   );
   const team = db.employees.filter(
-    (e) => e.active && (actor.role === 'HR' || e.managerId === actor.id),
+    (e) => e.active && (actor.role === 'HR' || (e.role !== 'HR' && e.managerId === actor.id)),
   );
   const approvedToday = new Set(
     db.requests

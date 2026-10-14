@@ -1,4 +1,5 @@
 import { thaiMonths } from './domain/date.js';
+import { formatLeaveDays } from './labels.js';
 
 const shortMonths = [
   'ม.ค.',
@@ -40,7 +41,7 @@ export function MonthChart({ months, month, showValues = false }) {
             <div
               className="leave-summary-month-bars"
               role="img"
-              aria-label={`${thaiMonths[item.month - 1]} อนุมัติ ${count(item.approvedDays)} วัน รอพิจารณา ${count(item.pendingDays)} วัน`}
+              aria-label={`${thaiMonths[item.month - 1]} อนุมัติ ${formatLeaveDays(item.approvedDays)} รอพิจารณา ${formatLeaveDays(item.pendingDays)}`}
             >
               <span
                 className="leave-summary-bar approved"
@@ -62,7 +63,10 @@ export function MonthChart({ months, month, showValues = false }) {
               </span>
             </div>
             {!showValues && (
-              <strong className="leave-summary-month-total">
+              <strong
+                className="leave-summary-month-total"
+                title={formatLeaveDays(item.approvedDays + item.pendingDays)}
+              >
                 {count(item.approvedDays + item.pendingDays)}
               </strong>
             )}

@@ -30,7 +30,7 @@
     "data:check": "node scripts/generate-demo.js --check && python scripts/build-sqlite.py --check && node scripts/generate-supabase.mjs --check",
     "seed": "node --env-file-if-exists=.env server/seed.js",
     "history:clear": "node scripts/clear-local-history.js",
-    "test:unit": "node --import ./scripts/register-jsx.mjs --test tests/*.test.js",
+    "test:unit": "node --import ./scripts/register-jsx.mjs --test --test-concurrency=1 tests/*.test.js",
     "test:ui": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "lint": "eslint src"
   },

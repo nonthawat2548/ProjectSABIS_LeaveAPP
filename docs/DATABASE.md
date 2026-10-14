@@ -1,5 +1,9 @@
 # Data Dictionary → โครงสร้างในแอป
 
+การแก้ตาม `codex_leave_app_fixes.md` ใช้ตารางเดิม: Manager ยื่นคำขอและมี `Leave_Approval` แบบ HR/Decision ส่วน HR ยื่นและมี Manager/Decision ไม่เพิ่มตารางหรือ field ของผู้อนุมัติ คำขอตัวอย่าง 1001–1003 อยู่ใน source JSON และ SQL/SQLite ที่ส่งออก เวลาในไฟล์เป็น UTC และแสดงผลไทยตาม Asia/Bangkok
+
+IndexedDB ใช้ `leave-management-10-people-v2` เพื่อเริ่มชุดตัวอย่างสะอาดโดยเก็บฐาน v1 ไว้ ข้อมูล Go/Node ในเครื่องมีตัวแก้แบบเฉพาะรายการ `node scripts/repair-demo-data.mjs --apply` พร้อมไฟล์สำรอง ส่วนฐาน Supabase เดิมใช้ `database/supabase/repair-demo-records.sql` หลังสำรองรายการที่กระทบ ไม่รัน setup ซ้ำ ไม่ล้างคำขอที่ถูกต้องอื่น
+
 Backend หลักปัจจุบันเป็น Go + Gin ใช้ structs ใน internal/model/model.go และ SQL mapping ใน internal/repository/postgres.go โดยรักษา schema leave_app, 9 ตาราง, session/upload, ISO dates, advisory lock/transaction และ delta เดิม ไม่ต้อง migration หรือ reset เพียงเพราะเปลี่ยนภาษา โหมด Go JSON ทดลองใช้ server/data/leave-management-go.json แยกจากฐานเดิม ดู [GO_BACKEND.md](GO_BACKEND.md) ข้อความที่กล่าวถึง server/*.js ด้านล่างเป็น implementation Node เดิมที่เก็บไว้เทียบระหว่างย้าย
 
 ใช้ตารางหลัก **9 ตาราง** ตามไฟล์ Data Dictionary เดิม มีส่วนเพิ่มสำหรับฟังก์ชันจาก Navigation Flow ตารางนี้แสดงชื่อฐานข้อมูลกับ array ใน snapshot / mock JSON database
@@ -30,12 +34,12 @@ Backend หลักปัจจุบันเป็น Go + Gin ใช้ stru
 
 หลังลดเพดานแนบใหม่เหลือ 25 MiB เอกสารที่เก็บไว้ตามเพดานเดิมถึง 100 MiB ยังอ่าน/ดาวน์โหลดและเก็บไว้ขณะแก้ไขหรืออนุมัติได้ ไม่ย้าย ลบ หรือย่อไฟล์เดิม และไม่ต้องแก้ schema
 
-- โหมดเบราว์เซอร์: IndexedDB `leave-management-10-people-v1` เริ่มต้นด้วยชุด 10 คนและเก็บการทำรายการต่อในเบราว์เซอร์ ฐานเดิม `leave-management-v1` ถูกเก็บไว้
+- โหมดเบราว์เซอร์: IndexedDB `leave-management-10-people-v2` เริ่มต้นด้วยชุด 10 คนที่แก้ตามรายงานและเก็บการทำรายการต่อในเบราว์เซอร์ ฐานชุด 10 คน v1 และฐานเดิม `leave-management-v1` ถูกเก็บไว้
 - โหมด Go JSON (`dev:api`): อ่าน/เขียน `server/data/leave-management-go.json` หรือพาธจาก `GO_DATA_FILE` หากยังไม่มีไฟล์ให้เริ่มจากชุด JSON ต้นทางเดียวกัน
 - โหมด Node legacy (`dev:legacy`): อ่าน/เขียน `server/data/leave-management-10-people.json` หรือพาธจาก `MOCK_DATA_FILE` เก็บฐาน runtime เดิมทั้งหมดไว้
 - แต่ละโหมดเก็บข้อมูลแยกกัน ไม่ซิงก์กัน และไม่เขียนการทำรายการกลับไปยัง `src/data/leave-management-10-people.json`, SQL หรือ SQLite
 - HR คืนค่าข้อมูลจำลองเป็นชุดต้นทาง 10 คนได้ในโหมดที่ใช้งานอยู่ การคืนค่าล้างการแก้ไขในฐาน runtime ของโหมดนั้น CLI `npm run seed -- --confirm` คืนค่าเฉพาะไฟล์ Node legacy
-- ตัวสร้าง `scripts/generate-demo.js` และ `scripts/build-sqlite.py` สร้าง JSON ต้นทางใน `src/data/` และไฟล์ส่งออกใน `database/sqlite/` ไม่แก้ฐาน runtime หากต้องการใช้ source ใหม่กับข้อมูลที่มีอยู่แล้ว ต้องเรียกการคืนค่าของ HR
+- ตัวสร้าง `scripts/generate-demo.js` และ `scripts/build-sqlite.py` สร้าง JSON ต้นทางใน `src/data/` และไฟล์ส่งออกใน `database/sqlite/` ไม่แก้ฐาน runtime สำหรับการซ่อมเฉพาะตัวอย่าง 1001–1003 ใช้ `scripts/repair-demo-data.mjs` หรือ SQL ใน [FIXES_AUDIT.md](FIXES_AUDIT.md) เพื่อเก็บรายการที่ถูกต้องอื่นไว้ การคืนค่าของ HR เหมาะกับการเริ่มทดลองใหม่ทั้งชุดเท่านั้น
 
 ชุด 10 คนมีสิทธิ์รายปี ค.ศ. 2026 และ 2027; ปีอื่นต้องให้ HR จัดสรร รายละเอียดบัญชีและสถานการณ์ตัวอย่างอยู่ใน [src/data/README.md](../src/data/README.md)
 

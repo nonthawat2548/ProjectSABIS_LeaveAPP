@@ -11,7 +11,7 @@ import {
   Send,
 } from 'lucide-react';
 
-import { Badge, Card, Empty, Heading, Stat } from '../components.jsx';
+import { Badge, Card, DayStatValue, Empty, Heading, Stat } from '../components.jsx';
 import { EmployeeProfileLink } from '../EmployeeProfileLink.jsx';
 import { EmployeeLabel } from '../EmployeeLabel.jsx';
 import { MonthChart } from '../LeaveMonthChart.jsx';
@@ -19,7 +19,7 @@ import { formatDate, formatDateTime, thaiMonths, today } from '../domain/date.js
 import { leaveSummaryPeople, leaveSummaryYears, summarizeLeave } from '../domain/leaveSummary.js';
 import { useTask } from './useTask.js';
 import { requestCode } from '../domain/service.js';
-import { statusLabels } from '../labels.js';
+import { formatLeaveDays, statusLabels } from '../labels.js';
 
 const number = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 });
 const count = (value) => number.format(value);
@@ -275,7 +275,7 @@ export function LeaveSummaryPage({ db, actor, run }) {
               <small>คำขอ</small>
             </>
           }
-          note={`รวม ${count(summary.pendingDays)} วันในช่วงที่เลือก`}
+          note={`รวม ${formatLeaveDays(summary.pendingDays)} ในช่วงที่เลือก`}
           icon={<Clock3 />}
           tone="peach"
         />
@@ -293,12 +293,7 @@ export function LeaveSummaryPage({ db, actor, run }) {
         />
         <Stat
           title="วันลาที่อนุมัติ"
-          value={
-            <>
-              {count(summary.approvedDays)}
-              <small>วัน</small>
-            </>
-          }
+          value={<DayStatValue value={summary.approvedDays} />}
           note="รวมวันที่ในอนาคตที่อนุมัติแล้ว"
           icon={<CalendarDays />}
           tone="sky"
@@ -306,7 +301,7 @@ export function LeaveSummaryPage({ db, actor, run }) {
       </div>
 
       <p className="leave-summary-caption">
-        สรุปตามวันที่ลาที่บันทึก ไม่ใช่วันที่ยื่นคำขอ · ครึ่งวันนับ 0.5 วัน
+        สรุปตามวันที่ลาที่บันทึก ไม่ใช่วันที่ยื่นคำขอ · 0.5 วัน หมายถึงครึ่งวัน
         และคำขอข้ามปีนับเฉพาะวันที่อยู่ในช่วงที่เลือก
       </p>
 
@@ -374,7 +369,7 @@ export function LeaveSummaryPage({ db, actor, run }) {
                   <div
                     className="leave-summary-type-track"
                     role="img"
-                    aria-label={`${type.name} อนุมัติ ${count(type.approvedDays)} วัน รอพิจารณา ${count(type.pendingDays)} วัน`}
+                    aria-label={`${type.name} อนุมัติ ${formatLeaveDays(type.approvedDays)} รอพิจารณา ${formatLeaveDays(type.pendingDays)}`}
                   >
                     <span
                       className="approved"
@@ -391,10 +386,10 @@ export function LeaveSummaryPage({ db, actor, run }) {
                   </div>
                 </div>
                 <span>
-                  อนุมัติ <strong>{count(type.approvedDays)}</strong> วัน
+                  อนุมัติ <strong>{formatLeaveDays(type.approvedDays)}</strong>
                 </span>
                 <span>
-                  รอพิจารณา <strong>{count(type.pendingDays)}</strong> วัน
+                  รอพิจารณา <strong>{formatLeaveDays(type.pendingDays)}</strong>
                 </span>
               </div>
             ))}
@@ -414,7 +409,7 @@ export function LeaveSummaryPage({ db, actor, run }) {
                   <div
                     className="leave-summary-type-track"
                     role="img"
-                    aria-label={`วันที่ ${formatDate(day.date)} อนุมัติ ${count(day.approvedDays)} วัน รอพิจารณา ${count(day.pendingDays)} วัน`}
+                    aria-label={`วันที่ ${formatDate(day.date)} อนุมัติ ${formatLeaveDays(day.approvedDays)} รอพิจารณา ${formatLeaveDays(day.pendingDays)}`}
                   >
                     <span
                       className="approved"
@@ -430,7 +425,8 @@ export function LeaveSummaryPage({ db, actor, run }) {
                     />
                   </div>
                   <span>
-                    อนุมัติ {count(day.approvedDays)} วัน · รอพิจารณา {count(day.pendingDays)} วัน
+                    อนุมัติ {formatLeaveDays(day.approvedDays)} · รอพิจารณา{' '}
+                    {formatLeaveDays(day.pendingDays)}
                   </span>
                 </li>
               ))}
@@ -438,7 +434,7 @@ export function LeaveSummaryPage({ db, actor, run }) {
           ) : (
             <Empty>ยังไม่มีวันลาในเดือนที่เลือก</Empty>
           )}
-          <small>แสดงวันที่บันทึกในคำขอ ครึ่งวัน = 0.5 วัน</small>
+          <small>แสดงวันที่บันทึกในคำขอ โดย 0.5 วัน หมายถึงครึ่งวัน</small>
         </Card>
       )}
       {!employee && (
@@ -473,10 +469,10 @@ export function LeaveSummaryPage({ db, actor, run }) {
                     </button>
                   </div>
                   <span>
-                    อนุมัติ <strong>{count(person.approvedDays)}</strong> วัน
+                    อนุมัติ <strong>{formatLeaveDays(person.approvedDays)}</strong>
                   </span>
                   <span>
-                    รอพิจารณา <strong>{count(person.pendingDays)}</strong> วัน
+                    รอพิจารณา <strong>{formatLeaveDays(person.pendingDays)}</strong>
                   </span>
                 </div>
               ))}
@@ -530,7 +526,7 @@ export function LeaveSummaryPage({ db, actor, run }) {
                         <td data-label="ช่วงวันที่ลา">
                           {formatDate(request.startDate)} – {formatDate(request.endDate)}
                         </td>
-                        <td data-label="วันลาในช่วงนี้">{count(periodDays)}</td>
+                        <td data-label="วันลาในช่วงนี้">{formatLeaveDays(periodDays)}</td>
                         <td data-label="สถานะ">
                           <Badge status={request.status} />
                         </td>

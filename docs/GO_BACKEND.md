@@ -61,9 +61,11 @@ npm run dev:cloud
 
 Service ไม่รับ role/actorId/gender จาก body มาเป็นสิทธิ์ ต้องอ่าน Employee ของเจ้าของคำขอจากข้อมูลล่าสุด วันที่ API/ฐานยังเป็น ISO ค.ศ. การแสดง พ.ศ. คงอยู่ใน `src/domain/date.js` ของ frontend โควตาลาคลอดยังเป็นรายกรณีและตรวจเพศก่อนกรณี/วันที่/โควตา ไม่มีการเปลี่ยนนโยบายตัวอย่าง
 
+ทุกบทบาทยื่น/แก้ไข/ถอนคำขอของตนได้ขณะ Pending ผู้พิจารณาใน `Leave_Approval` แบบ Decision ต้องเป็นคนอื่น: Employee ส่งผู้จัดการ, Manager ส่ง HR active และ HR ส่งผู้จัดการที่กำหนด ใช้ `approval_routing.go` ตรวจทั้งตอนยื่นและตอนตัดสิน การปรึกษา HR สำหรับคำขอพนักงานยังเป็น Consultation และไม่ให้อำนาจอนุมัติ ผู้จัดการอ่านคำขอ HR ได้เฉพาะที่มอบหมาย Decision โดยไม่รวมในยอดทีม/รายงาน/ปฏิทินหรือเปิดโควตาของ HR ดู [FIXES_AUDIT.md](FIXES_AUDIT.md)
+
 ## ทดสอบ
 
-คำสั่ง `sendLeaveReport` อยู่ใน `internal/service/leave_report.go` ตรวจ Manager จาก session, พนักงานตามทีมและ HR ที่ active ก่อนคำนวณจากวันที่/units ที่บันทึกไว้ แล้วบันทึก notification ให้ผู้รับกับผู้ส่งใน transaction เดิม ตรวจ parity ข้อความรายงานกับ `src/domain/leaveReport.js`; ไม่เพิ่ม endpoint/schema และไม่รับรายงานหรือยอดรวมจาก request body ค่า `employeeId=0/month=0/leaveTypeId=0` เป็นตัวกรองทั้งหมดตามสิทธิ์ Manager อ่านคำขอ/วันลา/เอกสาร/โควตาของ HR ไม่ได้แม้ HR มี managerId ชี้มาที่ตน สิทธิ์อ่านโปรไฟล์พื้นฐานยังคงเดิม
+คำสั่ง `sendLeaveReport` อยู่ใน `internal/service/leave_report.go` ตรวจ Manager จาก session, พนักงานตามทีมและ HR ที่ active ก่อนคำนวณจากวันที่/units ที่บันทึกไว้ แล้วบันทึก notification ให้ผู้รับกับผู้ส่งใน transaction เดิม ตรวจ parity ข้อความรายงานกับ `src/domain/leaveReport.js`; ไม่เพิ่ม endpoint/schema และไม่รับรายงานหรือยอดรวมจาก request body ค่า `employeeId=0/month=0/leaveTypeId=0` เป็นตัวกรองทั้งหมดตามสิทธิ์ รายงานและยอดทีมไม่รวม HR แม้ HR มี managerId ชี้มาที่ผู้จัดการ ข้อยกเว้นสำหรับพิจารณาคำขอ HR ที่มอบหมาย Decision ไม่ขยายสิทธิ์รายงานหรือโควตา สิทธิ์อ่านโปรไฟล์พื้นฐานยังคงเดิม
 
 ```bash
 npm test

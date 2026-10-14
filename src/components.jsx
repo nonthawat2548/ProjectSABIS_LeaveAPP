@@ -13,7 +13,7 @@ import { formatDate, formatDateTime, parseThaiDate, thaiMonths, today } from './
 import { requestCode, totalDays } from './domain/service.js';
 import { documentBlob } from './domain/documentCodec.js';
 import { repository } from './data/index.js';
-import { statusLabels } from './labels.js';
+import { leaveDayParts, statusLabels } from './labels.js';
 export { statusLabels, roleLabels } from './labels.js';
 export function Badge({ status }) {
   return <span className={'badge ' + status.toLowerCase()}>{statusLabels[status]}</span>;
@@ -69,6 +69,17 @@ export function Stat({ title, value, note, icon, tone = 'mint' }) {
       <p>{note}</p>
       <span className="stat-corner" aria-hidden="true" />
     </div>
+  );
+}
+/** Keep the number prominent while the day unit fits beside it on narrow cards. */
+export function DayStatValue({ value }) {
+  const parts = leaveDayParts(value);
+  return (
+    <>
+      {parts.number}
+      {parts.number === 'ครึ่ง' ? null : ' '}
+      <small>{parts.unit}</small>
+    </>
   );
 }
 export function DateField({ label, value, onChange, required = false, disabled = false }) {

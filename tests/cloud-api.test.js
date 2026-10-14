@@ -389,7 +389,7 @@ test('Cloud staged files are owner-scoped, validated, consumed atomically and do
       fileSize: file.length,
       encodedLength: file.toString('base64').length,
     };
-    assert.equal((await manager.request('/uploads', 'POST', metadata)).status, 403);
+    assert.equal((await manager.request('/uploads', 'POST', metadata)).status, 200);
     assert.equal(
       (await a.request('/uploads', 'POST', { ...metadata, fileSize: MAX_ATTACHMENT_BYTES + 1 }))
         .status,

@@ -10,6 +10,10 @@ export function assigned(db, actor) {
               a.reviewType === 'Consultation' &&
               !a.cancelled,
           )
-        : db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id,
+        : r.employeeId !== actor.id &&
+          ((db.employees.find((e) => e.id === r.employeeId)?.role === 'Employee' &&
+            db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) ||
+            isDecisionReviewer(db, actor, r)),
   );
 }
+import { isDecisionReviewer } from '../domain/approvalRouting.js';

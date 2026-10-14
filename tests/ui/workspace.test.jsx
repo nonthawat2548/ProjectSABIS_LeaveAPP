@@ -335,7 +335,7 @@ test('manual personal username authenticates with the repository role', async ()
   await waitFor(() => expect(document.querySelector('.app-shell')).toBeInTheDocument());
   expect(repository.login).toHaveBeenCalledWith('thanawat', '1234');
   expect(screen.getByRole('link', { name: 'รายการคำขอของทีม', exact: true })).toBeInTheDocument();
-  expect(screen.queryByRole('link', { name: 'ยื่นคำขอลา', exact: true })).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'ยื่นคำขอลา', exact: true })).toBeInTheDocument();
 });
 
 test('login waits for the scoped snapshot and recovers if it fails', async () => {
@@ -365,6 +365,10 @@ test.each([
   [4, '/leave-summary', 'สรุปการลา'],
   [5, '/leave-summary', 'สรุปการลา'],
   [1, '/new', 'แบบฟอร์มยื่นคำขอลา'],
+  [4, '/new', 'แบบฟอร์มยื่นคำขอลา'],
+  [5, '/new', 'แบบฟอร์มยื่นคำขอลา'],
+  [4, '/my-requests', 'ประวัติคำขอลา'],
+  [5, '/quota', 'สิทธิ์และโควตาวันลา'],
   [4, '/calendar', 'ปฏิทินการลา'],
   [5, '/admin', 'ข้อมูลพนักงานและสิทธิ์การลา'],
 ])('React Router restores an allowed deep link for account %i', async (id, path, title) => {
@@ -400,8 +404,8 @@ test('leave summary is available from the workspace menu and quick search', asyn
 
 test.each([
   [1, '/admin'],
-  [4, '/new'],
-  [5, '/request/1001/edit'],
+  [4, '/admin'],
+  [5, '/missing'],
   [1, '/request/abc'],
 ])('account %i cannot open unavailable route %s', async (id, path) => {
   await openWorkspace(id, path);
@@ -476,9 +480,9 @@ test('notification bell opens a popover without navigating or marking items as r
   const bell = screen.getByRole('button', { name: /^การแจ้งเตือน \d+ รายการใหม่$/ });
   expect(
     within(screen.getByRole('navigation', { name: 'เมนูหลัก' })).queryByRole('link', {
-      name: 'การแจ้งเตือน',
+      name: /^การแจ้งเตือน/,
     }),
-  ).not.toBeInTheDocument();
+  ).toBeInTheDocument();
   await user.click(bell);
   const popover = screen.getByRole('dialog', { name: 'การแจ้งเตือน' });
   expect(window.location.hash).toBe('#/dashboard');

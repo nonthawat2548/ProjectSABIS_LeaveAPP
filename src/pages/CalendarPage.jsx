@@ -15,7 +15,7 @@ export function CalendarPage({ db, actor }) {
   const first = new Date(month + 'T00:00:00Z').getUTCDay(),
     count = new Date(Date.UTC(y, m, 0)).getUTCDate();
   const members = db.employees.filter(
-    (e) => e.active && (actor.role === 'HR' || e.managerId === actor.id),
+    (e) => e.active && (actor.role === 'HR' || (e.role !== 'HR' && e.managerId === actor.id)),
   );
   const rows = db.requests.filter(
     (r) =>

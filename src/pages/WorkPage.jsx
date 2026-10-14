@@ -48,7 +48,7 @@ export function WorkPage({ db, actor, run }) {
       e.active &&
       (actor.role === 'HR' ||
         e.id === actor.id ||
-        (actor.role === 'Manager' && e.managerId === actor.id)),
+        (actor.role === 'Manager' && e.role !== 'HR' && e.managerId === actor.id)),
   );
   useEffect(() => {
     setStatus(
@@ -130,7 +130,7 @@ export function WorkPage({ db, actor, run }) {
                 id="work-status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                disabled={mine === 'Leave'}
+                disabled={mine.includes('Leave')}
               >
                 {Object.entries(workStatusLabels).map(([value, label]) => (
                   <option value={value} key={value}>
@@ -145,7 +145,7 @@ export function WorkPage({ db, actor, run }) {
                 <span>
                   {mine === 'Leave'
                     ? 'วันที่เลือกเป็นวันลาเต็มวันที่อนุมัติแล้ว'
-                    : 'ลาครึ่งวัน สถานะนี้ใช้กับเวลาที่เหลือ'}
+                    : 'วันที่เลือกมีการลาครึ่งวันที่อนุมัติแล้ว'}
                 </span>
               </div>
             )}
@@ -154,7 +154,7 @@ export function WorkPage({ db, actor, run }) {
                 {error}
               </p>
             )}
-            <button className="btn primary" disabled={busy || !iso || mine === 'Leave'}>
+            <button className="btn primary" disabled={busy || !iso || mine.includes('Leave')}>
               {busy ? 'กำลังบันทึก…' : 'บันทึกสถานะ'}
             </button>
             <p className="tiny">สถานะลามาจากคำขอที่อนุมัติแล้ว ระบบแสดงให้อัตโนมัติ</p>

@@ -11,6 +11,7 @@
  */
 import { datesBetween, dayDifference, isoDate, today, workingDates } from './date.js';
 import { canReadReportNotification, sendLeaveReport } from './leaveReport.js';
+import { canDecideRequest, isDecisionReviewer, requestReviewer } from './approvalRouting.js';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   MAX_ATTACHMENT_BASE64_LENGTH,
@@ -64,8 +65,9 @@ export function canView(db, actor, r) {
   return (
     actor.id === r.employeeId ||
     (actor.role === 'Manager' &&
-      db.employees.find((e) => e.id === r.employeeId)?.role !== 'HR' &&
-      db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) ||
+      ((db.employees.find((e) => e.id === r.employeeId)?.role === 'Employee' &&
+        db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) ||
+        isDecisionReviewer(db, actor, r))) ||
     actor.role === 'HR'
   );
 }
@@ -248,7 +250,7 @@ function requireMaternityCase(db, owner, caseId) {
   if (
     !Number.isInteger(maternity.maximumDays) ||
     maternity.maximumDays < 1 ||
-    maternity.maximumDays > 999
+    maternity.maximumDays > 120
   )
     fail('ข้อมูลสิทธิ์ของกรณีลาคลอดไม่ถูกต้อง กรุณาติดต่อ HR');
   return maternity;
@@ -267,7 +269,7 @@ function inputDays(db, actor, input) {
   if (!['Full', 'AM', 'PM'].includes(input.duration)) fail('ช่วงเวลาไม่ถูกต้อง');
   if (type.quotaScope === 'Pregnancy' && input.duration !== 'Full') fail('ลาคลอดใช้การลาเต็มวัน');
   if (input.duration !== 'Full' && input.startDate !== input.endDate)
-    fail('ลาครึ่งวันต้องเริ่มและสิ้นสุดวันเดียวกัน');
+    fail('การลาครึ่งวันต้องเป็นวันเดียวกัน');
   if (
     type.quotaScope !== 'Pregnancy' &&
     type.eligibleGender &&
@@ -310,7 +312,7 @@ export function previewRequest(db, actor, input, excludeId, now = new Date()) {
 }
 function checkRequest(db, actor, input, excludeId, now, quotaCode = 'VALIDATION') {
   actor = actorById(db, actor.id);
-  if (actor.role !== 'Employee') fail('ขั้นตอนยื่นลานี้เปิดให้บทบาทพนักงาน', 'FORBIDDEN');
+  if (!['Employee', 'Manager', 'HR'].includes(actor.role)) fail('ไม่มีสิทธิ์ยื่นคำขอ', 'FORBIDDEN');
   if (excludeId !== undefined) {
     const previous = db.requests.find((r) => r.id === excludeId) ?? fail('ไม่พบคำขอ', 'NOT_FOUND');
     if (previous.employeeId !== actor.id) fail('คุณแก้ไขคำขอผู้อื่นไม่ได้', 'FORBIDDEN');
@@ -320,12 +322,15 @@ function checkRequest(db, actor, input, excludeId, now, quotaCode = 'VALIDATION'
   const type = db.leaveTypes.find((t) => t.id === input.leaveTypeId) ?? fail('ไม่พบประเภทการลา');
   // Maternity eligibility order: gender -> case -> manager -> dates/full day -> policy -> overlap -> quota.
   if (type.quotaScope === 'Pregnancy') requireMaternityCase(db, actor, input.maternityCaseId);
-  if (!actor.managerId) fail('บัญชีนี้ยังไม่มีผู้จัดการ กรุณาให้ HR กำหนดผู้จัดการก่อน');
-  if (
-    type.quotaScope === 'Pregnancy' &&
-    !db.employees.some((e) => e.id === actor.managerId && e.active && e.role === 'Manager')
-  )
-    fail('ผู้จัดการผู้พิจารณาไม่พร้อมใช้งาน กรุณาติดต่อ HR');
+  if (!requestReviewer(db, actor)) {
+    if (actor.role !== 'Manager' && !actor.managerId)
+      fail('บัญชีนี้ยังไม่มีผู้จัดการ กรุณาให้ HR กำหนดผู้จัดการก่อน');
+    fail(
+      actor.role === 'Manager'
+        ? 'ไม่พบ HR ผู้พิจารณาที่พร้อมใช้งาน'
+        : 'ผู้จัดการผู้พิจารณาไม่พร้อมใช้งาน กรุณาติดต่อ HR',
+    );
+  }
   const requireReason = () => {
     if (
       typeof input.reason !== 'string' ||
@@ -342,8 +347,8 @@ function checkRequest(db, actor, input, excludeId, now, quotaCode = 'VALIDATION'
     type.advanceNoticeDays > 0 &&
     dayDifference(today(now), input.startDate) < type.advanceNoticeDays
   )
-    fail(`ต้องยื่นลาล่วงหน้าอย่างน้อย ${type.advanceNoticeDays} วัน`);
-  if (type.advanceNoticeDays === 0 && dayDifference(input.endDate, today(now)) > 30)
+    fail(`กรุณายื่นขอล่วงหน้าอย่างน้อย ${type.advanceNoticeDays} วัน`);
+  if (type.advanceNoticeDays === 0 && dayDifference(input.startDate, today(now)) > 30)
     fail('ตัวอย่างนี้อนุญาตให้ยื่นลาป่วยย้อนหลังได้ไม่เกิน 30 วัน');
   if (input.attachment) validateAttachment(input.attachment);
   const hasExisting =
@@ -364,9 +369,7 @@ function checkRequest(db, actor, input, excludeId, now, quotaCode = 'VALIDATION'
       r.employeeId === actor.id && r.id !== excludeId && ['Pending', 'Approved'].includes(r.status),
   );
   for (const r of other) {
-    if (input.duration !== 'Full' && r.duration !== 'Full' && input.duration !== r.duration)
-      continue;
-    if (db.days.some((d) => d.leaveId === r.id && days.some((n) => n.date === d.date)))
+    if (input.startDate <= r.endDate && input.endDate >= r.startDate)
       fail(`วันที่ลาซ้อนกับคำขอ ${requestCode(r)}`);
   }
   if (type.quotaScope === 'Annual') {
@@ -377,7 +380,7 @@ function checkRequest(db, actor, input, excludeId, now, quotaCode = 'VALIDATION'
         .reduce((a, d) => a + d.units, 0);
       if (needed > b.remaining - b.pending)
         fail(
-          `สิทธิ์ปี ${year + 543} ไม่พอ (ใช้ได้ ${Math.max(0, b.remaining - b.pending)} วันหลังหักที่รอพิจารณา)`,
+          `จำนวนวันลาเกินสิทธิ์คงเหลือที่กำหนด: สิทธิ์ปี ${year + 543} ไม่พอ (ใช้ได้ ${Math.max(0, b.remaining - b.pending)} วันหลังหักที่รอพิจารณา)`,
           quotaCode,
         );
     }
@@ -399,12 +402,13 @@ function notify(db, employeeId, leaveId, text, at) {
 }
 function approval(db, r, at) {
   const e = actorById(db, r.employeeId);
+  const reviewer = requestReviewer(db, e) ?? fail('ไม่พบผู้พิจารณาที่พร้อมใช้งาน');
   db.approvals.push({
     id: nextId(db.approvals),
     leaveId: r.id,
-    approverId: e.managerId,
+    approverId: reviewer.id,
     stepNo: db.approvals.filter((a) => a.leaveId === r.id).length + 1,
-    reviewRole: 'Manager',
+    reviewRole: reviewer.role,
     reviewType: 'Decision',
     status: 'Pending',
     comment: '',
@@ -439,12 +443,7 @@ function pending(db, id, version) {
   return r;
 }
 function managerOnly(db, actor, r) {
-  if (
-    actor.role !== 'Manager' ||
-    db.employees.find((e) => e.id === r.employeeId)?.role === 'HR' ||
-    db.employees.find((e) => e.id === r.employeeId)?.managerId !== actor.id
-  )
-    fail('คุณไม่มีสิทธิ์พิจารณาคำขอนี้', 'FORBIDDEN');
+  if (!canDecideRequest(db, actor, r)) fail('คุณไม่มีสิทธิ์พิจารณาคำขอนี้', 'FORBIDDEN');
 }
 function requireComment(comment) {
   if (typeof comment !== 'string' || !comment.trim() || comment.trim().length > 500)
@@ -465,7 +464,6 @@ export function applyCommand(db, actorId, c, now = new Date()) {
     at = now.toISOString();
   if (c.type === 'sendLeaveReport') return sendLeaveReport(db, actor, c, at);
   if (c.type === 'submit' || c.type === 'edit') {
-    if (actor.role !== 'Employee') fail('ขั้นตอนยื่นลานี้เปิดให้บทบาทพนักงาน', 'FORBIDDEN');
     const previous = c.type === 'edit' ? pending(db, c.id, c.version) : null;
     if (previous && previous.employeeId !== actor.id)
       fail('คุณแก้ไขคำขอผู้อื่นไม่ได้', 'FORBIDDEN');
@@ -516,7 +514,7 @@ export function applyCommand(db, actorId, c, now = new Date()) {
     });
     notify(
       db,
-      actor.managerId,
+      requestReviewer(db, actor).id,
       id,
       `${actor.name}${previous ? 'แก้ไข' : 'ส่ง'}คำขอ ${requestCode(r)}`,
       at,
@@ -525,7 +523,7 @@ export function applyCommand(db, actorId, c, now = new Date()) {
       db,
       actor.id,
       id,
-      previous ? 'แก้ไขคำขอแล้ว และเริ่มพิจารณาใหม่' : 'ส่งคำขอแล้ว รอผู้จัดการพิจารณา',
+      previous ? 'แก้ไขคำขอแล้ว และเริ่มพิจารณาใหม่' : 'ส่งคำขอแล้ว รอผู้พิจารณา',
       at,
     );
     return { id, message: previous ? 'บันทึกการแก้ไขแล้ว' : 'ส่งคำขอเรียบร้อยแล้ว' };
@@ -541,7 +539,7 @@ export function applyCommand(db, actorId, c, now = new Date()) {
       .forEach((a) => {
         a.cancelled = true;
       });
-    const manager = db.employees.find((e) => e.id === actor.id)?.managerId;
+    const manager = requestReviewer(db, actor)?.id;
     if (manager) notify(db, manager, r.id, `${actor.name}ยกเลิก ${requestCode(r)}`, at);
     return { id: r.id, message: 'ยกเลิกคำขอแล้ว ไม่มีการหักโควตา' };
   }
@@ -556,6 +554,8 @@ export function applyCommand(db, actorId, c, now = new Date()) {
       (a) => a.leaveId === r.id && a.reviewType === 'Consultation' && !a.cancelled,
     );
     if (c.type === 'refer') {
+      if (actor.role !== 'Manager' || c.hrId === r.employeeId)
+        fail('ส่งปรึกษาได้เฉพาะ HR ที่ไม่ได้เป็นผู้ยื่นคำขอ', 'FORBIDDEN');
       const comment = requireComment(c.comment);
       if (consultations.some((a) => a.status === 'Pending'))
         fail('คำขอนี้อยู่ระหว่างรอความเห็น HR');
@@ -672,7 +672,8 @@ export function applyCommand(db, actorId, c, now = new Date()) {
   }
   if (c.type === 'consult') {
     const r = pending(db, c.id, c.version);
-    if (actor.role !== 'HR') fail('เฉพาะ HR ที่ได้รับมอบหมายเท่านั้น', 'FORBIDDEN');
+    if (actor.role !== 'HR' || r.employeeId === actor.id)
+      fail('เฉพาะ HR ที่ได้รับมอบหมายและไม่ได้เป็นผู้ยื่นเท่านั้น', 'FORBIDDEN');
     const a =
       db.approvals.find(
         (a) =>
@@ -695,8 +696,8 @@ export function applyCommand(db, actorId, c, now = new Date()) {
   if (c.type === 'work') {
     if (!isoDate(c.date) || !['In-office', 'WFH', 'Outside'].includes(c.statusType))
       fail('สถานะหรือวันที่ไม่ถูกต้อง');
-    if (effectiveWorkStatus(db, actor.id, c.date) === 'Leave')
-      fail('วันนี้มีการลาเต็มวันที่อนุมัติแล้ว');
+    if (effectiveWorkStatus(db, actor.id, c.date).includes('Leave'))
+      fail('วันที่เลือกมีการลาที่อนุมัติแล้ว ระบบแสดงสถานะให้อัตโนมัติ');
     const row = db.workStatuses.find((w) => w.employeeId === actor.id && w.date === c.date);
     if (row) {
       row.statusType = c.statusType;
@@ -756,7 +757,7 @@ export function applyCommand(db, actorId, c, now = new Date()) {
       db.employees.find((e) => e.id === c.employeeId && e.active) ?? fail('ไม่พบพนักงานที่เลือก');
     const issue = maternityGenderIssue(employee);
     if (issue) fail(issue);
-    if (!Number.isInteger(c.maximumDays) || c.maximumDays < 1 || c.maximumDays > 999)
+    if (!Number.isInteger(c.maximumDays) || c.maximumDays < 1 || c.maximumDays > 120)
       fail('ข้อมูลกรณีลาคลอดไม่ถูกต้อง');
     const id = nextId(db.maternityCases);
     db.maternityCases.push({

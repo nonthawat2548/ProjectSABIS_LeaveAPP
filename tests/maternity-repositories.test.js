@@ -293,7 +293,7 @@ test('Direct REST commands cannot bypass maternity eligibility, case or fresh ap
         },
       };
       await denied(undefined, bad, /เข้าสู่ระบบ/, 401);
-      await denied(hr, bad, /บทบาทพนักงาน/, 403);
+      await denied(hr, bad, /ไม่ใช่ของเจ้าของคำขอ/);
       await denied(male, bad, /พนักงานชาย/);
       await denied(other, bad, /ติดต่อ HR.*ข้อมูลเพศ/);
       for (const gender of [null, undefined, '', 'female']) {

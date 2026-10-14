@@ -53,7 +53,7 @@ test('HR sees a dashboard of frozen sent values with graphs and request details,
   const { run, rerender } = mount(db, 5, id);
   expect(screen.getByRole('heading', { level: 1, name: 'รายงานสรุปการลา' })).toBeInTheDocument();
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('2คำขอ');
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('1วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('1 วัน');
   expect(screen.getByRole('heading', { name: 'สถานะคำขอในรายงาน' })).toBeInTheDocument();
   expect(
     screen.getByRole('img', { name: 'ธันวาคม อนุมัติ 1 วัน รอพิจารณา 0 วัน' }),
@@ -77,9 +77,46 @@ test('HR sees a dashboard of frozen sent values with graphs and request details,
       run={run}
     />,
   );
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('1วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('1 วัน');
   expect(screen.getAllByText(/พิมพ์ชนก/).length).toBeGreaterThan(0);
   expect(screen.queryByText(/ชื่อปัจจุบันที่เปลี่ยน/)).not.toBeInTheDocument();
+});
+
+test('saved 20.5 days read as twenty days and a half without changing the stored report', () => {
+  const db = createDemoDatabase();
+  db.requests = [
+    {
+      ...db.requests[0],
+      employeeId: 1,
+      status: 'Approved',
+      startDate: '2026-10-01',
+      endDate: '2026-10-21',
+    },
+  ];
+  db.days = Array.from({ length: 21 }, (_, index) => ({
+    id: index + 1,
+    leaveId: db.requests[0].id,
+    date: `2026-10-${String(index + 1).padStart(2, '0')}`,
+    units: index === 20 ? 0.5 : 1,
+    entitlementId: null,
+  }));
+  applyCommand(db, 4, {
+    type: 'sendLeaveReport',
+    employeeId: 1,
+    hrId: 5,
+    year: 2026,
+    month: 0,
+    leaveTypeId: 0,
+  });
+  const id = db.notifications.at(-2).id;
+  const stored = db.notifications.at(-2).text;
+  const { container } = mount(db, 5, id);
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('20 วันครึ่ง');
+  expect(
+    within(container.querySelector('.leave-report-frequency')).getByText('20 วันครึ่ง'),
+  ).toBeInTheDocument();
+  expect(stored).toContain('อนุมัติแล้ว: 1 คำขอ / 20.5 วัน');
+  expect(db.notifications.at(-2).text).toBe(stored);
 });
 
 test('sender opens only their own copy; HR cannot open the sender notification ID', () => {
@@ -116,7 +153,7 @@ test('zero reports show zero stats and empty graphs instead of current leave rec
   const { db, id } = fixture({ year: 2030 });
   mount(db, 5, id);
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('0คำขอ');
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0 วัน');
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
   expect(screen.getByText('ยังไม่มีวันลาในรายงานนี้')).toBeInTheDocument();
 });
@@ -210,7 +247,7 @@ test('HR scans pending first, filters frozen requests, and sees separate fields 
   const before = structuredClone(db);
   const { container, run } = mount(db, 5, id);
   const rows = () => container.querySelectorAll('.leave-report-request-list li');
-  expect(rows()[0]).toHaveTextContent('LR-2026-01001');
+  expect(rows()[0]).toHaveTextContent('LR-2026-01002');
   expect(within(rows()[0]).getByText('รอพิจารณา')).toBeInTheDocument();
   expect(rows()[0].querySelectorAll('dl > div')).toHaveLength(5);
   expect(container.querySelector('.stats .stat:first-child .stat-head')).toHaveTextContent(
@@ -264,12 +301,12 @@ test('saved withdrawn labels still support status filtering and keep zero approv
   const { container } = mount(db, 5, db.notifications.at(-2).id);
   fireEvent.change(screen.getByLabelText('สถานะในรายงาน'), { target: { value: 'Withdrawn' } });
   expect(container.querySelectorAll('.leave-report-request-list .badge.withdrawn')).toHaveLength(2);
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0 วัน');
 });
 
 test('HR sees the most frequent approved employee from the sent report and keeps the saved ranking', () => {
   const db = createDemoDatabase();
-  db.requests.find((item) => item.id === 1001).status = 'Approved';
+  db.requests.find((item) => item.id === 1002).status = 'Approved';
   applyCommand(db, 4, {
     type: 'sendLeaveReport',
     employeeId: 0,
@@ -287,7 +324,7 @@ test('HR sees the most frequent approved employee from the sent report and keeps
     'พิมพ์ชนก วัฒนกุล (EMP-00001) · 2 คำขอ',
   );
   expect(
-    chart.getByRole('img', { name: /พิมพ์ชนก วัฒนกุล EMP-00001 อนุมัติ 2 คำขอ 3 วัน/ }),
+    chart.getByRole('img', { name: /พิมพ์ชนก วัฒนกุล EMP-00001 อนุมัติ 2 คำขอ 2 วัน/ }),
   ).toBeInTheDocument();
   expect(chart.getAllByRole('listitem')).toHaveLength(4);
   db.requests = [];

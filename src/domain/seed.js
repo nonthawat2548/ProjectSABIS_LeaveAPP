@@ -70,7 +70,7 @@ export function createSeed(now = new Date()) {
         phone: '0810000005',
         position: 'เจ้าหน้าที่ฝ่ายบุคคล',
         role: 'HR',
-        managerId: null,
+        managerId: 4,
         department: 'ฝ่ายบุคคล',
         active: true,
       },

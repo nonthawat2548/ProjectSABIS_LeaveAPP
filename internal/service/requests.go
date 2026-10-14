@@ -33,7 +33,7 @@ func requireMaternityCase(db *model.Database, owner *model.Employee, id *int) er
 			if c.EmployeeID != owner.ID {
 				return Invalid("กรณีลาคลอดนี้ไม่ใช่ของเจ้าของคำขอ กรุณาเลือกกรณีของตนเอง")
 			}
-			if c.MaximumDays < 1 || c.MaximumDays > 999 {
+			if c.MaximumDays < 1 || c.MaximumDays > 120 {
 				return Invalid("ข้อมูลสิทธิ์ของกรณีลาคลอดไม่ถูกต้อง กรุณาติดต่อ HR")
 			}
 			return nil
@@ -54,7 +54,7 @@ func inputDays(db *model.Database, owner *model.Employee, input *model.RequestIn
 		return nil, Invalid("ลาคลอดใช้การลาเต็มวัน")
 	}
 	if input.Duration != "Full" && input.StartDate != input.EndDate {
-		return nil, Invalid("ลาครึ่งวันต้องเริ่มและสิ้นสุดวันเดียวกัน")
+		return nil, Invalid("การลาครึ่งวันต้องเป็นวันเดียวกัน")
 	}
 	if t.QuotaScope != "Pregnancy" && t.EligibleGender != nil && *t.EligibleGender != owner.Gender {
 		return nil, Invalid("คุณไม่มีสิทธิ์ใช้ประเภทการลานี้ตามนโยบายตัวอย่าง")
@@ -96,9 +96,6 @@ func CheckRequest(db *model.Database, actorID int, input *model.RequestInput, ex
 	if err != nil {
 		return nil, err
 	}
-	if actor.Role != "Employee" {
-		return nil, Problem("ขั้นตอนยื่นลานี้เปิดให้บทบาทพนักงาน", "FORBIDDEN")
-	}
 	if exclude != 0 {
 		r, err := request(db, exclude)
 		if err != nil {
@@ -123,14 +120,14 @@ func CheckRequest(db *model.Database, actorID int, input *model.RequestInput, ex
 			return nil, err
 		}
 	}
-	if valueOf(actor.ManagerID) == 0 {
-		return nil, Invalid("บัญชีนี้ยังไม่มีผู้จัดการ กรุณาให้ HR กำหนดผู้จัดการก่อน")
-	}
-	if t.QuotaScope == "Pregnancy" {
-		m := employee(db, *actor.ManagerID)
-		if m == nil || !m.Active || m.Role != "Manager" {
-			return nil, Invalid("ผู้จัดการผู้พิจารณาไม่พร้อมใช้งาน กรุณาติดต่อ HR")
+	if requestReviewer(db, actor) == nil {
+		if actor.Role != "Manager" && valueOf(actor.ManagerID) == 0 {
+			return nil, Invalid("บัญชีนี้ยังไม่มีผู้จัดการ กรุณาให้ HR กำหนดผู้จัดการก่อน")
 		}
+		if actor.Role == "Manager" {
+			return nil, Invalid("ไม่พบ HR ผู้พิจารณาที่พร้อมใช้งาน")
+		}
+		return nil, Invalid("ผู้จัดการผู้พิจารณาไม่พร้อมใช้งาน กรุณาติดต่อ HR")
 	}
 	if t.QuotaScope != "Pregnancy" {
 		if err := requireReason(input.Reason); err != nil {
@@ -151,9 +148,9 @@ func CheckRequest(db *model.Database, actorID int, input *model.RequestInput, ex
 		}
 	}
 	if t.AdvanceNoticeDays > 0 && difference(Today(now), input.StartDate) < t.AdvanceNoticeDays {
-		return nil, Invalid(fmt.Sprintf("ต้องยื่นลาล่วงหน้าอย่างน้อย %d วัน", t.AdvanceNoticeDays))
+		return nil, Invalid(fmt.Sprintf("กรุณายื่นขอล่วงหน้าอย่างน้อย %d วัน", t.AdvanceNoticeDays))
 	}
-	if t.AdvanceNoticeDays == 0 && difference(input.EndDate, Today(now)) > 30 {
+	if t.AdvanceNoticeDays == 0 && difference(input.StartDate, Today(now)) > 30 {
 		return nil, Invalid("ตัวอย่างนี้อนุญาตให้ยื่นลาป่วยย้อนหลังได้ไม่เกิน 30 วัน")
 	}
 	if input.Attachment != nil {
@@ -180,17 +177,8 @@ func CheckRequest(db *model.Database, actorID int, input *model.RequestInput, ex
 		if r.EmployeeID != actor.ID || r.ID == exclude || (r.Status != "Pending" && r.Status != "Approved") {
 			continue
 		}
-		if input.Duration != "Full" && r.Duration != "Full" && input.Duration != r.Duration {
-			continue
-		}
-		for _, saved := range db.Days {
-			if saved.LeaveID == r.ID {
-				for _, d := range days {
-					if d.Date == saved.Date {
-						return nil, Invalid("วันที่ลาซ้อนกับคำขอ " + RequestCode(&r))
-					}
-				}
-			}
+		if input.StartDate <= r.EndDate && input.EndDate >= r.StartDate {
+			return nil, Invalid("วันที่ลาซ้อนกับคำขอ " + RequestCode(&r))
 		}
 	}
 	if t.QuotaScope == "Annual" {
@@ -208,7 +196,7 @@ func CheckRequest(db *model.Database, actorID int, input *model.RequestInput, ex
 			b := Balance(db, actor.ID, t.ID, y, nil, exclude)
 			available := b.Remaining - b.Pending
 			if years[y] > available {
-				return nil, Problem(fmt.Sprintf("สิทธิ์ปี %d ไม่พอ (ใช้ได้ %g วันหลังหักที่รอพิจารณา)", y+543, max(0, available)), quotaCode)
+				return nil, Problem(fmt.Sprintf("จำนวนวันลาเกินสิทธิ์คงเหลือที่กำหนด: สิทธิ์ปี %d ไม่พอ (ใช้ได้ %g วันหลังหักที่รอพิจารณา)", y+543, max(0, available)), quotaCode)
 			}
 		}
 	} else {

@@ -84,7 +84,7 @@ paths:
       summary: Read data scoped by the current account role and manager assignment
       responses:
         '200':
-          description: Database JSON matching src/domain/types.ts; documents contain metadata only
+          description: Database JSON matching JSDoc in src/domain/types.js; documents contain metadata only
           content:
             application/json:
               schema:
@@ -173,6 +173,11 @@ paths:
       description: >-
         Actor/role/gender in a body are not identity evidence. Editing and reviewing
         require the latest request version. HR consultation is not final approval.
+        All active roles may submit, edit and withdraw their own pending requests.
+        Employee requests go to their manager; manager requests go to active HR;
+        HR requests go to their designated manager. A decision requires the assigned
+        reviewer and never permits self-approval. Assigned HR requests are excluded
+        from manager team summaries and reports.
         Maternity checks stored owner gender before case, manager, dates, policy,
         overlap and per-case quota, including before approval.
       requestBody:
@@ -198,7 +203,8 @@ paths:
         '403': { $ref: '#/components/responses/Error' }
   /uploads:
     post:
-      summary: Employee only; create a staged upload (25 MiB maximum, three pending uploads)
+      summary: Active Employee, Manager or HR; stage an attachment for their own request (25 MiB maximum)
+      description: At most three pending uploads per account. An upload cannot be used by another account.
       requestBody:
         required: true
         content:

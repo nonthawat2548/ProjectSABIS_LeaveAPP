@@ -172,7 +172,7 @@ export function QuotaOverview({ db, actor }) {
 }
 export function TeamOverview({ db, actor }) {
   const people = db.employees.filter(
-    (e) => e.active && (actor.role === 'HR' || e.managerId === actor.id),
+    (e) => e.active && (actor.role === 'HR' || (e.role !== 'HR' && e.managerId === actor.id)),
   );
   const date = today();
   return (
@@ -285,7 +285,8 @@ export function WeeklyOverview({ db, actor }) {
                 (actor.role === 'Employee'
                   ? r.employeeId === actor.id
                   : actor.role === 'HR' ||
-                    db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) &&
+                    (db.employees.find((e) => e.id === r.employeeId)?.role !== 'HR' &&
+                      db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id)) &&
                 r.status === 'Approved' &&
                 db.days.some((d) => d.leaveId === r.id && d.date === date),
             );

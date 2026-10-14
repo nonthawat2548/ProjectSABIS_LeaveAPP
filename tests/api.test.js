@@ -124,7 +124,7 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
     assert.equal(hrSnapshot.employees.filter((e) => e.role === 'Employee').length, 7);
     assert.equal(hrSnapshot.employees.filter((e) => e.role === 'Manager').length, 2);
     assert.equal(hrSnapshot.employees.filter((e) => e.role === 'HR').length, 1);
-    assert.equal(hrSnapshot.requests.length, 14);
+    assert.equal(hrSnapshot.requests.length, 15);
     assert.deepEqual(
       initial,
       JSON.parse(await readFile('src/data/leave-management-10-people.json', 'utf8')),
@@ -178,8 +178,8 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
       (
         await send(employee, {
           type: 'approve',
-          id: 1001,
-          version: await version(employee, 1001),
+          id: 1002,
+          version: await version(employee, 1002),
           comment: '',
         })
       ).status,
@@ -189,8 +189,8 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
       (
         await send(salesManager, {
           type: 'approve',
-          id: 1001,
-          version: await version(hr, 1001),
+          id: 1002,
+          version: await version(hr, 1002),
           comment: '',
         })
       ).status,
@@ -215,8 +215,8 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
       (
         await send(manager, {
           type: 'approve',
-          id: 1002,
-          version: await version(manager, 1002),
+          id: 1015,
+          version: await version(manager, 1015),
           comment: '',
         })
       ).status,
@@ -226,27 +226,27 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
       (
         await send(hr, {
           type: 'consult',
-          id: 1002,
-          version: await version(hr, 1002),
+          id: 1015,
+          version: await version(hr, 1015),
           comment: 'ตรวจเอกสารแล้วครบถ้วน',
         })
       ).status,
       200,
     );
-    assert.equal((await snapshot(hr)).requests.find((r) => r.id === 1002).status, 'Pending');
-    const approvalVersion = await version(manager, 1002);
+    assert.equal((await snapshot(hr)).requests.find((r) => r.id === 1015).status, 'Pending');
+    const approvalVersion = await version(manager, 1015);
     assert.equal(
-      (await send(manager, { type: 'approve', id: 1002, version: approvalVersion, comment: '' }))
+      (await send(manager, { type: 'approve', id: 1015, version: approvalVersion, comment: '' }))
         .status,
       200,
     );
     assert.equal(
-      (await send(manager, { type: 'approve', id: 1002, version: approvalVersion, comment: '' }))
+      (await send(manager, { type: 'approve', id: 1015, version: approvalVersion, comment: '' }))
         .status,
       409,
     );
     const saved = await readDatabase();
-    assert.equal(saved.requests.find((r) => r.id === 1002).status, 'Approved');
+    assert.equal(saved.requests.find((r) => r.id === 1015).status, 'Approved');
     assert(saved.notifications.some((n) => n.employeeId === 2 && n.text.includes('ได้รับอนุมัติ')));
     assert.equal(saved.employees.length, 10);
     const malformed = await fetch(base + '/commands', {
@@ -272,16 +272,16 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
     const restartedHr = await session('hr@demo.local');
     const persisted = await snapshot(restartedHr);
     assert.equal(persisted.employees.length, 10);
-    assert.equal(persisted.requests.find((r) => r.id === 1002).status, 'Approved');
+    assert.equal(persisted.requests.find((r) => r.id === 1015).status, 'Approved');
     assert.deepEqual(await readDatabase(), saved);
     assert.equal((await reset(restartedHr)).status, 200);
     assert.deepEqual(await readDatabase(), initial);
     const restored = await snapshot(restartedHr);
     assert.equal(restored.employees.length, 10);
-    assert.equal(restored.requests.length, 14);
-    assert.equal(restored.requests.find((r) => r.id === 1002).status, 'Pending');
+    assert.equal(restored.requests.length, 15);
+    assert.equal(restored.requests.find((r) => r.id === 1015).status, 'Pending');
     assert.equal(
-      restored.approvals.find((a) => a.leaveId === 1002 && a.reviewType === 'Consultation').status,
+      restored.approvals.find((a) => a.leaveId === 1015 && a.reviewType === 'Consultation').status,
       'Pending',
     );
   } finally {

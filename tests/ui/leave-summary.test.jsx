@@ -85,7 +85,7 @@ test('manager chooses individual team members including people with no requests,
     screen.getByRole('heading', { name: 'รายละเอียดวันลาในเดือนที่เลือก' }),
   ).toBeInTheDocument();
   expect(
-    screen.getByLabelText('วันที่ 31/12/2569 อนุมัติ 0.5 วัน รอพิจารณา 0 วัน'),
+    screen.getByLabelText('วันที่ 31/12/2569 อนุมัติ ครึ่งวัน รอพิจารณา 0 วัน'),
   ).toBeInTheDocument();
   fireEvent.change(picker, { target: { value: '10' } });
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('0คำขอ');
@@ -193,12 +193,12 @@ test('Year, month and type selections update saved day totals and reset without 
   const { db } = fixture();
   const original = structuredClone(db);
   const { run, reload } = mount(db, 1);
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0.5วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('ครึ่งวัน');
   expect(screen.getByLabelText('ปีที่สรุป (พ.ศ.)')).toHaveDisplayValue('2569');
   expect(screen.getByRole('table')).toHaveTextContent('31/12/2569 – 4/1/2570');
   fireEvent.change(screen.getByLabelText('ปีที่สรุป (พ.ศ.)'), { target: { value: '2027' } });
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('1คำขอ');
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('1วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('1 วัน');
   fireEvent.change(screen.getByLabelText('ประเภทการลา'), { target: { value: '2' } });
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('0คำขอ');
   expect(screen.getByText(/ไม่พบคำขอในช่วงที่เลือก/)).toBeInTheDocument();
@@ -206,11 +206,31 @@ test('Year, month and type selections update saved day totals and reset without 
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('4คำขอ');
   fireEvent.change(screen.getByLabelText('เดือนที่สรุป'), { target: { value: '11' } });
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('1คำขอ');
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0 วัน');
   expect(screen.getByRole('table')).toHaveTextContent('ไม่อนุมัติ');
   expect(run).not.toHaveBeenCalled();
   expect(reload).not.toHaveBeenCalled();
   expect(db).toEqual(original);
+});
+
+test('twenty full days plus a half day read as twenty days and a half throughout the summary', () => {
+  const { db, add } = fixture();
+  db.requests = [];
+  db.days = [];
+  add(
+    1010,
+    1,
+    1,
+    'Approved',
+    Array.from({ length: 21 }, (_, index) => [
+      `2026-10-${String(index + 1).padStart(2, '0')}`,
+      index === 20 ? 0.5 : 1,
+    ]),
+  );
+  mount(db, 1);
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('20 วันครึ่ง');
+  expect(screen.getByRole('table')).toHaveTextContent('20 วันครึ่ง');
+  expect(screen.queryByText('20.5 วัน')).not.toBeInTheDocument();
 });
 
 test('An empty history displays zeros and empty states without inventing requests', () => {
@@ -219,7 +239,7 @@ test('An empty history displays zeros and empty states without inventing request
   db.days = [];
   mount(db, 5);
   expect(metric('คำขอทั้งหมด')).toHaveTextContent('0คำขอ');
-  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0วัน');
+  expect(metric('วันลาที่อนุมัติ')).toHaveTextContent('0 วัน');
   expect(screen.queryByRole('table')).not.toBeInTheDocument();
   expect(screen.queryByRole('link', { name: /LR-/ })).not.toBeInTheDocument();
   expect(screen.getByText('ยังไม่มีวันลาในช่วงที่เลือก')).toBeInTheDocument();

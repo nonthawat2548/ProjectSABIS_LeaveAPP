@@ -101,7 +101,7 @@ test('Work status labels agree across dashboards, team summaries, tables and pho
           options.map((option) => option.textContent),
           ['ทำงานที่สำนักงาน', 'ทำงานจากบ้าน (WFH)', 'ปฏิบัติงานนอกสถานที่'],
         );
-        if (id === 1) assert.equal(document.querySelector('form button')?.disabled, units === 1);
+        if (id === 1) assert.equal(document.querySelector('form button')?.disabled, units > 0);
         work.window.close();
         if (id !== 1) {
           const team = render(TeamOverview, props);

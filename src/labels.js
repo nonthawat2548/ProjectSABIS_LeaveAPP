@@ -15,6 +15,23 @@ export const durationLabels = {
   AM: 'ครึ่งวันเช้า',
   PM: 'ครึ่งวันบ่าย',
 };
+
+const dayNumber = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 });
+/** @param {number} value */
+export function leaveDayParts(value) {
+  if (Number.isFinite(value) && value >= 0 && value % 1 === 0.5) {
+    const whole = Math.trunc(value);
+    return whole
+      ? { number: dayNumber.format(whole), unit: 'วันครึ่ง' }
+      : { number: 'ครึ่ง', unit: 'วัน' };
+  }
+  return { number: dayNumber.format(value), unit: 'วัน' };
+}
+/** Display saved day units in ordinary Thai without changing the numeric value. */
+export function formatLeaveDays(value) {
+  const parts = leaveDayParts(value);
+  return `${parts.number}${parts.number === 'ครึ่ง' ? '' : ' '}${parts.unit}`;
+}
 export const workStatusLabels = {
   'In-office': 'ทำงานที่สำนักงาน',
   WFH: 'ทำงานจากบ้าน (WFH)',

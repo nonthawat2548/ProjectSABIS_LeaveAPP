@@ -5,15 +5,25 @@ import { parseThaiDate } from '../domain/date.js';
 import { requestCode } from '../domain/service.js';
 import { Card, DateField, Heading, RequestTable, statusLabels } from '../components.jsx';
 import { assigned } from './requestScope.js';
+import { isDecisionReviewer } from '../domain/approvalRouting.js';
 
-/** @param {import('./types.js').PageProps} props */
-export function Requests({ db, actor }) {
+/** @param {import('./types.js').PageProps & {personal?: boolean, decisionsOnly?: boolean}} props */
+export function Requests({
+  db,
+  actor,
+  personal = actor.role === 'Employee',
+  decisionsOnly = false,
+}) {
   const [query, setQuery] = useState(''),
     [status, setStatus] = useState('all'),
     [typeId, setTypeId] = useState('all'),
     [start, setStart] = useState(''),
     [end, setEnd] = useState('');
-  const rows = assigned(db, actor);
+  const rows = personal
+    ? db.requests.filter((request) => request.employeeId === actor.id)
+    : decisionsOnly
+      ? db.requests.filter((request) => isDecisionReviewer(db, actor, request))
+      : assigned(db, actor);
   const startIso = parseThaiDate(start),
     endIso = parseThaiDate(end);
   const filtered = rows
@@ -43,19 +53,21 @@ export function Requests({ db, actor }) {
     <>
       <Heading
         title={
-          actor.role === 'Employee'
+          personal
             ? 'ประวัติคำขอลา'
-            : actor.role === 'HR'
-              ? 'รายการคำขอปรึกษา HR'
-              : 'รายการคำขอของทีม'
+            : decisionsOnly
+              ? 'อนุมัติคำขอผู้จัดการ'
+              : actor.role === 'HR'
+                ? 'รายการคำขอปรึกษา HR'
+                : 'รายการคำขอของทีม'
         }
         description={
-          actor.role === 'HR'
+          actor.role === 'HR' && !personal && !decisionsOnly
             ? 'คำขอที่ผู้จัดการส่งมาขอความเห็น'
             : 'ค้นหาตามเลขคำขอ ชื่อพนักงาน หรือเหตุผล'
         }
         action={
-          actor.role === 'Employee' && (
+          personal && (
             <a className="btn primary" href="#/new">
               <FilePlus2 size={17} />
               ยื่นคำขอใหม่
@@ -82,7 +94,7 @@ export function Requests({ db, actor }) {
             <label htmlFor="request-status">สถานะ</label>
             <select id="request-status" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="all">ทุกสถานะ</option>
-              {actor.role === 'HR' && <option value="HRPending">รอความเห็น HR</option>}
+              {actor.role === 'HR' && !personal && !decisionsOnly && <option value="HRPending">รอความเห็น HR</option>}
               {Object.entries(statusLabels).map(([v, label]) => (
                 <option key={v} value={v}>
                   {label}

@@ -112,7 +112,7 @@ test('incomplete, inconsistent and unknown reports fail without inventing chart 
     text.slice(0, 100),
     text.replace('คำขอทั้งหมด: 2', 'คำขอทั้งหมด: 999'),
     text.replace('ปี 2569', 'ปี 9999'),
-    text.replace('รอพิจารณา 2 วัน', 'รอพิจารณา 999 วัน'),
+    text.replace('รอพิจารณา 1 วัน', 'รอพิจารณา 999 วัน'),
     text + 'x'.repeat(150001),
   ])
     assert.equal(readReportDashboard(invalid), null);
@@ -146,7 +146,7 @@ test('request columns preserve saved half days and dates; ambiguous custom separ
 test('frequency ranks approved requests by employee code, keeps namesakes separate, and uses frozen days', () => {
   const db = createDemoDatabase();
   db.employees[2].name = db.employees[0].name;
-  db.requests.find((item) => item.id === 1001).status = 'Approved';
+  db.requests.find((item) => item.id === 1002).status = 'Approved';
   applyCommand(db, 4, {
     type: 'sendLeaveReport',
     employeeId: 0,
@@ -162,7 +162,7 @@ test('frequency ranks approved requests by employee code, keeps namesakes separa
   assert.ok(people);
   assert.equal(people[0].employeeCode, 'EMP-00001');
   assert.equal(people[0].approvedRequests, 2);
-  assert.equal(people[0].approvedDays, 3);
+  assert.equal(people[0].approvedDays, 2);
   assert.equal(people.find((person) => person.employeeCode === 'EMP-00003').approvedRequests, 1);
   assert.equal(people.filter((person) => person.name === db.employees[0].name).length, 2);
   assert.equal(

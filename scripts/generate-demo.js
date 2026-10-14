@@ -126,7 +126,7 @@ const secondCase = applyCommand(
  * @param {Partial<RequestInput>} [extra]
  * @returns {number}
  */
-function submit(employeeId, leaveTypeId, startDate, endDate, reason, extra = {}) {
+function submit(employeeId, leaveTypeId, startDate, endDate, reason, extra = {}, at = now) {
   return /** @type {number} */ (
     applyCommand(
       db,
@@ -143,7 +143,7 @@ function submit(employeeId, leaveTypeId, startDate, endDate, reason, extra = {})
           ...extra,
         },
       },
-      now,
+      at,
     ).id
   );
 }
@@ -152,7 +152,7 @@ function submit(employeeId, leaveTypeId, startDate, endDate, reason, extra = {})
  * @param {'approve' | 'reject'} action
  * @param {string} comment
  */
-function review(id, action, comment) {
+function review(id, action, comment, at = now) {
   const request = /** @type {import('../src/domain/types.js').LeaveRequest} */ (
     db.requests.find((request) => request.id === id)
   );
@@ -161,12 +161,12 @@ function review(id, action, comment) {
       db.employees.find((person) => person.id === request.employeeId)
     ).managerId
   );
-  applyCommand(db, managerId, { type: action, id, version: request.version, comment }, now);
+  applyCommand(db, managerId, { type: action, id, version: request.version, comment }, at);
 }
 /**
  * @param {number} id
  */
-function refer(id) {
+function refer(id, comment = 'ขอความเห็น HR เรื่องนโยบายและเอกสารตัวอย่าง', at = now) {
   const request = /** @type {import('../src/domain/types.js').LeaveRequest} */ (
     db.requests.find((request) => request.id === id)
   );
@@ -183,15 +183,15 @@ function refer(id) {
       id,
       version: request.version,
       hrId: 5,
-      comment: 'ขอความเห็น HR เรื่องนโยบายและเอกสารตัวอย่าง',
+      comment,
     },
-    now,
+    at,
   );
 }
 /**
  * @param {number} id
  */
-function consult(id) {
+function consult(id, comment = 'ตรวจข้อมูลตัวอย่างแล้ว ผู้จัดการเป็นผู้ตัดสินผลสุดท้าย', at = now) {
   applyCommand(
     db,
     5,
@@ -201,20 +201,48 @@ function consult(id) {
       version: /** @type {import('../src/domain/types.js').LeaveRequest} */ (
         db.requests.find((request) => request.id === id)
       ).version,
-      comment: 'ตรวจข้อมูลตัวอย่างแล้ว ผู้จัดการเป็นผู้ตัดสินผลสุดท้าย',
+      comment,
     },
-    now,
+    at,
   );
 }
-submit(1, 1, '2026-10-13', '2026-10-14', 'พักผ่อนกับครอบครัว');
-const waitingHR = submit(2, 2, '2026-10-19', '2026-10-21', 'พักรักษาตัว (สถานการณ์จำลอง)', {
-  attachment,
-});
-refer(waitingHR);
-review(
-  submit(3, 1, '2026-10-15', '2026-10-16', 'พักผ่อนประจำปี'),
-  'approve',
-  'อนุมัติตามสิทธิ์ตัวอย่าง',
+const official = submit(
+  3,
+  3,
+  '2026-10-14',
+  '2026-10-14',
+  'ติดต่อทำธุระทางราชการที่สำนักงานเขต',
+  {},
+  new Date('2026-10-11T14:30:00Z'),
+);
+refer(
+  official,
+  'ช่วงวันดังกล่าวมีประชุมทีม รบกวน HR ช่วยตรวจสอบเงื่อนไขและสิทธิ์วันลา',
+  new Date('2026-10-11T14:30:00Z'),
+);
+consult(
+  official,
+  'ตรวจสอบสิทธิ์ลากิจคงเหลือเพียงพอ และยื่นล่วงหน้าถูกต้องตามระเบียบ',
+  new Date('2026-10-11T14:32:00Z'),
+);
+review(official, 'approve', '', new Date('2026-10-11T14:33:00Z'));
+submit(
+  1,
+  1,
+  '2026-10-12',
+  '2026-10-12',
+  'เดินทางไปทำธุระครอบครัวที่ต่างจังหวัด',
+  {},
+  new Date('2026-10-10T07:20:00Z'),
+);
+submit(
+  6,
+  1,
+  '2026-10-16',
+  '2026-10-16',
+  'ติดต่อธุระส่วนตัวและพักผ่อนประจำปี',
+  {},
+  new Date('2026-10-12T02:15:00Z'),
 );
 review(
   submit(6, 3, '2026-10-22', '2026-10-22', 'ติดต่อหน่วยงานราชการ'),
@@ -226,7 +254,7 @@ review(
   'approve',
   'อนุมัติครึ่งวันเช้า',
 );
-submit(8, 3, '2026-11-17', '2026-11-17', 'ลาครึ่งวันบ่าย', { duration: 'PM' });
+submit(8, 3, '2026-11-18', '2026-11-18', 'ลาครึ่งวันบ่าย', { duration: 'PM' });
 review(
   submit(9, 4, '2026-12-01', '2026-12-20', 'ลาคลอดตามกรณีตัวอย่าง', {
     maternityCaseId: secondCase,
@@ -289,6 +317,10 @@ applyCommand(
   },
   now,
 );
+const waitingHR = submit(2, 2, '2026-10-19', '2026-10-21', 'พักรักษาตัวตามคำแนะนำแพทย์', {
+  attachment,
+});
+refer(waitingHR);
 for (const person of db.employees) {
   const statusType = person.id % 3 === 0 ? 'WFH' : person.id % 3 === 1 ? 'In-office' : 'Outside';
   applyCommand(db, person.id, { type: 'work', date: '2026-10-09', statusType }, now);

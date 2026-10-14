@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, FileText, LockKeyhole } from 'lucide-react';
-import { Badge, Card, Empty, Heading, Stat } from '../components.jsx';
+import { Badge, Card, DayStatValue, Empty, Heading, Stat } from '../components.jsx';
 import { MonthChart } from '../LeaveMonthChart.jsx';
 import { formatDateTime } from '../domain/date.js';
 import { actorById } from '../domain/service.js';
@@ -10,7 +10,7 @@ import {
   readReportRequestLine,
   reportEmployeeFrequency,
 } from '../domain/reportDashboard.js';
-import { statusLabels } from '../labels.js';
+import { formatLeaveDays, statusLabels } from '../labels.js';
 
 const number = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 });
 const count = (value) => number.format(value);
@@ -146,18 +146,13 @@ function ReportView({ report, notification }) {
               <small>คำขอ</small>
             </>
           }
-          note={`รวม ${count(report.pendingDays)} วัน ณ เวลาส่ง`}
+          note={`รวม ${formatLeaveDays(report.pendingDays)} ณ เวลาส่ง`}
           icon={<Clock3 size={18} />}
           tone="peach"
         />
         <Stat
           title="วันลาที่อนุมัติ"
-          value={
-            <>
-              {count(report.approvedDays)}
-              <small>วัน</small>
-            </>
-          }
+          value={<DayStatValue value={report.approvedDays} />}
           note="รวมวันที่ในอนาคตที่อนุมัติแล้ว"
           icon={<CalendarDays size={18} />}
           tone="mint"
@@ -188,7 +183,7 @@ function ReportView({ report, notification }) {
         />
       </div>
       <p className="leave-summary-caption">
-        ครึ่งวัน = 0.5 วัน · คำขอข้ามปีนับเฉพาะวันในช่วงรายงาน · ยอดไม่เปลี่ยนตามคำขอภายหลัง
+        0.5 วัน หมายถึงครึ่งวัน · คำขอข้ามปีนับเฉพาะวันในช่วงรายงาน · ยอดไม่เปลี่ยนตามคำขอภายหลัง
       </p>
       <div className="leave-report-charts">
         <Card title="จำนวนคำขออนุมัติรายพนักงาน" className="leave-report-frequency">
@@ -227,7 +222,7 @@ function ReportView({ report, notification }) {
                     <div
                       className="leave-report-frequency-track"
                       role="img"
-                      aria-label={`${person.name} ${person.employeeCode} อนุมัติ ${count(person.approvedRequests)} คำขอ ${count(person.approvedDays)} วัน`}
+                      aria-label={`${person.name} ${person.employeeCode} อนุมัติ ${count(person.approvedRequests)} คำขอ ${formatLeaveDays(person.approvedDays)}`}
                     >
                       <span
                         style={{ width: `${(person.approvedRequests / highestFrequency) * 100}%` }}
@@ -235,7 +230,7 @@ function ReportView({ report, notification }) {
                     </div>
                     <div className="leave-report-frequency-value">
                       <strong>{count(person.approvedRequests)} คำขอ</strong>
-                      <span>{count(person.approvedDays)} วัน</span>
+                      <span>{formatLeaveDays(person.approvedDays)}</span>
                     </div>
                   </li>
                 ))}
@@ -289,7 +284,7 @@ function ReportView({ report, notification }) {
                     <div
                       className="leave-summary-type-track"
                       role="img"
-                      aria-label={`${type.name} อนุมัติ ${count(type.approvedDays)} วัน รอพิจารณา ${count(type.pendingDays)} วัน`}
+                      aria-label={`${type.name} อนุมัติ ${formatLeaveDays(type.approvedDays)} รอพิจารณา ${formatLeaveDays(type.pendingDays)}`}
                     >
                       <span
                         className="approved"
@@ -302,10 +297,10 @@ function ReportView({ report, notification }) {
                     </div>
                   </div>
                   <span>
-                    อนุมัติ <strong>{count(type.approvedDays)}</strong> วัน
+                    อนุมัติ <strong>{formatLeaveDays(type.approvedDays)}</strong>
                   </span>
                   <span>
-                    รอพิจารณา <strong>{count(type.pendingDays)}</strong> วัน
+                    รอพิจารณา <strong>{formatLeaveDays(type.pendingDays)}</strong>
                   </span>
                 </div>
               ))}
@@ -396,7 +391,7 @@ function ReportView({ report, notification }) {
                       </div>
                       <div>
                         <dt>วันในช่วงรายงาน</dt>
-                        <dd>{count(fields.days)} วัน</dd>
+                        <dd>{formatLeaveDays(fields.days)}</dd>
                       </div>
                       <div>
                         <dt>สถานะ ณ เวลาส่ง</dt>

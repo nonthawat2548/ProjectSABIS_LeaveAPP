@@ -44,7 +44,7 @@ func admin(db *model.Database, actor *model.Employee, c model.Command, at string
 		if err := MaternityGenderIssue(e); err != nil {
 			return model.Result{}, err
 		}
-		if c.MaximumDays < 1 || c.MaximumDays > 999 {
+		if c.MaximumDays < 1 || c.MaximumDays > 120 {
 			return model.Result{}, Invalid("ข้อมูลกรณีลาคลอดไม่ถูกต้อง")
 		}
 		n := 1

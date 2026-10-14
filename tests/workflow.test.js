@@ -149,7 +149,10 @@ test('Document threshold, advance notice, overlap and half days', () => {
   );
   const { id } = command(db, 1, { type: 'submit', input: { ...input, duration: 'AM' } });
   assert.equal(totalDays(db, id), 0.5);
-  command(db, 1, { type: 'submit', input: { ...input, duration: 'PM' } });
+  assert.throws(
+    () => command(db, 1, { type: 'submit', input: { ...input, duration: 'PM' } }),
+    /ซ้อน/,
+  );
   assert.throws(() => command(db, 1, { type: 'submit', input }), /ซ้อน/);
   assert.throws(
     () =>

@@ -339,7 +339,7 @@ func TestAtomicConcurrentApproval(t *testing.T) {
 		t.Fatal(success, conflict)
 	}
 }
-func testDocumentTransport(t *testing.T, store repository.Store, handler http.Handler) {
+func testDocumentTransport(t *testing.T, store repository.Store, handler http.Handler) int {
 	c := testClient{t: t, handler: handler}
 	c.login("pimchanok")
 	raw := []byte("%PDF-1.7\nทดสอบไฟล์\n%%EOF")
@@ -403,6 +403,7 @@ func testDocumentTransport(t *testing.T, store repository.Store, handler http.Ha
 		t.Fatal("25 MiB limit bypassed", status, data)
 	}
 	_ = store
+	return requestID
 }
 func TestPartsDocumentsAndPermissions(t *testing.T) {
 	store, handler := newFixture(t)
@@ -442,7 +443,7 @@ func TestPostgresTransport(t *testing.T) {
 			t.Fatal("profile lookup widened request scope")
 		}
 	}
-	testDocumentTransport(t, store, handler)
+	requestID := testDocumentTransport(t, store, handler)
 	m := testClient{t: t, handler: handler}
 	m.login("thanawat")
 	status, data = m.request("GET", "/employee-profile?employeeId=6", nil)
@@ -453,7 +454,7 @@ func TestPostgresTransport(t *testing.T) {
 	if status != 200 {
 		t.Fatal(status, data)
 	}
-	status, data = m.request("POST", "/commands", map[string]any{"type": "approve", "id": 1015, "version": 2, "comment": ""})
+	status, data = m.request("POST", "/commands", map[string]any{"type": "approve", "id": requestID, "version": 2, "comment": ""})
 	if status != 200 {
 		t.Fatal(status, data)
 	}
@@ -468,4 +469,5 @@ func TestPostgresTransport(t *testing.T) {
 		t.Fatal("reset invalidated unchanged session")
 	}
 	testLeaveReportFlow(t, handler)
+	testPersonalRoleFlow(t, handler)
 }

@@ -136,7 +136,7 @@ export function AdminPage({ actor, db, run }) {
                       id="case-maximum"
                       type="number"
                       min={1}
-                      max={999}
+                      max={120}
                       step={1}
                       value={maximum}
                       onChange={(e) => setMaximum(e.target.value)}

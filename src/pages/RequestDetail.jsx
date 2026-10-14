@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Check, ChevronLeft, Clock3, Send, Users, X } from 'lucide-react';
 
 import { formatDate, formatDateTime } from '../domain/date.js';
-import { balance, requestCode, totalDays } from '../domain/service.js';
+import { actorById, balance, canView, requestCode, totalDays } from '../domain/service.js';
+import { canDecideRequest } from '../domain/approvalRouting.js';
 import { Badge, Card, Dialog, DocumentRow, Heading, KeyRow } from '../components.jsx';
 import { durationLabels as durations } from '../labels.js';
 import { useTask } from './useTask.js';
@@ -16,7 +17,13 @@ export function RequestDetail({ db, actor, run, id }) {
     [comment, setComment] = useState(''),
     [hrId, setHrId] = useState(db.employees.find((e) => e.role === 'HR')?.id ?? 0);
   const { busy, error, setError, perform } = useTask(run);
-  if (!r)
+  let allowed = false;
+  try {
+    allowed = !!r && canView(db, actorById(db, actor.id), r);
+  } catch {
+    /* Show the same unavailable view. */
+  }
+  if (!allowed)
     return (
       <>
         <Heading title="ไม่พบคำขอ หรือไม่มีสิทธิ์เข้าถึง" />
@@ -27,6 +34,17 @@ export function RequestDetail({ db, actor, run, id }) {
     );
 
   const person = db.employees.find((e) => e.id === r.employeeId);
+  const own = r.employeeId === actor.id;
+  const canDecide = canDecideRequest(db, actorById(db, actor.id), r);
+  const canRefer =
+    actor.role === 'Manager' &&
+    db.employees.some((e) => e.role === 'HR' && e.active && e.id !== r.employeeId);
+  const backPath =
+    own && actor.role !== 'Employee'
+      ? '#/my-requests'
+      : actor.role === 'HR' && person.role === 'Manager'
+        ? '#/approvals'
+        : '#/requests';
   const type = db.leaveTypes.find((t) => t.id === r.leaveTypeId);
   const documents = db.documents.filter((d) => d.leaveId === r.id);
   const consults = db.approvals.filter(
@@ -41,7 +59,7 @@ export function RequestDetail({ db, actor, run, id }) {
     reject: 'ไม่อนุมัติคำขอ',
     refer: 'ขอความเห็นจาก HR',
     consult: 'ส่งความเห็นให้ผู้จัดการ',
-    withdraw: 'ยืนยันยกเลิกคำขอ',
+    withdraw: 'ยืนยันถอนคำขอ',
   };
   function open(d) {
     setDialog(d);
@@ -150,43 +168,49 @@ export function RequestDetail({ db, actor, run, id }) {
         </div>
         <div className="stack">
           <Card title="สิทธิ์วันลาของผู้ยื่น">
-            <KeyRow label={type.quotaScope === 'Annual' ? `ปี ${year + 543}` : 'กรณีลาคลอด'}>
-              {q.total}
-              {' วัน'}
-            </KeyRow>
-            <KeyRow label="ใช้แล้ว">
-              {q.used}
-              {' วัน'}
-            </KeyRow>
-            <KeyRow label="คงเหลือ">
-              {q.remaining}
-              {' วัน'}
-            </KeyRow>
-            <KeyRow label="รอพิจารณา">
-              {q.pending}
-              {' วัน'}
-            </KeyRow>
-            <p className="tiny">ตรวจสอบสิทธิ์ล่าสุดอีกครั้งเมื่ออนุมัติ</p>
+            {actor.role === 'Manager' && person.role === 'HR' ? (
+              <p className="tiny">ระบบตรวจสิทธิ์จากข้อมูลล่าสุดเมื่อบันทึกผลพิจารณา</p>
+            ) : (
+              <>
+                <KeyRow label={type.quotaScope === 'Annual' ? `ปี ${year + 543}` : 'กรณีลาคลอด'}>
+                  {q.total}
+                  {' วัน'}
+                </KeyRow>
+                <KeyRow label="ใช้แล้ว">
+                  {q.used}
+                  {' วัน'}
+                </KeyRow>
+                <KeyRow label="คงเหลือ">
+                  {q.remaining}
+                  {' วัน'}
+                </KeyRow>
+                <KeyRow label="รอพิจารณา">
+                  {q.pending}
+                  {' วัน'}
+                </KeyRow>
+                <p className="tiny">ตรวจสอบสิทธิ์ล่าสุดอีกครั้งเมื่ออนุมัติ</p>
+              </>
+            )}
           </Card>
           <Card title="การดำเนินการ">
             {r.status !== 'Pending' ? (
               <p className="muted">คำขอสิ้นสุดการพิจารณาแล้ว</p>
-            ) : actor.role === 'Employee' && r.employeeId === actor.id ? (
+            ) : own ? (
               <div className="vertical-actions">
                 <a className="btn" href={'#/request/' + id + '/edit'}>
                   แก้ไขคำขอ
                 </a>
                 <button className="btn danger" onClick={() => open('withdraw')}>
-                  ยกเลิกคำขอ
+                  ถอนคำขอ
                 </button>
                 <p className="tiny">ทำได้ขณะรอพิจารณาเท่านั้น</p>
               </div>
-            ) : actor.role === 'Manager' && person.managerId === actor.id ? (
+            ) : canDecide ? (
               <div className="vertical-actions">
                 {waitingHR && (
                   <div className="info">
                     <Clock3 size={17} />
-                    <span>กำลังรอ HR ส่งความเห็น</span>
+                    <span>อยู่ระหว่างปรึกษา HR</span>
                   </div>
                 )}
                 <button
@@ -201,10 +225,12 @@ export function RequestDetail({ db, actor, run, id }) {
                   <X size={16} />
                   ไม่อนุมัติ
                 </button>
-                <button className="btn" disabled={waitingHR} onClick={() => open('refer')}>
-                  <Users size={16} />
-                  ส่งปรึกษา HR
-                </button>
+                {canRefer && (
+                  <button className="btn" disabled={waitingHR} onClick={() => open('refer')}>
+                    <Users size={16} />
+                    ส่งปรึกษา HR
+                  </button>
+                )}
               </div>
             ) : actor.role === 'HR' && ownHR ? (
               <div className="vertical-actions">
@@ -218,7 +244,7 @@ export function RequestDetail({ db, actor, run, id }) {
               <p className="muted">ไม่มีรายการที่ต้องดำเนินการสำหรับคุณ</p>
             )}
           </Card>
-          <a className="btn" href="#/requests">
+          <a className="btn" href={backPath}>
             <ChevronLeft size={16} />
             กลับรายการคำขอ
           </a>
@@ -250,7 +276,7 @@ export function RequestDetail({ db, actor, run, id }) {
                   onChange={(e) => setHrId(Number(e.target.value))}
                 >
                   {db.employees
-                    .filter((e) => e.role === 'HR' && e.active)
+                    .filter((e) => e.role === 'HR' && e.active && e.id !== r.employeeId)
                     .map((e) => (
                       <option value={e.id} key={e.id}>
                         {e.name}
@@ -262,7 +288,13 @@ export function RequestDetail({ db, actor, run, id }) {
             {dialog !== 'withdraw' && (
               <div className="field">
                 <label htmlFor="review-comment">
-                  {dialog === 'approve' ? 'ความเห็น (ไม่บังคับ)' : 'เหตุผล / ความเห็น *'}
+                  {dialog === 'approve'
+                    ? 'ความเห็น (ไม่บังคับ)'
+                    : dialog === 'reject'
+                      ? 'เหตุผลการไม่อนุมัติ *'
+                      : dialog === 'refer'
+                        ? 'เหตุผลที่ส่งปรึกษา HR *'
+                        : 'ความเห็นจาก HR *'}
                 </label>
                 <textarea
                   id="review-comment"

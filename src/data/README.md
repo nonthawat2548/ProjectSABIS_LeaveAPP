@@ -16,11 +16,11 @@
 | --- | --- |
 | Vercel / cloud API | PostgreSQL บน Supabase ใช้ร่วมกันทุกเครื่อง |
 | `npm run dev` | IndexedDB ของเบราว์เซอร์นั้น |
-| `npm run dev:api` | `server/data/leave-management-10-people.json` หรือไฟล์จาก `MOCK_DATA_FILE` |
+| `npm run dev:api` | `server/data/leave-management-go.json` หรือไฟล์จาก `GO_DATA_FILE` |
 
 การยื่นลาไม่เขียนกลับ JSON ต้นทางหรือไฟล์ SQL/SQLite ทั้งสามโหมดใช้ข้อมูล runtime ของตน ไม่มีการย้ายหรือซิงก์ระหว่างโหมดอัตโนมัติ ฐานเดิม IndexedDB `leave-management-v1` และ `server/data/db.json` ถูกเก็บไว้
 
-โหมดเบราว์เซอร์ปัจจุบันใช้ IndexedDB `leave-management-10-people-v1`, session key `leave-10-people-demo-session` และ BroadcastChannel `leave-10-people-data`
+โหมดเบราว์เซอร์ปัจจุบันใช้ IndexedDB `leave-management-10-people-v2`, session key `leave-10-people-demo-session-v2` และ BroadcastChannel `leave-10-people-data-v2` ฐาน v1 เก็บไว้ การเริ่มเวอร์ชันใหม่ไม่ลบข้อมูลฐานเดิม
 
 ## ชุดทดลอง
 

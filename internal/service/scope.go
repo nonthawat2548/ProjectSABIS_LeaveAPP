@@ -57,7 +57,7 @@ func leaveType(db *model.Database, id int) (*model.LeaveType, error) {
 }
 func CanView(db *model.Database, actor *model.Employee, r model.LeaveRequest) bool {
 	owner := employee(db, r.EmployeeID)
-	return actor.ID == r.EmployeeID || actor.Role == "HR" || actor.Role == "Manager" && owner != nil && owner.Role != "HR" && valueOf(owner.ManagerID) == actor.ID
+	return actor.ID == r.EmployeeID || actor.Role == "HR" || actor.Role == "Manager" && owner != nil && (owner.Role == "Employee" && valueOf(owner.ManagerID) == actor.ID || isDecisionReviewer(db, actor, r))
 }
 func RequestCode(r *model.LeaveRequest) string {
 	return fmt.Sprintf("LR-%s-%05d", r.RequestDate[:4], r.ID)

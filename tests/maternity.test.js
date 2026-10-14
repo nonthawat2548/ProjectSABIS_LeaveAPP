@@ -92,7 +92,7 @@ function approve(db, id, at = now) {
 test('Maternity checks authentication and authority before the stored owner gender', () => {
   const db = fixture();
   fails(db, 999, { type: 'submit', input }, /เข้าสู่ระบบ/, 'UNAUTHENTICATED');
-  fails(db, 4, { type: 'submit', input }, /บทบาทพนักงาน/, 'FORBIDDEN');
+  fails(db, 4, { type: 'submit', input }, /พนักงานชาย/);
   const id = submit(db);
   fails(db, 5, { type: 'approve', id, version: 1, comment: '' }, /ไม่มีสิทธิ์/, 'FORBIDDEN');
   fails(db, 2, { type: 'edit', id, version: 1, input }, /ผู้อื่น/, 'FORBIDDEN');

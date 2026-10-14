@@ -41,7 +41,16 @@ function validateYear(year) {
 function scopedRequests(db, actor) {
   const verifiedActor = actorById(db, actor.id);
   return new Map(
-    db.requests.filter((request) => canView(db, verifiedActor, request)).map((r) => [r.id, r]),
+    db.requests
+      .filter(
+        (request) =>
+          canView(db, verifiedActor, request) &&
+          !(
+            verifiedActor.role === 'Manager' &&
+            db.employees.find((person) => person.id === request.employeeId)?.role === 'HR'
+          ),
+      )
+      .map((r) => [r.id, r]),
   );
 }
 

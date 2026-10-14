@@ -74,7 +74,7 @@ func sendLeaveReport(db *model.Database, actor *model.Employee, c model.Command,
 	}
 	selected := map[int]model.LeaveRequest{}
 	for _, r := range db.Requests {
-		if CanView(db, actor, r) && (c.EmployeeID == 0 || r.EmployeeID == c.EmployeeID) && (c.LeaveTypeID == 0 || r.LeaveTypeID == c.LeaveTypeID) {
+		if CanView(db, actor, r) && employee(db, r.EmployeeID).Role != "HR" && (c.EmployeeID == 0 || r.EmployeeID == c.EmployeeID) && (c.LeaveTypeID == 0 || r.LeaveTypeID == c.LeaveTypeID) {
 			selected[r.ID] = r
 		}
 	}

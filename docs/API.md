@@ -11,7 +11,7 @@ Implementation ปัจจุบัน: `internal/httpapi/` (Go + Gin) · front
 | Method | Path | ข้อมูล |
 | --- | --- | --- |
 | GET | `/api/health` | cloud: status ok, mode cloud-postgres, documentTransport parts-v1, partCharacters 2097152; 503 เมื่อฐาน/migration ไม่พร้อม |
-| POST | `/api/uploads` | `{fileName,fileType,fileSize,encodedLength}` → `{uploadId,partCharacters}`; Employee/session |
+| POST | `/api/uploads` | `{fileName,fileType,fileSize,encodedLength}` → `{uploadId,partCharacters}`; session ของ Employee/Manager/HR ที่ active สำหรับแนบคำขอของตน |
 | PUT | `/api/uploads/:uploadId/parts/:part` | `{data}` base64; owner/session, idempotent replacement ของส่วนเดิม |
 | DELETE | `/api/uploads/:uploadId` | ยกเลิก staging ของตนเอง |
 | GET | `/api/documents/:id` | metadata + totalCharacters/partCharacters; ตรวจ canView |
@@ -72,6 +72,8 @@ Go JSON server เริ่มต้น/คืนค่าจาก JSON 10 ค�
 API และ IndexedDB ของโหมดเบราว์เซอร์เริ่มต้นจาก source เดียวกัน แต่บันทึกแยกกัน ไม่มีการซิงก์ระหว่างโหมดหรือกลับไปยัง source JSON ไฟล์ SQL/SQLite ใน `database/sqlite/` เป็นสำเนาส่งออกสำหรับอ้างอิง ไม่มีการเชื่อม SQLite อัตโนมัติ ดูรายละเอียดชุดข้อมูลและการสร้างไฟล์ใหม่ใน [คู่มือชุด 10 คน](../src/data/README.md)
 
 ## ยื่นคำขอ
+
+Employee, Manager และ HR ยื่น/แก้ไข/ถอนคำขอตนเองได้ผ่าน endpoint เดิม อัปโหลดเอกสารส่วนตัวได้ทุกบทบาทที่ยืนยัน session แล้ว `Decision` มอบหมาย Employee → Manager, Manager → HR active, HR → Manager ที่กำหนด ห้ามพิจารณาคำขอตนเองและ HR ไม่ตัดสินคำขอ Employee ที่ตนให้ Consultation ผู้จัดการอ่านคำขอ HR ได้เฉพาะที่ถูกมอบหมาย Decision แต่ไม่รวมในรายงานทีม สถานะงานของวันที่มีวันลาอนุมัติเต็มหรือครึ่งวันเป็นข้อมูลที่ระบบแสดงอัตโนมัติและห้ามบันทึกสถานะเอง ทับช่วงวันที่คำขอ Pending/Approved ไม่ได้ รวม AM/PM คนละช่วงด้วย
 
 ```json
 {

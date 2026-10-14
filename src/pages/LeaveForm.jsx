@@ -27,6 +27,7 @@ import { Badge, Card, DateField, DocumentRow, Heading, KeyRow } from '../compone
 import { Stepper } from '../ui.jsx';
 import { durationLabels as durations } from '../labels.js';
 import { useTask } from './useTask.js';
+import { requestReviewer } from '../domain/approvalRouting.js';
 
 function HRContact({ db }) {
   const contacts = db.employees.filter((e) => e.role === 'HR' && e.active);
@@ -58,6 +59,8 @@ function HRContact({ db }) {
 export function LeaveForm({ db, actor, run, editId }) {
   const previous = db.requests.find((r) => r.id === editId);
   const owner = db.employees.find((e) => e.id === actor.id) ?? actor;
+  const reviewer = requestReviewer(db, owner);
+  const historyPath = actor.role === 'Employee' ? '#/requests' : '#/my-requests';
   const [typeId, setTypeId] = useState(previous?.leaveTypeId ?? 1);
   const [start, setStart] = useState(
     formatDate(previous?.startDate ?? nextWorkingDay(addDays(today(), 1))),
@@ -120,7 +123,7 @@ export function LeaveForm({ db, actor, run, editId }) {
     return (
       <>
         <Heading title="แก้ไขคำขอนี้ไม่ได้" description="แก้ไขได้เฉพาะคำขอของคุณที่ยังรอพิจารณา" />
-        <a className="btn" href="#/requests">
+        <a className="btn" href={historyPath}>
           กลับรายการคำขอ
         </a>
       </>
@@ -176,7 +179,7 @@ export function LeaveForm({ db, actor, run, editId }) {
               <CheckCircle2 size={36} />
             </span>
             <h1>{editId ? 'บันทึกการแก้ไขเรียบร้อย' : 'ส่งคำขอเรียบร้อย'}</h1>
-            <p>คำขอถูกส่งให้ผู้จัดการพิจารณาแล้ว</p>
+            <p>คำขอถูกส่งให้ผู้พิจารณาแล้ว</p>
             <div className="success-summary">
               <KeyRow label="เลขคำขอ">
                 {requestCode(db.requests.find((r) => r.id === submitted))}
@@ -262,7 +265,7 @@ export function LeaveForm({ db, actor, run, editId }) {
           <div className="info">
             <Info size={17} />
             <span>
-              ระบบหักสิทธิ์วันลาเมื่อผู้จัดการอนุมัติคำขอ
+              ระบบหักสิทธิ์วันลาเมื่อคำขอได้รับอนุมัติ
               {editId && ' · ความเห็นเดิมจะยกเลิกและเริ่มพิจารณาใหม่'}
             </span>
           </div>
@@ -304,7 +307,7 @@ export function LeaveForm({ db, actor, run, editId }) {
         description={
           editId
             ? 'คำขอ ' + requestCode(previous) + ' · การแก้ไขจะเริ่มขั้นตอนพิจารณาใหม่'
-            : 'กรอกข้อมูลแล้วตรวจสอบก่อนส่งให้ผู้จัดการ'
+            : 'กรอกข้อมูลแล้วตรวจสอบก่อนส่งให้ผู้พิจารณา'
         }
       />
 
@@ -504,7 +507,7 @@ export function LeaveForm({ db, actor, run, editId }) {
               </div>
             )}
             <div className="actions end">
-              <a className="btn" href="#/requests">
+              <a className="btn" href={historyPath}>
                 ยกเลิก
               </a>
               <button className="btn primary" disabled={busy || reading}>
@@ -593,7 +596,7 @@ export function LeaveForm({ db, actor, run, editId }) {
               )}
               <li>
                 {'ผู้พิจารณา: '}
-                {db.employees.find((e) => e.id === owner.managerId)?.name ?? 'ยังไม่มีผู้จัดการ'}
+                {reviewer?.name ?? 'ยังไม่มีผู้พิจารณา'}
               </li>
             </ul>
             <p className="tiny">นโยบายการลาตัวอย่าง ปรับได้โดยฝ่ายบุคคล</p>

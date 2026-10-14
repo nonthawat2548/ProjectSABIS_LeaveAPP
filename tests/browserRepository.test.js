@@ -166,7 +166,7 @@ test('Browser repository uses the ten-person dataset with isolated storage and r
       const hr = await repository.login('hr@demo.local', DEMO_PASSWORD);
       const snapshot = await repository.snapshot();
       assert.equal(snapshot.employees.length, 10);
-      assert.equal(snapshot.requests.length, 14);
+      assert.equal(snapshot.requests.length, 15);
       assert.equal(snapshot.employees.filter((employee) => employee.role === 'Employee').length, 7);
       assert.equal(snapshot.employees.filter((employee) => employee.role === 'Manager').length, 2);
       assert.equal(snapshot.employees.filter((employee) => employee.role === 'HR').length, 1);
@@ -234,13 +234,13 @@ test('Browser repository uses the ten-person dataset with isolated storage and r
       assert(salesSnapshot.requests.some((request) => request.employeeId === 9));
       assert(salesSnapshot.requests.every((request) => [6, 7, 8, 9].includes(request.employeeId)));
       await assert.rejects(
-        repository.execute({ type: 'approve', id: 1001, version: 1, comment: '' }),
+        repository.execute({ type: 'approve', id: 1002, version: 1, comment: '' }),
         hasCode('FORBIDDEN'),
       );
       await repository.login('chutima@demo.local', DEMO_PASSWORD);
       assert((await repository.snapshot()).requests.every((request) => request.employeeId === 8));
       await assert.rejects(
-        repository.execute({ type: 'withdraw', id: 1001, version: 1 }),
+        repository.execute({ type: 'withdraw', id: 1002, version: 1 }),
         hasCode('FORBIDDEN'),
       );
       await assert.rejects(repository.resetDemo(), hasCode('FORBIDDEN'));

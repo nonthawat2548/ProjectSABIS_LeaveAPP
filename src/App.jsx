@@ -341,13 +341,16 @@ function Workspace() {
     { path: '/leave-summary', label: 'สรุปการลา', icon: <ChartNoAxesCombined /> },
   ];
 
-  if (actor.role === 'Employee')
-    menus.push(
-      { path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> },
-      { path: '/requests', label: 'ประวัติคำขอ', icon: <ClipboardList /> },
-      { path: '/quota', label: 'สิทธิ์และโควตา', icon: <Wallet /> },
-    );
-  else
+  menus.push(
+    { path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> },
+    {
+      path: actor.role === 'Employee' ? '/requests' : '/my-requests',
+      label: actor.role === 'Employee' ? 'ประวัติคำขอ' : 'ประวัติคำขอของฉัน',
+      icon: <ClipboardList />,
+    },
+    { path: '/quota', label: 'สิทธิ์และโควตา', icon: <Wallet /> },
+  );
+  if (actor.role !== 'Employee')
     menus.push(
       {
         path: '/requests',
@@ -363,6 +366,7 @@ function Workspace() {
   );
   if (actor.role === 'HR')
     menus.push(
+      { path: '/approvals', label: 'อนุมัติคำขอผู้จัดการ', icon: <ClipboardList /> },
       { path: '/admin', label: 'ข้อมูลและสิทธิ์การลา', icon: <Users /> },
       { path: '/settings', label: 'การตั้งค่า', icon: <Settings /> },
     );
@@ -378,7 +382,7 @@ function Workspace() {
       <div className="app-shell" inert={!!entry || !!profile} aria-busy={!!entry}>
         <WorkspaceNavigation
           actor={actor}
-          menus={menus.filter((menu) => menu.path !== '/notifications')}
+          menus={menus}
           open={mobile}
           onClose={closeMobile}
           onLogout={() => void logout()}
