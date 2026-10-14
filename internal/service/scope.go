@@ -57,7 +57,7 @@ func leaveType(db *model.Database, id int) (*model.LeaveType, error) {
 }
 func CanView(db *model.Database, actor *model.Employee, r model.LeaveRequest) bool {
 	owner := employee(db, r.EmployeeID)
-	return actor.ID == r.EmployeeID || actor.Role == "HR" || actor.Role == "Manager" && owner != nil && valueOf(owner.ManagerID) == actor.ID
+	return actor.ID == r.EmployeeID || actor.Role == "HR" || actor.Role == "Manager" && owner != nil && owner.Role != "HR" && valueOf(owner.ManagerID) == actor.ID
 }
 func RequestCode(r *model.LeaveRequest) string {
 	return fmt.Sprintf("LR-%s-%05d", r.RequestDate[:4], r.ID)
@@ -85,7 +85,7 @@ func Snapshot(db *model.Database, actorID int) (*model.Database, error) {
 	}
 	scoped := func(id int) bool {
 		e := employee(db, id)
-		return e != nil && (actor.Role == "HR" || id == actor.ID || actor.Role == "Manager" && valueOf(e.ManagerID) == actor.ID)
+		return e != nil && (actor.Role == "HR" || id == actor.ID || actor.Role == "Manager" && e.Role != "HR" && valueOf(e.ManagerID) == actor.ID)
 	}
 	result.Employees = filter(result.Employees, func(e model.Employee) bool { return scoped(e.ID) || e.ID == valueOf(actor.ManagerID) || e.Role == "HR" })
 	result.Entitlements = filter(result.Entitlements, func(e model.Entitlement) bool { return scoped(e.EmployeeID) })
@@ -99,7 +99,7 @@ func Snapshot(db *model.Database, actorID int) (*model.Database, error) {
 	}
 	result.Approvals = filter(result.Approvals, func(a model.LeaveApproval) bool { return allowed[a.LeaveID] })
 	result.WorkStatuses = filter(result.WorkStatuses, func(w model.WorkStatus) bool { return scoped(w.EmployeeID) })
-	result.Notifications = filter(result.Notifications, func(n model.Notification) bool { return n.EmployeeID == actorID })
+	result.Notifications = filter(result.Notifications, func(n model.Notification) bool { return n.EmployeeID == actorID && canReadReportNotification(actor, n) })
 	return result, nil
 }
 func Balance(db *model.Database, owner, typeID, year int, caseID *int, exclude int) model.Balance {

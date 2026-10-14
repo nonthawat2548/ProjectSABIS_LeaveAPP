@@ -63,6 +63,8 @@ Service ไม่รับ role/actorId/gender จาก body มาเป็น
 
 ## ทดสอบ
 
+คำสั่ง `sendLeaveReport` อยู่ใน `internal/service/leave_report.go` ตรวจ Manager จาก session, พนักงานตามทีมและ HR ที่ active ก่อนคำนวณจากวันที่/units ที่บันทึกไว้ แล้วบันทึก notification ให้ผู้รับกับผู้ส่งใน transaction เดิม ตรวจ parity ข้อความรายงานกับ `src/domain/leaveReport.js`; ไม่เพิ่ม endpoint/schema และไม่รับรายงานหรือยอดรวมจาก request body ค่า `employeeId=0/month=0/leaveTypeId=0` เป็นตัวกรองทั้งหมดตามสิทธิ์ Manager อ่านคำขอ/วันลา/เอกสาร/โควตาของ HR ไม่ได้แม้ HR มี managerId ชี้มาที่ตน สิทธิ์อ่านโปรไฟล์พื้นฐานยังคงเดิม
+
 ```bash
 npm test
 npm run typecheck

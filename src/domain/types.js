@@ -193,7 +193,8 @@
  * @typedef {{ type: 'maternity', employeeId: number, maximumDays: number }} MaternityCommand
  * @typedef {{ type: 'holiday', date: string, name: string, remove?: boolean }} HolidayCommand
  * @typedef {{ type: 'policy', policy: LeaveType }} PolicyCommand
- * @typedef {SubmitCommand | EditCommand | WithdrawCommand | ApproveCommand | RejectCommand | ReferCommand | ConsultCommand | WorkCommand | ReadNotificationsCommand | EntitlementCommand | MaternityCommand | HolidayCommand | PolicyCommand} Command
+ * @typedef {{type: 'sendLeaveReport', employeeId: number, hrId: number, year: number, month: number, leaveTypeId: number}} SendLeaveReportCommand
+ * @typedef {SubmitCommand | EditCommand | WithdrawCommand | ApproveCommand | RejectCommand | ReferCommand | ConsultCommand | WorkCommand | ReadNotificationsCommand | EntitlementCommand | MaternityCommand | HolidayCommand | PolicyCommand | SendLeaveReportCommand} Command
  */
 /**
  * @typedef {object} CommandResult

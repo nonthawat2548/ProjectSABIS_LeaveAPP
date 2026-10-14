@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { HashRouter, Link, matchRoutes, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
+  ChartNoAxesCombined,
   FilePlus2,
   ClipboardList,
   Wallet,
@@ -335,7 +336,10 @@ function Workspace() {
       </>
     );
 
-  const menus = [{ path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> }];
+  const menus = [
+    { path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> },
+    { path: '/leave-summary', label: 'สรุปการลา', icon: <ChartNoAxesCombined /> },
+  ];
 
   if (actor.role === 'Employee')
     menus.push(

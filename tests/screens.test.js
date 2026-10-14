@@ -10,6 +10,7 @@ import { Login, ThemeButton } from '../src/App.jsx';
 import { searchWorkspace } from '../src/ui.jsx';
 import {
   Dashboard,
+  LeaveSummaryPage,
   Requests,
   RequestDetail,
   LeaveForm,
@@ -31,6 +32,7 @@ test('All role screens render and visible dates use Buddhist Era d/m/yyyy', () =
     const props = { db, actor, run, reload };
     const screens = [
       Dashboard,
+      LeaveSummaryPage,
       Requests,
       WorkPage,
       NotificationsPage,

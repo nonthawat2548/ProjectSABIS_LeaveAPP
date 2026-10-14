@@ -330,6 +330,96 @@ function normalize(value) {
   }
   return value;
 }
+for (const actorId of [1, 4, 5, 7])
+  for (const employeeId of [0, 1, 5, 6, 999])
+    add(`leave report ${actorId}/${employeeId}`, createDemoDatabase(), actorId, {
+      type: 'sendLeaveReport',
+      employeeId,
+      hrId: 5,
+      year: 2026,
+      month: 0,
+      leaveTypeId: 0,
+    });
+for (const patch of [
+  { month: 12 },
+  { month: 13 },
+  { year: 2027 },
+  { year: 1899 },
+  { leaveTypeId: 1 },
+  { leaveTypeId: 999 },
+  { hrId: 1 },
+  { hrId: 999 },
+])
+  add(`leave report filters ${JSON.stringify(patch)}`, createDemoDatabase(), 4, {
+    type: 'sendLeaveReport',
+    employeeId: 1,
+    hrId: 5,
+    year: 2026,
+    month: 0,
+    leaveTypeId: 0,
+    ...patch,
+  });
+{
+  const db = createDemoDatabase();
+  db.employees.find((p) => p.id === 5).managerId = 4;
+  add('leave report rejects HR assigned to manager', db, 4, {
+    type: 'sendLeaveReport',
+    employeeId: 5,
+    hrId: 5,
+    year: 2026,
+    month: 0,
+    leaveTypeId: 0,
+  });
+  const hrRequest = { ...db.requests[0], id: 9999, employeeId: 5, status: 'Pending', version: 1 };
+  db.requests.push(hrRequest);
+  for (const type of ['approve', 'reject', 'refer'])
+    add(`manager cannot act on HR request ${type}`, db, 4, {
+      type,
+      id: 9999,
+      version: 1,
+      comment: 'ทดสอบ',
+      hrId: 5,
+    });
+  cases.push({
+    name: 'snapshot excludes HR leave assigned to manager',
+    database: db,
+    actorId: 4,
+    operation: 'snapshot',
+    now: now.toISOString(),
+  });
+  const snapshot = visibleSnapshot(db, 4);
+  snapshot.documents.forEach((document) => {
+    document.dataUrl = '';
+    document.remote = true;
+  });
+  expected.push({ database: db, result: snapshot });
+}
+for (const [actorId, role] of [
+  [4, 'Employee'],
+  [5, 'Manager'],
+]) {
+  const db = createDemoDatabase();
+  applyCommand(
+    db,
+    4,
+    { type: 'sendLeaveReport', employeeId: 1, hrId: 5, year: 2026, month: 0, leaveTypeId: 0 },
+    now,
+  );
+  db.employees.find((p) => p.id === actorId).role = role;
+  cases.push({
+    name: `report read after role change ${actorId}`,
+    database: db,
+    actorId,
+    operation: 'snapshot',
+    now: now.toISOString(),
+  });
+  const snapshot = visibleSnapshot(db, actorId);
+  snapshot.documents.forEach((document) => {
+    document.dataUrl = '';
+    document.remote = true;
+  });
+  expected.push({ database: db, result: snapshot });
+}
 const child = spawn(findGo(), ['run', './scripts/go-contract'], {
   stdio: ['pipe', 'pipe', 'inherit'],
   windowsHide: true,

@@ -7,6 +7,8 @@ import {
   CalendarPage,
   Dashboard,
   LeaveForm,
+  LeaveSummaryPage,
+  LeaveReportDashboardPage,
   NotificationsPage,
   Quotas,
   RequestDetail,
@@ -42,6 +44,12 @@ function EmployeeProfileRoute({ pageProps }) {
   return <EmployeeProfilePage {...pageProps} employeeId={Number(id)} />;
 }
 
+function LeaveReportRoute({ pageProps }) {
+  const { id } = useParams();
+  if (!/^\d+$/.test(id) || !Number.isSafeInteger(Number(id)) || Number(id) < 1) return <NotFound />;
+  return <LeaveReportDashboardPage {...pageProps} notificationId={Number(id)} />;
+}
+
 // Page access is a presentation rule. The repository and Go API also check rights.
 export function createWorkspaceRoutes(props) {
   const employee = props.actor.role === 'Employee';
@@ -49,6 +57,7 @@ export function createWorkspaceRoutes(props) {
   const routes = [
     { path: '/', title: 'หน้าหลัก', element: <Dashboard {...props} /> },
     { path: '/dashboard', title: 'หน้าหลัก', element: <Dashboard {...props} /> },
+    { path: '/leave-summary', title: 'สรุปการลา', element: <LeaveSummaryPage {...props} /> },
     {
       path: '/requests',
       title: employee ? 'ประวัติคำขอ' : hr ? 'คำขอปรึกษา HR' : 'รายการคำขอของทีม',
@@ -76,6 +85,12 @@ export function createWorkspaceRoutes(props) {
     );
   else
     routes.push({ path: '/calendar', title: 'ปฏิทินการลา', element: <CalendarPage {...props} /> });
+  if (!employee)
+    routes.push({
+      path: '/leave-report/:id',
+      title: 'รายงานสรุปการลา',
+      element: <LeaveReportRoute pageProps={props} />,
+    });
   if (hr)
     routes.push(
       { path: '/admin', title: 'ข้อมูลและสิทธิ์การลา', element: <AdminPage {...props} /> },

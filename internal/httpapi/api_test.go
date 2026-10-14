@@ -467,4 +467,5 @@ func TestPostgresTransport(t *testing.T) {
 	if status != 200 {
 		t.Fatal("reset invalidated unchanged session")
 	}
+	testLeaveReportFlow(t, handler)
 }

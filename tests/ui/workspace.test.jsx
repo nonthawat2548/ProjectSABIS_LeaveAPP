@@ -361,6 +361,9 @@ test('login waits for the scoped snapshot and recovers if it fails', async () =>
 });
 
 test.each([
+  [1, '/leave-summary', 'สรุปการลา'],
+  [4, '/leave-summary', 'สรุปการลา'],
+  [5, '/leave-summary', 'สรุปการลา'],
   [1, '/new', 'แบบฟอร์มยื่นคำขอลา'],
   [4, '/calendar', 'ปฏิทินการลา'],
   [5, '/admin', 'ข้อมูลพนักงานและสิทธิ์การลา'],
@@ -368,6 +371,31 @@ test.each([
   await openWorkspace(id, path);
   expect(screen.getByRole('heading', { level: 1, name: title })).toBeInTheDocument();
   expect(window.location.hash).toBe('#' + path);
+});
+
+test('leave summary is available from the workspace menu and quick search', async () => {
+  const user = userEvent.setup();
+  await openWorkspace();
+  const navigation = screen.getByRole('navigation', { name: 'เมนูหลัก' });
+  const links = within(navigation).getAllByRole('link');
+  expect(links[0]).toHaveTextContent('หน้าหลัก');
+  expect(links[1]).toHaveTextContent('สรุปการลา');
+  await user.click(within(navigation).getByRole('link', { name: 'สรุปการลา', exact: true }));
+  expect(await screen.findByRole('heading', { level: 1, name: 'สรุปการลา' })).toBeInTheDocument();
+  expect(window.location.hash).toBe('#/leave-summary');
+  expect(within(navigation).getByRole('link', { name: 'สรุปการลา' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+
+  await user.click(within(navigation).getByRole('link', { name: 'หน้าหลัก', exact: true }));
+  await user.click(screen.getByRole('button', { name: 'ค้นหาเมนูหรือคำขอ', exact: true }));
+  const search = screen.getByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' });
+  await user.type(within(search).getByRole('textbox', { name: 'ค้นหาเมนูหรือคำขอ' }), 'สรุปการลา');
+  await user.click(within(search).getByRole('link', { name: 'สรุปการลา', exact: true }));
+  expect(await screen.findByRole('heading', { level: 1, name: 'สรุปการลา' })).toBeInTheDocument();
+  expect(window.location.hash).toBe('#/leave-summary');
+  expect(screen.queryByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' })).not.toBeInTheDocument();
 });
 
 test.each([

@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Bell, CheckCheck, ChevronRight, X } from 'lucide-react';
 
 import { formatDateTime, today } from './domain/date.js';
+import { isLeaveReport, notificationTitle } from './domain/leaveReport.js';
 
 export function NotificationPopover({ notifications, employeeId, route, disabled, onReadAll }) {
   const [open, setOpen] = useState(false),
@@ -165,14 +166,20 @@ export function NotificationPopover({ notifications, employeeId, route, disabled
                         <li key={n.id}>
                           <a
                             className={'notification-preview' + (!n.read ? ' unread' : '')}
-                            href={n.leaveId ? '#/request/' + n.leaveId : '#/notifications'}
+                            href={
+                              isLeaveReport(n.text)
+                                ? '#/leave-report/' + n.id
+                                : n.leaveId
+                                  ? '#/request/' + n.leaveId
+                                  : '#/notifications'
+                            }
                             onClick={() => setOpen(false)}
                           >
                             <span className="notification-preview-icon">
                               <Bell size={20} aria-hidden="true" />
                             </span>
                             <span className="notification-preview-copy">
-                              <span>{n.text}</span>
+                              <span>{notificationTitle(n.text)}</span>
                               <time dateTime={n.createdAt}>{formatDateTime(n.createdAt)}</time>
                               {!n.read && <small>ยังไม่ได้อ่าน</small>}
                             </span>

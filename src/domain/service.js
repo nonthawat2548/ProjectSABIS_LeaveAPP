@@ -10,6 +10,7 @@
  * @typedef {import('./types.js').RequestInput} RequestInput
  */
 import { datesBetween, dayDifference, isoDate, today, workingDates } from './date.js';
+import { canReadReportNotification, sendLeaveReport } from './leaveReport.js';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   MAX_ATTACHMENT_BASE64_LENGTH,
@@ -63,6 +64,7 @@ export function canView(db, actor, r) {
   return (
     actor.id === r.employeeId ||
     (actor.role === 'Manager' &&
+      db.employees.find((e) => e.id === r.employeeId)?.role !== 'HR' &&
       db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) ||
     actor.role === 'HR'
   );
@@ -93,7 +95,7 @@ export function visibleSnapshot(db, actorId) {
         (e) =>
           actor.role === 'HR' ||
           e.id === actor.id ||
-          (actor.role === 'Manager' && e.managerId === actor.id),
+          (actor.role === 'Manager' && e.role !== 'HR' && e.managerId === actor.id),
       )
       .map((e) => e.id),
   );
@@ -107,7 +109,9 @@ export function visibleSnapshot(db, actorId) {
     documents: db.documents.filter((d) => allowed.has(d.leaveId)),
     approvals: db.approvals.filter((a) => allowed.has(a.leaveId)),
     workStatuses: db.workStatuses.filter((w) => scopedPeople.has(w.employeeId)),
-    notifications: db.notifications.filter((n) => n.employeeId === actor.id),
+    notifications: db.notifications.filter(
+      (n) => n.employeeId === actor.id && canReadReportNotification(actor, n),
+    ),
   });
 }
 /**
@@ -437,6 +441,7 @@ function pending(db, id, version) {
 function managerOnly(db, actor, r) {
   if (
     actor.role !== 'Manager' ||
+    db.employees.find((e) => e.id === r.employeeId)?.role === 'HR' ||
     db.employees.find((e) => e.id === r.employeeId)?.managerId !== actor.id
   )
     fail('คุณไม่มีสิทธิ์พิจารณาคำขอนี้', 'FORBIDDEN');
@@ -458,6 +463,7 @@ function requireComment(comment) {
 export function applyCommand(db, actorId, c, now = new Date()) {
   const actor = actorById(db, actorId),
     at = now.toISOString();
+  if (c.type === 'sendLeaveReport') return sendLeaveReport(db, actor, c, at);
   if (c.type === 'submit' || c.type === 'edit') {
     if (actor.role !== 'Employee') fail('ขั้นตอนยื่นลานี้เปิดให้บทบาทพนักงาน', 'FORBIDDEN');
     const previous = c.type === 'edit' ? pending(db, c.id, c.version) : null;

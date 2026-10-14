@@ -153,6 +153,7 @@ type Command struct {
 	EmployeeID   int             `json:"employeeId"`
 	LeaveTypeID  int             `json:"leaveTypeId"`
 	Year         int             `json:"year"`
+	Month        int             `json:"month"`
 	GrantedDays  *float64        `json:"grantedDays"`
 	MaximumDays  int             `json:"maximumDays"`
 	Name         string          `json:"name"`

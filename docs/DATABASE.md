@@ -56,6 +56,8 @@ Backend หลักปัจจุบันเป็น Go + Gin ใช้ stru
 
 ## Derived fields
 
+หน้า `#/leave-summary` คำนวณสรุปจาก `Leave_Request` และ `Leave_Day.date/units` ตามสิทธิ์เดิม ไม่เพิ่มตารางยอดรวมหรือเขียนค่าคำนวณกลับฐาน การส่งรายงานใช้ `App_Notification.Message`/`notifications.text` เก็บข้อความอ่านได้ซึ่งเริ่มด้วย `รายงานสรุปการลา` และบรรทัด `ผู้ส่ง:` เป็นสำเนารายงาน ณ เวลาส่ง มีสองแถวแยกเจ้าของสำหรับ HR ผู้รับและ Manager ผู้ส่ง (`leaveId=null`, `read=false`) จึงคงอยู่หลังโหลดหน้าใหม่ใน IndexedDB, Go JSON และ PostgreSQL ไม่มี schema/migration เพิ่ม และไม่แก้ข้อมูลต้นทางหรือฐานที่ใช้งานเพียงเพื่อเพิ่มหน้าเว็บ
+
 - `Leave_Request.Total_days` = SUM(Leave_Day.Units)
 - `Leave_Entitlement.Used_days` = วันที่เชื่อมสิทธิ์นี้และคำขอ Approved
 - `Remaining_days` = Granted_days − Used_days

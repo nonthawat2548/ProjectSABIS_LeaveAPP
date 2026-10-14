@@ -1,4 +1,6 @@
 export { Dashboard } from './Dashboard.jsx';
+export { LeaveSummaryPage } from './pages/LeaveSummaryPage.jsx';
+export { LeaveReportDashboardPage } from './pages/LeaveReportDashboardPage.jsx';
 export { Requests } from './pages/Requests.jsx';
 export { LeaveForm } from './pages/LeaveForm.jsx';
 export { RequestDetail } from './pages/RequestDetail.jsx';

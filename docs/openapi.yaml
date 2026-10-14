@@ -410,8 +410,12 @@ components:
         work requires date/statusType. entitlement requires employeeId/leaveTypeId/
         year/grantedDays. maternity requires employeeId/maximumDays. holiday
         requires date and name unless remove=true. policy requires policy.
+        sendLeaveReport is Manager-only: employeeId (0 = authorized scope), hrId,
+        year, month (0 = all), leaveTypeId (0 = all). Team only, never HR leave
+        data. Generates an immutable text report in notifications for the active
+        HR recipient and a sender copy; client totals/rows are ignored.
       properties:
-        type: { type: string, enum: [submit, edit, withdraw, approve, reject, refer, consult, work, readNotifications, entitlement, maternity, holiday, policy] }
+        type: { type: string, enum: [submit, edit, withdraw, approve, reject, refer, consult, work, readNotifications, entitlement, maternity, holiday, policy, sendLeaveReport] }
         input: { $ref: '#/components/schemas/RequestInput' }
         id: { type: integer }
         version: { type: integer }
@@ -422,6 +426,7 @@ components:
         employeeId: { type: integer }
         leaveTypeId: { type: integer }
         year: { type: integer, minimum: 1900, maximum: 2200 }
+        month: { type: integer, minimum: 0, maximum: 12 }
         grantedDays: { type: number, minimum: 0, maximum: 999, multipleOf: 0.5 }
         maximumDays: { type: integer, minimum: 1, maximum: 999 }
         name: { type: string, maxLength: 100 }

@@ -3,6 +3,7 @@ import { Check, ChevronRight, Bell } from 'lucide-react';
 import { formatDateTime } from '../domain/date.js';
 import { Card, Empty, Heading } from '../components.jsx';
 import { useTask } from './useTask.js';
+import { isLeaveReport, notificationTitle } from '../domain/leaveReport.js';
 
 /** @param {import('./types.js').PageProps} props */
 export function NotificationsPage({ db, run }) {
@@ -37,8 +38,14 @@ export function NotificationsPage({ db, run }) {
               <div className={'notification ' + (!n.read ? 'unread' : '')} key={n.id}>
                 <Bell size={19} />
                 <div>
-                  <p>{n.text}</p>
+                  <p>{notificationTitle(n.text)}</p>
                   <small>{formatDateTime(n.createdAt)}</small>
+                  {isLeaveReport(n.text) && (
+                    <a className="text-link leave-report-open" href={`#/leave-report/${n.id}`}>
+                      เปิดอ่านรายงาน
+                      <ChevronRight size={15} aria-hidden="true" />
+                    </a>
+                  )}
                 </div>
                 {n.leaveId && (
                   <a className="text-link" href={'#/request/' + n.leaveId}>

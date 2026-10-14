@@ -16,6 +16,8 @@ func Apply(db *model.Database, actorID int, c model.Command, now time.Time) (mod
 	}
 	at := timestamp(now)
 	switch c.Type {
+	case "sendLeaveReport":
+		return sendLeaveReport(db, actor, c, at)
 	case "submit", "edit":
 		return submit(db, actor, c, now)
 	case "withdraw":
@@ -177,7 +179,7 @@ func decision(db *model.Database, actor *model.Employee, c model.Command, now ti
 		return model.Result{}, err
 	}
 	owner := employee(db, r.EmployeeID)
-	if actor.Role != "Manager" || owner == nil || valueOf(owner.ManagerID) != actor.ID {
+	if actor.Role != "Manager" || owner == nil || owner.Role == "HR" || valueOf(owner.ManagerID) != actor.ID {
 		return model.Result{}, Problem("คุณไม่มีสิทธิ์พิจารณาคำขอนี้", "FORBIDDEN")
 	}
 	t, err := leaveType(db, r.LeaveTypeID)
