@@ -79,7 +79,7 @@ test('HR leave never routes down to a department manager, including legacy assig
   assert.equal(db.requests[0].status, 'Withdrawn');
 });
 
-test('manager edits and withdraws own pending request; consultation HR cannot make the employee decision', () => {
+test('manager edits and withdraws own pending request; a referral gives HR the final decision', () => {
   const db = fresh();
   const { id } = applyCommand(db, 4, { type: 'submit', input }, now);
   applyCommand(db, 4, { type: 'edit', id, version: 1, input: { ...input, duration: 'AM' } }, now);
@@ -93,16 +93,23 @@ test('manager edits and withdraws own pending request; consultation HR cannot ma
     { type: 'refer', id: request.id, version: 1, hrId: 5, comment: 'ตรวจสิทธิ์วันลา' },
     now,
   );
-  applyCommand(
-    db,
-    5,
-    { type: 'consult', id: request.id, version: 2, comment: 'สิทธิ์เพียงพอ' },
-    now,
+  assert.throws(
+    () =>
+      applyCommand(
+        db,
+        5,
+        { type: 'consult', id: request.id, version: 2, comment: 'สิทธิ์เพียงพอ' },
+        now,
+      ),
+    {
+      code: 'FORBIDDEN',
+    },
   );
-  assert.throws(() => applyCommand(db, 5, { type: 'approve', id: request.id, version: 3 }, now), {
+  assert.throws(() => applyCommand(db, 4, { type: 'approve', id: request.id, version: 2 }, now), {
     code: 'FORBIDDEN',
   });
-  applyCommand(db, 4, { type: 'approve', id: request.id, version: 3 }, now);
+  applyCommand(db, 5, { type: 'reject', id: request.id, version: 2, comment: 'ไม่ผ่าน' }, now);
+  assert.equal(db.requests.find((r) => r.id === request.id).status, 'Rejected');
 });
 
 test('report sample requests match the requested identities, dates, timeline and quota', () => {

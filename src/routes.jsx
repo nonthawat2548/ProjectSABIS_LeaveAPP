@@ -59,19 +59,8 @@ export function createWorkspaceRoutes(props) {
     { path: '/', title: 'หน้าหลัก', element: <Dashboard {...props} /> },
     { path: '/dashboard', title: 'หน้าหลัก', element: <Dashboard {...props} /> },
     {
-      path: '/leave-summary',
-      title: hr ? 'แดชบอร์ด' : 'สรุปการลา',
-      element: hr ? (
-        <div className="dashboard-page hr-dashboard-page">
-          <ManagementAnalytics {...props} />
-        </div>
-      ) : (
-        <LeaveSummaryPage {...props} />
-      ),
-    },
-    {
       path: '/requests',
-      title: employee ? 'ประวัติคำขอ' : hr ? 'คำขอปรึกษา HR' : 'รายการคำขอของทีม',
+      title: employee ? 'ประวัติคำขอ' : hr ? 'คำขอส่งต่อ' : 'รายการคำขอของทีม',
       element: <Requests {...props} />,
     },
     { path: '/request/:id', title: 'รายละเอียดคำขอ', element: <RequestRoute pageProps={props} /> },
@@ -84,6 +73,18 @@ export function createWorkspaceRoutes(props) {
     },
     { path: '/notifications', title: 'การแจ้งเตือน', element: <NotificationsPage {...props} /> },
   ];
+  if (!employee)
+    routes.push({
+      path: '/leave-summary',
+      title: hr ? 'แดชบอร์ด' : 'สรุปการลา',
+      element: hr ? (
+        <div className="dashboard-page hr-dashboard-page">
+          <ManagementAnalytics {...props} />
+        </div>
+      ) : (
+        <LeaveSummaryPage {...props} />
+      ),
+    });
   routes.push({ path: '/quota', title: 'สิทธิ์และโควตา', element: <Quotas {...props} /> });
   if (!hr)
     routes.push(

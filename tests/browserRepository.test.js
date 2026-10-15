@@ -335,6 +335,53 @@ test('Browser repository uses the ten-person dataset with isolated storage and r
     },
   );
   await t.test(
+    'HR referral approval and audit assignments survive reopening IndexedDB',
+    async () => {
+      await repository.login('employee@demo.local', DEMO_PASSWORD);
+      const before = await repository.snapshot();
+      const used = balance(before, 1, 1, 2027).used;
+      const { id } = await repository.execute({
+        type: 'submit',
+        input: {
+          leaveTypeId: 1,
+          maternityCaseId: null,
+          startDate: '2027-03-08',
+          endDate: '2027-03-08',
+          duration: 'AM',
+          reason: 'ธุระส่วนตัว',
+        },
+      });
+      await repository.login('manager@demo.local', DEMO_PASSWORD);
+      await repository.execute({ type: 'refer', id, version: 1, hrId: 5, comment: 'ตรวจสิทธิ์' });
+      await repository.login('hr@demo.local', DEMO_PASSWORD);
+      await repository.execute({ type: 'approve', id, version: 2, comment: 'อนุมัติ' });
+      const reopened = new BrowserRepository();
+      const saved = await reopened.snapshot();
+      assert.equal(saved.requests.find((request) => request.id === id).status, 'Approved');
+      assert.equal(balance(saved, 1, 1, 2027).used, used + 0.5);
+      const decisions = saved.approvals.filter(
+        (step) => step.leaveId === id && step.reviewType === 'Decision' && !step.cancelled,
+      );
+      assert.equal(decisions.length, 1);
+      assert.equal(decisions[0].approverId, 5);
+      assert(
+        saved.approvals.some(
+          (step) => step.leaveId === id && step.approverId === 4 && step.cancelled,
+        ),
+      );
+      await assert.rejects(
+        reopened.execute({ type: 'approve', id, version: 3, comment: '' }),
+        hasCode('CONFLICT'),
+      );
+      await reopened.login('manager@demo.local', DEMO_PASSWORD);
+      assert(
+        (await reopened.snapshot()).notifications.some(
+          (n) => n.leaveId === id && n.text.includes('HR อนุมัติ'),
+        ),
+      );
+    },
+  );
+  await t.test(
     'HR reset restores the ten-person dataset without modifying the legacy database',
     async () => {
       const hr = await repository.login('hr@demo.local', DEMO_PASSWORD);

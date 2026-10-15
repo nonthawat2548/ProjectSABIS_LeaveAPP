@@ -186,7 +186,7 @@ test('Cloud PostgreSQL: shared data, scoped snapshots and persistent hashed sess
     await fixture.close();
   }
 });
-test('Cloud maternity uses the latest owner and case, preserves ordered errors and HR consultation', async () => {
+test('Cloud maternity uses the latest owner and case, preserves ordered errors and HR final decisions', async () => {
   const fixture = await cloudFixture();
   try {
     const male = fixture.client(),
@@ -296,7 +296,7 @@ test('Cloud maternity uses the latest owner and case, preserves ordered errors a
     assert.equal(
       (await manager.request('/commands', 'POST', { type: 'approve', id, version: 3, comment: '' }))
         .status,
-      400,
+      403,
     );
     assert.equal(
       (
@@ -307,13 +307,13 @@ test('Cloud maternity uses the latest owner and case, preserves ordered errors a
           comment: 'ข้อมูลครบ',
         })
       ).status,
-      200,
+      403,
     );
     await fixture.db.query('UPDATE leave_app.employee SET gender=$1 WHERE employee_id=3', ['Male']);
-    const genderChanged = await manager.request('/commands', 'POST', {
+    const genderChanged = await hr.request('/commands', 'POST', {
       type: 'approve',
       id,
-      version: 4,
+      version: 3,
       comment: '',
     });
     assert.match((await genderChanged.json()).message, /พนักงานชาย/);
@@ -325,7 +325,7 @@ test('Cloud maternity uses the latest owner and case, preserves ordered errors a
       [caseId],
     );
     assert.equal(
-      (await manager.request('/commands', 'POST', { type: 'approve', id, version: 4, comment: '' }))
+      (await hr.request('/commands', 'POST', { type: 'approve', id, version: 3, comment: '' }))
         .status,
       409,
     );
@@ -334,7 +334,7 @@ test('Cloud maternity uses the latest owner and case, preserves ordered errors a
       [caseId],
     );
     assert.equal(
-      (await manager.request('/commands', 'POST', { type: 'approve', id, version: 4, comment: '' }))
+      (await hr.request('/commands', 'POST', { type: 'approve', id, version: 3, comment: '' }))
         .status,
       200,
     );

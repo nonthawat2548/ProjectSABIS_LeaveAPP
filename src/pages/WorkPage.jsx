@@ -43,13 +43,7 @@ export function WorkPage({ db, actor, run }) {
     [status, setStatus] = useState('In-office');
   const { busy, error, perform } = useTask(run);
   const iso = parseThaiDate(date);
-  const people = db.employees.filter(
-    (e) =>
-      e.active &&
-      (actor.role === 'HR' ||
-        e.id === actor.id ||
-        (actor.role === 'Manager' && e.role !== 'HR' && e.managerId === actor.id)),
-  );
+  const people = db.employees.filter((e) => e.active && e.id === actor.id);
   useEffect(() => {
     setStatus(
       db.workStatuses.find((w) => w.employeeId === actor.id && w.date === iso)?.statusType ??
@@ -59,14 +53,7 @@ export function WorkPage({ db, actor, run }) {
   const mine = iso ? effectiveWorkStatus(db, actor.id, iso) : '—';
   return (
     <>
-      <Heading
-        title="สถานะการทำงานรายวัน"
-        description={
-          actor.role === 'Employee'
-            ? 'อัปเดตสถานะการทำงานของคุณ'
-            : 'ดูภาพรวมการทำงานของพนักงาน และอัปเดตสถานะของคุณ'
-        }
-      />
+      <Heading title="สถานะการทำงานรายวัน" description="อัปเดตสถานะการทำงานของคุณ" />
 
       <div className="columns">
         <Card title="สถานะการทำงาน">

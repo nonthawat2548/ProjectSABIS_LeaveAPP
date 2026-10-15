@@ -74,12 +74,8 @@ test('Phone request and work lists preserve table data and role scope', () => {
         row.querySelector('.work-badge')?.textContent,
       );
     }
-    if (id === 1) assert.equal(workCards.length, 1);
-    if (id === 7) {
-      const names = workCards.map((card) => card.querySelector('strong')?.textContent);
-      assert(names.includes(actor.name));
-      assert(!names.includes(full.employees.find((employee) => employee.id === 1).name));
-    }
+    assert.equal(workCards.length, 1, `${actor.role} work page only shows the signed-in account`);
+    assert.equal(workCards[0].querySelector('strong')?.textContent, actor.name);
     work.window.close();
   }
 });

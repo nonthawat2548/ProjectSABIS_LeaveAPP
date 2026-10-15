@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, CalendarDays, CheckCircle2, MessageSquare, Users, X } from 'lucide-react';
 import { Badge, Card, Empty } from './components.jsx';
 import { MonthChart } from './LeaveMonthChart.jsx';
-import { canDecideRequest } from './domain/approvalRouting.js';
+import { canDecideRequest, pendingHRReferral } from './domain/approvalRouting.js';
 import { formatDate } from './domain/date.js';
 import { requestCode } from './domain/service.js';
 import { formatLeaveDays, statusLabels } from './labels.js';
@@ -23,18 +23,13 @@ export function HrWorkLinks({ db, actor, date }) {
   );
   if (!verified) return null;
   const pending = db.requests.filter((request) => request.status === 'Pending');
-  const decisions = pending.filter((request) => canDecideRequest(db, verified, request)).length;
-  const consultations = pending.filter(
+  const decisions = pending.filter(
     (request) =>
-      request.employeeId !== verified.id &&
-      db.approvals.some(
-        (step) =>
-          step.leaveId === request.id &&
-          step.approverId === verified.id &&
-          step.reviewType === 'Consultation' &&
-          !step.cancelled &&
-          step.status === 'Pending',
-      ),
+      db.employees.find((person) => person.id === request.employeeId)?.role === 'Manager' &&
+      canDecideRequest(db, verified, request),
+  ).length;
+  const consultations = pending.filter(
+    (request) => !!pendingHRReferral(db, verified, request),
   ).length;
   const activePeople = new Set(
     db.employees.filter((person) => person.active).map((person) => person.id),
@@ -61,14 +56,14 @@ export function HrWorkLinks({ db, actor, date }) {
       <a href="#/approvals">
         <CheckCircle2 size={17} />
         <span>
-          รอคุณอนุมัติ <strong>{decisions}</strong> คำขอ
+          คำขอผู้จัดการ <strong>{decisions}</strong> คำขอ
         </span>
         <ArrowRight size={14} />
       </a>
       <a href="#/requests">
         <MessageSquare size={17} />
         <span>
-          รอความเห็น <strong>{consultations}</strong> คำขอ
+          คำขอส่งต่อ <strong>{consultations}</strong> คำขอ
         </span>
         <ArrowRight size={14} />
       </a>

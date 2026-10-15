@@ -39,7 +39,7 @@ func Apply(db *model.Database, actorID int, c model.Command, now time.Time) (mod
 	case "approve", "reject", "refer":
 		return decision(db, actor, c, now)
 	case "consult":
-		return consult(db, actor, c, at)
+		return model.Result{}, Problem("คำขอที่ส่งให้ HR ต้องอนุมัติหรือไม่อนุมัติ ไม่ส่งความเห็นกลับผู้จัดการ", "FORBIDDEN")
 	case "work":
 		if _, err := ParseDate(c.Date); err != nil || c.StatusType != "In-office" && c.StatusType != "WFH" && c.StatusType != "Outside" {
 			return model.Result{}, Invalid("สถานะหรือวันที่ไม่ถูกต้อง")
@@ -183,7 +183,11 @@ func decision(db *model.Database, actor *model.Employee, c model.Command, now ti
 		return model.Result{}, err
 	}
 	owner := employee(db, r.EmployeeID)
-	if !isDecisionReviewer(db, actor, *r) {
+	var delegated *model.LeaveApproval
+	if c.Type != "refer" {
+		delegated = pendingHRReferral(db, actor, *r)
+	}
+	if delegated == nil && (!isDecisionReviewer(db, actor, *r) || latestHRReferral(db, *r) != nil) {
 		return model.Result{}, Problem("คุณไม่มีสิทธิ์พิจารณาคำขอนี้", "FORBIDDEN")
 	}
 	t, err := leaveType(db, r.LeaveTypeID)
@@ -199,23 +203,14 @@ func decision(db *model.Database, actor *model.Employee, c model.Command, now ti
 			return model.Result{}, err
 		}
 	}
-	waiting := false
-	for _, a := range db.Approvals {
-		if a.LeaveID == r.ID && a.ReviewType == "Consultation" && !a.Cancelled && a.Status == "Pending" {
-			waiting = true
-		}
-	}
 	at := timestamp(now)
 	if c.Type == "refer" {
 		if actor.Role != "Manager" || c.HRID == r.EmployeeID {
-			return model.Result{}, Problem("ส่งปรึกษาได้เฉพาะ HR ที่ไม่ได้เป็นผู้ยื่นคำขอ", "FORBIDDEN")
+			return model.Result{}, Problem("ส่งต่อได้เฉพาะ HR ที่ไม่ได้เป็นผู้ยื่นคำขอ", "FORBIDDEN")
 		}
 		text, err := comment(c.Comment)
 		if err != nil {
 			return model.Result{}, err
-		}
-		if waiting {
-			return model.Result{}, Invalid("คำขอนี้อยู่ระหว่างรอความเห็น HR")
 		}
 		hr := employee(db, c.HRID)
 		if hr == nil || !hr.Active || hr.Role != "HR" {
@@ -223,12 +218,9 @@ func decision(db *model.Database, actor *model.Employee, c model.Command, now ti
 		}
 		db.Approvals = append(db.Approvals, model.LeaveApproval{ID: nextID(db.Approvals), LeaveID: r.ID, ApproverID: c.HRID, StepNo: approvalStep(db, r.ID), ReviewRole: "HR", ReviewType: "Consultation", Status: "Pending", Comment: text, AssignedAt: at})
 		r.Version++
-		r.Timeline = append(r.Timeline, model.TimelineEvent{Action: "ส่งปรึกษา HR", ActorID: actor.ID, At: at, Comment: text})
-		notify(db, c.HRID, pointer(r.ID), "ผู้จัดการขอความเห็นสำหรับ "+RequestCode(r), at)
-		return model.Result{ID: r.ID, Message: "ส่งให้ HR ร่วมพิจารณาแล้ว"}, nil
-	}
-	if waiting {
-		return model.Result{}, Invalid("กรุณารอความเห็น HR ก่อนบันทึกผลพิจารณา")
+		r.Timeline = append(r.Timeline, model.TimelineEvent{Action: "ส่งให้ HR ตัดสิน", ActorID: actor.ID, At: at, Comment: text})
+		notify(db, c.HRID, pointer(r.ID), "ผู้จัดการส่ง "+RequestCode(r)+" ให้คุณตัดสิน", at)
+		return model.Result{ID: r.ID, Message: "ส่งให้ HR เป็นผู้ตัดสินแล้ว"}, nil
 	}
 	text := strings.TrimSpace(c.Comment)
 	if c.Type == "reject" {
@@ -255,13 +247,44 @@ func decision(db *model.Database, actor *model.Employee, c model.Command, now ti
 	r.Status = status
 	r.Version++
 	r.Timeline = append(r.Timeline, model.TimelineEvent{Action: action, ActorID: actor.ID, At: at, Comment: text})
-	for i := range db.Approvals {
-		a := &db.Approvals[i]
-		if a.LeaveID == r.ID && a.ReviewType == "Decision" && !a.Cancelled && a.Status == "Pending" {
-			a.Status = status
-			a.Comment = text
-			a.ReviewedAt = pointer(at)
-			break
+	if delegated != nil {
+		assignedAt := delegated.AssignedAt
+		managerID := valueOf(owner.ManagerID)
+		for _, step := range db.Approvals {
+			if step.LeaveID == r.ID && step.ReviewType == "Decision" && step.ReviewRole == "Manager" && !step.Cancelled && step.Status == "Pending" {
+				managerID = step.ApproverID
+				break
+			}
+		}
+		for i := range db.Approvals {
+			step := &db.Approvals[i]
+			if step.LeaveID == r.ID && !step.Cancelled && (step.Status == "Pending" || step.ID == delegated.ID) {
+				if step.ID == delegated.ID {
+					step.Status = "Completed"
+					step.Comment = text
+					step.ReviewedAt = pointer(at)
+				} else {
+					step.Cancelled = true
+				}
+			}
+		}
+		db.Approvals = append(db.Approvals, model.LeaveApproval{ID: nextID(db.Approvals), LeaveID: r.ID, ApproverID: actor.ID, StepNo: approvalStep(db, r.ID), ReviewRole: "HR", ReviewType: "Decision", Status: status, Comment: text, AssignedAt: assignedAt, ReviewedAt: pointer(at)})
+		if managerID != 0 {
+			verb := "อนุมัติ"
+			if c.Type == "reject" {
+				verb = "ไม่อนุมัติ"
+			}
+			notify(db, managerID, pointer(r.ID), "HR "+verb+" "+RequestCode(r)+" แล้ว", at)
+		}
+	} else {
+		for i := range db.Approvals {
+			a := &db.Approvals[i]
+			if a.LeaveID == r.ID && a.ReviewType == "Decision" && !a.Cancelled && a.Status == "Pending" {
+				a.Status = status
+				a.Comment = text
+				a.ReviewedAt = pointer(at)
+				break
+			}
 		}
 	}
 	if text != "" {
@@ -332,33 +355,4 @@ func checkApproval(db *model.Database, r *model.LeaveRequest, t *model.LeaveType
 		return Problem("โควตาลาคลอดปัจจุบันไม่เพียงพอ", "CONFLICT")
 	}
 	return nil
-}
-func consult(db *model.Database, actor *model.Employee, c model.Command, at string) (model.Result, error) {
-	r, err := pending(db, c.ID, c.Version)
-	if err != nil {
-		return model.Result{}, err
-	}
-	owner := employee(db, r.EmployeeID)
-	if actor.Role != "HR" || r.EmployeeID == actor.ID || owner == nil || owner.Role != "Employee" {
-		return model.Result{}, Problem("เฉพาะ HR ที่ได้รับมอบหมายและไม่ได้เป็นผู้ยื่นเท่านั้น", "FORBIDDEN")
-	}
-	for i := range db.Approvals {
-		a := &db.Approvals[i]
-		if a.LeaveID == r.ID && a.ApproverID == actor.ID && a.ReviewType == "Consultation" && a.Status == "Pending" && !a.Cancelled {
-			text, err := comment(c.Comment)
-			if err != nil {
-				return model.Result{}, err
-			}
-			a.Status = "Completed"
-			a.Comment = text
-			a.ReviewedAt = pointer(at)
-			r.Version++
-			r.Timeline = append(r.Timeline, model.TimelineEvent{Action: "HR ส่งความเห็น", ActorID: actor.ID, At: at, Comment: text})
-			if owner := employee(db, r.EmployeeID); owner != nil && owner.ManagerID != nil {
-				notify(db, *owner.ManagerID, pointer(r.ID), "HR ส่งความเห็นสำหรับ "+RequestCode(r)+" แล้ว", at)
-			}
-			return model.Result{ID: r.ID, Message: "ส่งความเห็นให้ผู้จัดการแล้ว คำขอยังรอผลพิจารณา"}, nil
-		}
-	}
-	return model.Result{}, Problem("ไม่มีรายการที่มอบหมายให้คุณ", "FORBIDDEN")
 }

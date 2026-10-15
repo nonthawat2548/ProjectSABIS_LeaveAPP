@@ -5,7 +5,7 @@ import { parseThaiDate } from '../domain/date.js';
 import { requestCode } from '../domain/service.js';
 import { Card, DateField, Heading, RequestTable, statusLabels } from '../components.jsx';
 import { assigned } from './requestScope.js';
-import { isDecisionReviewer } from '../domain/approvalRouting.js';
+import { isDecisionReviewer, pendingHRReferral } from '../domain/approvalRouting.js';
 
 /** @param {import('./types.js').PageProps & {personal?: boolean, decisionsOnly?: boolean}} props */
 export function Requests({
@@ -29,14 +29,7 @@ export function Requests({
   const filtered = rows
     .filter((r) => {
       const employee = db.employees.find((e) => e.id === r.employeeId);
-      const consultationPending = db.approvals.some(
-        (a) =>
-          a.leaveId === r.id &&
-          a.reviewType === 'Consultation' &&
-          !a.cancelled &&
-          a.status === 'Pending' &&
-          a.approverId === actor.id,
-      );
+      const consultationPending = !!pendingHRReferral(db, actor, r);
       return (
         (status === 'all' ||
           (status === 'HRPending' ? consultationPending : r.status === status)) &&
@@ -58,12 +51,12 @@ export function Requests({
             : decisionsOnly
               ? 'อนุมัติคำขอผู้จัดการ'
               : actor.role === 'HR'
-                ? 'รายการคำขอปรึกษา HR'
+                ? 'คำขอที่ส่งต่อให้ HR'
                 : 'รายการคำขอของทีม'
         }
         description={
           actor.role === 'HR' && !personal && !decisionsOnly
-            ? 'คำขอที่ผู้จัดการส่งมาขอความเห็น'
+            ? 'คำขอที่ผู้จัดการมอบหมายให้คุณอนุมัติหรือไม่อนุมัติ'
             : 'ค้นหาตามเลขคำขอ ชื่อพนักงาน หรือเหตุผล'
         }
         action={
@@ -96,7 +89,7 @@ export function Requests({
             <select id="request-status" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="all">ทุกสถานะ</option>
               {actor.role === 'HR' && !personal && !decisionsOnly && (
-                <option value="HRPending">รอความเห็น HR</option>
+                <option value="HRPending">รอ HR ตัดสิน</option>
               )}
               {Object.entries(statusLabels).map(([v, label]) => (
                 <option key={v} value={v}>

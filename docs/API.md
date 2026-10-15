@@ -75,7 +75,7 @@ API และ IndexedDB ของโหมดเบราว์เซอร์�
 
 ## ยื่นคำขอ
 
-Employee และ Manager ยื่น/แก้ไข/ถอนคำขอตนเองและแนบเอกสารได้ผ่าน endpoint เดิม `Decision` มอบหมาย Employee → Manager และ Manager → HR active ห้ามพิจารณาคำขอตนเอง HR ให้ Consultation เฉพาะคำขอ Employee ที่ถูกส่งมาปรึกษา ส่วนผู้จัดการตัดสินผลสุดท้าย ตามไฟล์ `codex_leave_app_fixes (1).md` ห้ามส่งคำขอ HR ลงให้ผู้จัดการแผนก จึงคืน 403 FORBIDDEN เมื่อ HR ยื่น/แก้ไข/เริ่มอัปโหลดสำหรับคำขอตนเองจนกว่าจะมีผู้อนุมัติระดับสูงกว่า; ยังอ่านประวัติ/สิทธิ์และถอน Pending เดิมได้ ผู้จัดการไม่มีสิทธิ์อ่านหรือตัดสิน HR แม้มี managerId หรือ Decision เก่าชี้มาที่ตน สถานะงานวันที่มีวันลาอนุมัติเต็มหรือครึ่งวันแสดงอัตโนมัติและห้ามบันทึกเอง ทับช่วงวันที่ Pending/Approved ไม่ได้ รวม AM/PM คนละช่วงด้วย
+Employee และ Manager ยื่น/แก้ไข/ถอนคำขอตนเองและแนบเอกสารได้ผ่าน endpoint เดิม `Decision` มอบหมาย Employee → Manager และ Manager → HR active ห้ามพิจารณาคำขอตนเอง เมื่อ Manager ส่งต่อคำขอ Employee ให้ HR แล้ว HR เป็นผู้อนุมัติหรือไม่อนุมัติขั้นสุดท้าย ไม่ส่งกลับ Manager ตามกฎด้านล่าง ห้ามส่งคำขอส่วนตัวของ HR ลงให้ผู้จัดการแผนก จึงคืน 403 FORBIDDEN เมื่อ HR ยื่น/แก้ไข/เริ่มอัปโหลดสำหรับคำขอตนเองจนกว่าจะมีผู้อนุมัติระดับสูงกว่า; ยังอ่านประวัติ/สิทธิ์และถอน Pending เดิมได้ ผู้จัดการไม่มีสิทธิ์อ่านหรือตัดสินคำขอส่วนตัวของ HR แม้มี managerId หรือ Decision เก่าชี้มาที่ตน สถานะงานวันที่มีวันลาอนุมัติเต็มหรือครึ่งวันแสดงอัตโนมัติและห้ามบันทึกเอง ทับช่วงวันที่ Pending/Approved ไม่ได้ รวม AM/PM คนละช่วงด้วย
 
 ```json
 {
@@ -104,6 +104,10 @@ Employee และ Manager ยื่น/แก้ไข/ถอนคำขอต
 
 ## Commands อื่น
 
+เมื่อ Manager ส่ง `refer` ให้ HR แล้ว HR ที่ได้รับมอบหมายเป็นผู้ตัดสินขั้นสุดท้ายด้วย `approve` หรือ `reject` (ต้องมีเหตุผล) ไม่ส่งกลับ Manager และปิด `consult` ด้วย 403 FORBIDDEN ใช้แถว Consultation ที่ไม่ cancelled ล่าสุดตาม stepNo/id เป็น assignment ของการส่งต่อ โดย HR กับเจ้าของ Employee ต้องยัง active ห้ามตัดสินตนเอง/คำขอคนอื่นที่ไม่ได้มอบหมาย Manager ไม่มีสิทธิ์ตัดสินหรือส่งต่อซ้ำหลังส่ง ไม่คืนสิทธิ์เมื่อเปลี่ยนผู้จัดการหรือผู้จัดการ inactive คำขอ Pending ที่มี Consultation Completed จากระบบเก่ายังคงให้ HR คนล่าสุดตัดสินจนจบ เจ้าของแก้ไขหรือถอน Pending ได้ตามกฎเดิม
+
+การตัดสินใช้ version และการอนุมัติตรวจเอกสาร/โควตา/ลาคลอดด้วยกฎเดิมทั้งหมด บันทึก referral เป็น Completed ยกเลิก pending assignment อื่น และเพิ่ม Decision Approved/Rejected ในนาม HR โดยไม่เขียนทับผู้จัดการในบันทึกเดิม แจ้งผลให้พนักงานและผู้จัดการใน transaction เดียวกัน ผล Rejected ไม่หักโควตา ไม่เปลี่ยน schema หรือเพิ่ม endpoint
+
 Frontend เปิดรายงานเป็น Dashboard ที่ `#/leave-report/:id` โดย `id` คือ notification ของผู้รับ/สำเนาของผู้ส่ง เส้นทางนี้เป็นหน้าเว็บ ไม่ใช่ endpoint ใหม่ และอ่านเฉพาะข้อความรายงานที่ snapshot คืนให้เจ้าของตามสิทธิ์ปัจจุบัน รูปแบบรายงานที่ server สร้างและการบันทึกยังคงเดิม รายงานเก่าที่มีข้อมูลครบเปิดเป็นกราฟได้ ถ้ารูปแบบอ่านไม่ได้ให้แสดงข้อความเดิมโดยไม่แทนค่าด้วยศูนย์หรืออ่านคำขอปัจจุบันมาสวม
 
 `sendLeaveReport` ใช้ได้เฉพาะ Manager ที่ active ส่ง `{type:'sendLeaveReport', employeeId, hrId, year, month, leaveTypeId}` ผ่าน `POST /api/commands` เดิม ปีเป็น ค.ศ.; `month=0` หมายถึงทุกเดือน, `leaveTypeId=0` ทุกประเภท และ `employeeId=0` ทุกคนที่มีสิทธิ์ดู เลือกรายคนได้เฉพาะตนเอง/Employee ในทีมตาม `managerId` ห้ามเลือก HR หรือคนต่างทีมแม้เข้าถึงโปรไฟล์ได้ ต้องเลือก HR ที่ active เป็นผู้รับ
@@ -115,10 +119,10 @@ Server คำนวณจาก Leave_Day ล่าสุดใน transaction �
 | sendLeaveReport | employeeId, hrId, year, month, leaveTypeId | Manager; ทีมตนเอง ไม่รวม HR |
 | edit | id, version, input (เหมือน submit), input.keepDocument | เจ้าของคำขอ Pending |
 | withdraw | id, version | เจ้าของคำขอ Pending |
-| approve | id, version, comment (ว่างได้) | ผู้จัดการของผู้ยื่น |
-| reject | id, version, comment (บังคับ) | ผู้จัดการของผู้ยื่น |
+| approve | id, version, comment (ว่างได้) | ผู้พิจารณาเดิมก่อนส่งต่อ หรือ HR ที่ได้รับการส่งต่อตามกฎด้านบน |
+| reject | id, version, comment (บังคับ) | ผู้พิจารณาเดิมก่อนส่งต่อ หรือ HR ที่ได้รับการส่งต่อ |
 | refer | id, version, comment, hrId | ผู้จัดการของผู้ยื่น |
-| consult | id, version, comment | HR ที่ได้รับมอบหมาย |
+| consult (เดิม) | — | ปิดใช้งาน คืน 403 FORBIDDEN ไม่ส่งกลับผู้จัดการ |
 | work | date (ISO), statusType | ผู้ใช้บันทึกสถานะของตัวเอง |
 | readNotifications | — | อ่านแจ้งเตือนของตัวเอง |
 | entitlement | employeeId, leaveTypeId, year (ค.ศ.), grantedDays | HR |

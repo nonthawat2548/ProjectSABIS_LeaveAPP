@@ -10,6 +10,7 @@ import { BrowserRepository } from '../src/data/browserRepository.js';
 import { getDemoAccounts } from '../src/data/demoDatabase.js';
 import { DEMO_PASSWORD } from '../src/domain/seed.js';
 import { loginUsername } from '../src/domain/auth.js';
+import { formatPosition } from '../src/labels.js';
 test('Login account controls submit the selected person to the connected repository', async (t) => {
   // A DOM interaction test; this does not verify layout in a real browser.
   const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
@@ -98,10 +99,9 @@ test('Login account controls submit the selected person to the connected reposit
       members.map((account) => account.email),
     );
     for (const account of members)
-      assert(
-        select()
-          .querySelector(`option[value="${account.email}"]`)
-          ?.textContent?.includes(account.name),
+      assert.equal(
+        select().querySelector(`option[value="${account.email}"]`)?.textContent,
+        `${account.name} · ${loginUsername(account.email)} · ${formatPosition(account.position)}`,
       );
   }
   /**

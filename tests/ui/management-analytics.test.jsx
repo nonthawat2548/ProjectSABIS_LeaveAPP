@@ -189,11 +189,11 @@ test('HR work links distinguish assigned decisions from consultations and reject
       date="2026-10-15"
     />,
   );
-  expect(screen.getByRole('link', { name: 'รอคุณอนุมัติ 1 คำขอ' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: 'คำขอผู้จัดการ 1 คำขอ' })).toHaveAttribute(
     'href',
     '#/approvals',
   );
-  expect(screen.getByRole('link', { name: 'รอความเห็น 1 คำขอ' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: 'คำขอส่งต่อ 1 คำขอ' })).toHaveAttribute(
     'href',
     '#/requests',
   );

@@ -220,7 +220,7 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
           comment: '',
         })
       ).status,
-      400,
+      403,
     );
     assert.equal(
       (
@@ -231,13 +231,12 @@ test('Real HTTP API: ten-person data, role rules, persistence, restart and HR re
           comment: 'ตรวจเอกสารแล้วครบถ้วน',
         })
       ).status,
-      200,
+      403,
     );
     assert.equal((await snapshot(hr)).requests.find((r) => r.id === 1015).status, 'Pending');
     const approvalVersion = await version(manager, 1015);
     assert.equal(
-      (await send(manager, { type: 'approve', id: 1015, version: approvalVersion, comment: '' }))
-        .status,
+      (await send(hr, { type: 'approve', id: 1015, version: approvalVersion, comment: '' })).status,
       200,
     );
     assert.equal(

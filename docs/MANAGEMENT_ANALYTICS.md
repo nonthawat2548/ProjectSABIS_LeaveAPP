@@ -1,6 +1,6 @@
 # รายงานสรุปและตัวชี้วัดการลา
 
-แสดงในหน้าหลัก Manager และเมนู “แดชบอร์ด” ของ HR ตาม `codex_leave_app_fixes (2).md` และคำขอย้ายหน้าล่าสุด ใช้ `src/ManagementAnalytics.jsx`, ตัวคำนวณอ่านอย่างเดียว `src/domain/managementAnalytics.js` และ CSV ใน `src/domain/managementExport.js` ใช้สี/กราฟเดิม ไม่เพิ่ม library กราฟ API หรือตารางยอดรวม
+ปัจจุบันแสดงในเมนู “แดชบอร์ด” ของ HR ตามคำขอย้ายหน้าล่าสุด ใช้ `src/ManagementAnalytics.jsx`, ตัวคำนวณอ่านอย่างเดียว `src/domain/managementAnalytics.js` และ CSV ใน `src/domain/managementExport.js` หน้าหลัก Manager เอาชุดนี้ออกตามคำขอล่าสุดเพื่อไม่แสดงสรุปซ้ำกับเมนู “สรุปการลา” ซึ่งยังใช้ `LeaveSummaryPage.jsx` พร้อมกราฟและส่งรายงาน HR เดิม ตัวคำนวณยังรักษาการตรวจ scope Manager/HR และชุดทดสอบสิทธิ์เดิมไว้ ไม่เพิ่ม library กราฟ API หรือตารางยอดรวม
 
 ## ผู้ใช้และการตัดสินใจ
 

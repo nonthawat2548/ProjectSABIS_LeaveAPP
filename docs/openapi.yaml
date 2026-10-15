@@ -172,14 +172,19 @@ paths:
       summary: Apply one business command atomically using the authenticated actor
       description: >-
         Actor/role/gender in a body are not identity evidence. Editing and reviewing
-        require the latest request version. HR consultation is not final approval.
+        require the latest request version. Referring an employee request transfers
+        the final decision to the assigned active HR, who may approve or reject.
         Active Employees and Managers may submit and edit their own pending requests.
         Employee requests go to their manager; manager requests go to active HR;
         HR personal submission is disabled until a higher approver role exists;
         HR requests never route downward to a department manager. Existing HR history
         is preserved and its owner may withdraw a pending request. A decision requires
-        the assigned reviewer and never permits self-approval. HR consultation on an
-        employee request returns to its Manager for the final decision.
+        the original reviewer before referral or the assigned HR after referral and
+        never permits self-approval. Managers cannot decide or re-refer after transfer.
+        The legacy consult command is disabled with 403; HR does not return opinions.
+        The latest uncancelled Consultation row retains the HR assignment, including
+        legacy Completed opinions on Pending requests. HR decisions record a separate
+        HR Decision, complete the referral and cancel pending assignments atomically.
         Maternity checks stored owner gender before case, manager, dates, policy,
         overlap and per-case quota, including before approval.
       requestBody:
@@ -413,8 +418,9 @@ components:
       type: object
       required: [type]
       description: >-
-        submit/edit require input; edit/withdraw/approve/reject/refer/consult require
-        id and version. reject/refer/consult require comment; refer also hrId.
+        submit/edit require input; edit/withdraw/approve/reject/refer require
+        id and version. reject/refer require comment; refer also hrId.
+        consult is retained for legacy clients but always returns 403.
         work requires date/statusType. entitlement requires employeeId/leaveTypeId/
         year/grantedDays. maternity requires employeeId/maximumDays. holiday
         requires date and name unless remove=true. policy requires policy.

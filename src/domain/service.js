@@ -12,8 +12,10 @@
 import { datesBetween, dayDifference, isoDate, today, workingDates } from './date.js';
 import { canReadReportNotification, sendLeaveReport } from './leaveReport.js';
 import {
-  canDecideRequest,
+  isDecisionReviewer,
+  latestHRReferral,
   HR_PERSONAL_LEAVE_UNAVAILABLE,
+  pendingHRReferral,
   requestReviewer,
 } from './approvalRouting.js';
 import {
@@ -446,8 +448,9 @@ function pending(db, id, version) {
   if (r.version !== version) fail('ข้อมูลถูกเปลี่ยนแล้ว กรุณารีเฟรชก่อนทำรายการ', 'CONFLICT');
   return r;
 }
-function managerOnly(db, actor, r) {
-  if (!canDecideRequest(db, actor, r)) fail('คุณไม่มีสิทธิ์พิจารณาคำขอนี้', 'FORBIDDEN');
+function requireOriginalReviewer(db, actor, r) {
+  if (!isDecisionReviewer(db, actor, r) || latestHRReferral(db, r))
+    fail('คุณไม่มีสิทธิ์พิจารณาคำขอนี้', 'FORBIDDEN');
 }
 function requireComment(comment) {
   if (typeof comment !== 'string' || !comment.trim() || comment.trim().length > 500)
@@ -549,20 +552,16 @@ export function applyCommand(db, actorId, c, now = new Date()) {
   }
   if (c.type === 'approve' || c.type === 'reject' || c.type === 'refer') {
     const r = pending(db, c.id, c.version);
-    managerOnly(db, actor, r);
+    const delegated = c.type !== 'refer' ? pendingHRReferral(db, actor, r) : null;
+    if (!delegated) requireOriginalReviewer(db, actor, r);
     const requestType =
       db.leaveTypes.find((t) => t.id === r.leaveTypeId) ?? fail('ไม่พบประเภทการลา');
     if (c.type === 'approve' && requestType.quotaScope === 'Pregnancy')
       requireMaternityCase(db, actorById(db, r.employeeId), r.maternityCaseId);
-    const consultations = db.approvals.filter(
-      (a) => a.leaveId === r.id && a.reviewType === 'Consultation' && !a.cancelled,
-    );
     if (c.type === 'refer') {
       if (actor.role !== 'Manager' || c.hrId === r.employeeId)
-        fail('ส่งปรึกษาได้เฉพาะ HR ที่ไม่ได้เป็นผู้ยื่นคำขอ', 'FORBIDDEN');
+        fail('ส่งต่อได้เฉพาะ HR ที่ไม่ได้เป็นผู้ยื่นคำขอ', 'FORBIDDEN');
       const comment = requireComment(c.comment);
-      if (consultations.some((a) => a.status === 'Pending'))
-        fail('คำขอนี้อยู่ระหว่างรอความเห็น HR');
       if (!db.employees.some((e) => e.id === c.hrId && e.role === 'HR' && e.active))
         fail('ไม่พบเจ้าหน้าที่ HR');
       db.approvals.push({
@@ -578,12 +577,10 @@ export function applyCommand(db, actorId, c, now = new Date()) {
         reviewedAt: null,
       });
       r.version++;
-      r.timeline.push({ action: 'ส่งปรึกษา HR', actorId, at, comment });
-      notify(db, c.hrId, r.id, `ผู้จัดการขอความเห็นสำหรับ ${requestCode(r)}`, at);
-      return { id: r.id, message: 'ส่งให้ HR ร่วมพิจารณาแล้ว' };
+      r.timeline.push({ action: 'ส่งให้ HR ตัดสิน', actorId, at, comment });
+      notify(db, c.hrId, r.id, `ผู้จัดการส่ง ${requestCode(r)} ให้คุณตัดสิน`, at);
+      return { id: r.id, message: 'ส่งให้ HR เป็นผู้ตัดสินแล้ว' };
     }
-    if (consultations.some((a) => a.status === 'Pending'))
-      fail('กรุณารอความเห็น HR ก่อนบันทึกผลพิจารณา');
     const comment =
       c.type === 'reject'
         ? requireComment(c.comment)
@@ -653,14 +650,64 @@ export function applyCommand(db, actorId, c, now = new Date()) {
       at,
       comment,
     });
-    const a = db.approvals.find(
-      (a) =>
-        a.leaveId === r.id && a.reviewType === 'Decision' && !a.cancelled && a.status === 'Pending',
-    );
-    if (a) {
-      a.status = r.status;
-      a.comment = comment;
-      a.reviewedAt = at;
+    if (delegated) {
+      // Preserve the manager's assignment; record the actual HR decision separately.
+      const manager =
+        db.approvals.find(
+          (step) =>
+            step.leaveId === r.id &&
+            step.reviewType === 'Decision' &&
+            step.reviewRole === 'Manager' &&
+            !step.cancelled &&
+            step.status === 'Pending',
+        )?.approverId ?? db.employees.find((person) => person.id === r.employeeId)?.managerId;
+      db.approvals
+        .filter(
+          (step) =>
+            step.leaveId === r.id &&
+            !step.cancelled &&
+            (step.status === 'Pending' || step.id === delegated.id),
+        )
+        .forEach((step) => {
+          if (step.id === delegated.id) {
+            step.status = 'Completed';
+            step.comment = comment;
+            step.reviewedAt = at;
+          } else step.cancelled = true;
+        });
+      db.approvals.push({
+        id: nextId(db.approvals),
+        leaveId: r.id,
+        approverId: actor.id,
+        stepNo: db.approvals.filter((step) => step.leaveId === r.id).length + 1,
+        reviewRole: 'HR',
+        reviewType: 'Decision',
+        status: r.status,
+        comment,
+        assignedAt: delegated.assignedAt,
+        reviewedAt: at,
+      });
+      if (manager)
+        notify(
+          db,
+          manager,
+          r.id,
+          `HR ${c.type === 'approve' ? 'อนุมัติ' : 'ไม่อนุมัติ'} ${requestCode(r)} แล้ว`,
+          at,
+        );
+    } else {
+      const a = db.approvals.find(
+        (a) =>
+          a.leaveId === r.id &&
+          a.reviewType === 'Decision' &&
+          !a.cancelled &&
+          a.status === 'Pending',
+      );
+      if (a) {
+        a.status = r.status;
+        a.comment = comment;
+        a.reviewedAt = at;
+      }
     }
     notify(
       db,
@@ -675,31 +722,7 @@ export function applyCommand(db, actorId, c, now = new Date()) {
     };
   }
   if (c.type === 'consult') {
-    const r = pending(db, c.id, c.version);
-    if (
-      actor.role !== 'HR' ||
-      r.employeeId === actor.id ||
-      db.employees.find((e) => e.id === r.employeeId)?.role !== 'Employee'
-    )
-      fail('เฉพาะ HR ที่ได้รับมอบหมายและไม่ได้เป็นผู้ยื่นเท่านั้น', 'FORBIDDEN');
-    const a =
-      db.approvals.find(
-        (a) =>
-          a.leaveId === r.id &&
-          a.approverId === actor.id &&
-          a.reviewType === 'Consultation' &&
-          a.status === 'Pending' &&
-          !a.cancelled,
-      ) ?? fail('ไม่มีรายการที่มอบหมายให้คุณ', 'FORBIDDEN');
-    const comment = requireComment(c.comment);
-    a.status = 'Completed';
-    a.comment = comment;
-    a.reviewedAt = at;
-    r.version++;
-    r.timeline.push({ action: 'HR ส่งความเห็น', actorId, at, comment });
-    const manager = db.employees.find((e) => e.id === r.employeeId)?.managerId;
-    if (manager) notify(db, manager, r.id, `HR ส่งความเห็นสำหรับ ${requestCode(r)} แล้ว`, at);
-    return { id: r.id, message: 'ส่งความเห็นให้ผู้จัดการแล้ว คำขอยังรอผลพิจารณา' };
+    fail('คำขอที่ส่งให้ HR ต้องอนุมัติหรือไม่อนุมัติ ไม่ส่งความเห็นกลับผู้จัดการ', 'FORBIDDEN');
   }
   if (c.type === 'work') {
     if (!isoDate(c.date) || !['In-office', 'WFH', 'Outside'].includes(c.statusType))

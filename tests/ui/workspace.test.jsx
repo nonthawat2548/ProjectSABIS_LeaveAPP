@@ -361,7 +361,6 @@ test('login waits for the scoped snapshot and recovers if it fails', async () =>
 });
 
 test.each([
-  [1, '/leave-summary', 'สรุปการลา'],
   [4, '/leave-summary', 'สรุปการลา'],
   [5, '/leave-summary', 'ภาพรวมการลา'],
   [1, '/new', 'แบบฟอร์มยื่นคำขอลา'],
@@ -381,6 +380,7 @@ test('HR analytics live in leave summary and the home page no longer duplicates 
   await openWorkspace(5);
   expect(document.querySelector('.management-analytics')).toBeNull();
   const navigation = screen.getByRole('navigation', { name: 'เมนูหลัก' });
+  expect(within(navigation).queryByRole('link', { name: /^การแจ้งเตือน/ })).not.toBeInTheDocument();
   await user.click(within(navigation).getByRole('link', { name: 'แดชบอร์ด', exact: true }));
   expect(await screen.findByRole('heading', { name: 'ภาพรวมการลา', level: 1 })).toBeInTheDocument();
   expect(window.location.hash).toBe('#/leave-summary');
@@ -423,10 +423,16 @@ test('HR retains personal history and quota but has no submission menu or quick-
   expect(within(search).queryByRole('link', { name: /ยื่นคำขอลา/ })).not.toBeInTheDocument();
 });
 
-test('leave summary is available from the workspace menu and quick search', async () => {
+test('manager leave summary is available from the workspace menu and quick search', async () => {
   const user = userEvent.setup();
-  await openWorkspace();
+  await openWorkspace(4);
+  expect(
+    screen.queryByRole('heading', { name: 'รายงานสรุปและตัวชี้วัดการลา' }),
+  ).not.toBeInTheDocument();
+  expect(document.querySelector('.management-analytics')).toBeNull();
+  expect(screen.getByRole('heading', { name: 'คำขอลาล่าสุด' })).toBeInTheDocument();
   const navigation = screen.getByRole('navigation', { name: 'เมนูหลัก' });
+  expect(within(navigation).queryByRole('link', { name: /^การแจ้งเตือน/ })).not.toBeInTheDocument();
   const links = within(navigation).getAllByRole('link');
   expect(links[0]).toHaveTextContent('หน้าหลัก');
   expect(links[1]).toHaveTextContent('สรุปการลา');
@@ -439,6 +445,7 @@ test('leave summary is available from the workspace menu and quick search', asyn
   );
 
   await user.click(within(navigation).getByRole('link', { name: 'หน้าหลัก', exact: true }));
+  expect(document.querySelector('.management-analytics')).toBeNull();
   await user.click(screen.getByRole('button', { name: 'ค้นหาเมนูหรือคำขอ', exact: true }));
   const search = screen.getByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' });
   await user.type(within(search).getByRole('textbox', { name: 'ค้นหาเมนูหรือคำขอ' }), 'สรุปการลา');
@@ -448,7 +455,42 @@ test('leave summary is available from the workspace menu and quick search', asyn
   expect(screen.queryByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' })).not.toBeInTheDocument();
 });
 
+test.each([1, 4, 5])('account %i work page shows and updates only its own status', async (id) => {
+  const user = userEvent.setup();
+  await openWorkspace(id, '/work');
+  const actor = database.employees.find((person) => person.id === id);
+  const table = document.querySelector('.work-table');
+  const cards = document.querySelector('.work-cards');
+  expect(table.querySelectorAll('tbody tr')).toHaveLength(1);
+  expect(cards.querySelectorAll('li')).toHaveLength(1);
+  expect(table).toHaveTextContent(actor.name);
+  expect(cards).toHaveTextContent(actor.name);
+  for (const person of database.employees.filter((person) => person.id !== id)) {
+    expect(table).not.toHaveTextContent(person.name);
+    expect(cards).not.toHaveTextContent(person.name);
+  }
+  expect(screen.getByText('อัปเดตสถานะการทำงานของคุณ')).toBeInTheDocument();
+  repository.execute.mockClear();
+  await user.selectOptions(screen.getByLabelText(actor.name, { selector: 'select' }), 'WFH');
+  await user.click(screen.getByRole('button', { name: 'บันทึกสถานะ', exact: true }));
+  await waitFor(() => expect(repository.execute).toHaveBeenCalledTimes(1));
+  expect(repository.execute).toHaveBeenCalledWith({
+    type: 'work',
+    date: '2026-10-11',
+    statusType: 'WFH',
+  });
+  await waitFor(() =>
+    expect(table.querySelector('.work-badge')).toHaveTextContent('ทำงานจากบ้าน (WFH)'),
+  );
+  expect(cards.querySelector('.work-badge')).toHaveTextContent('ทำงานจากบ้าน (WFH)');
+  expect(
+    database.workStatuses.find((item) => item.employeeId === id && item.date === '2026-10-11')
+      ?.statusType,
+  ).toBe('WFH');
+});
+
 test.each([
+  [1, '/leave-summary'],
   [1, '/admin'],
   [4, '/admin'],
   [5, '/new'],
@@ -543,7 +585,19 @@ test('notification bell opens a popover without navigating or marking items as r
     within(screen.getByRole('navigation', { name: 'เมนูหลัก' })).queryByRole('link', {
       name: /^การแจ้งเตือน/,
     }),
-  ).toBeInTheDocument();
+  ).not.toBeInTheDocument();
+  expect(
+    within(screen.getByRole('navigation', { name: 'เมนูหลัก' })).queryByRole('link', {
+      name: 'สรุปการลา',
+      exact: true,
+    }),
+  ).not.toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'ค้นหาเมนูหรือคำขอ', exact: true }));
+  const search = screen.getByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' });
+  expect(
+    within(search).queryByRole('link', { name: 'สรุปการลา', exact: true }),
+  ).not.toBeInTheDocument();
+  await user.keyboard('{Escape}');
   await user.click(bell);
   const popover = screen.getByRole('dialog', { name: 'การแจ้งเตือน' });
   expect(window.location.hash).toBe('#/dashboard');

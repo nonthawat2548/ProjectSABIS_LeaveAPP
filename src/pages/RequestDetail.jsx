@@ -1,11 +1,11 @@
 import { EmployeeLabel } from '../EmployeeLabel.jsx';
 import { EmployeeProfileLink } from '../EmployeeProfileLink.jsx';
 import { useState } from 'react';
-import { Check, ChevronLeft, Clock3, Send, Users, X } from 'lucide-react';
+import { Check, ChevronLeft, Clock3, Users, X } from 'lucide-react';
 
 import { formatDate, formatDateTime } from '../domain/date.js';
 import { actorById, balance, canView, requestCode, totalDays } from '../domain/service.js';
-import { canDecideRequest } from '../domain/approvalRouting.js';
+import { canDecideRequest, latestHRReferral } from '../domain/approvalRouting.js';
 import { Badge, Card, Dialog, DocumentRow, Heading, KeyRow } from '../components.jsx';
 import { durationLabels as durations } from '../labels.js';
 import { useTask } from './useTask.js';
@@ -36,6 +36,7 @@ export function RequestDetail({ db, actor, run, id }) {
   const person = db.employees.find((e) => e.id === r.employeeId);
   const own = r.employeeId === actor.id;
   const canDecide = canDecideRequest(db, actorById(db, actor.id), r);
+  const referral = latestHRReferral(db, r);
   const canRefer =
     actor.role === 'Manager' &&
     person.role === 'Employee' &&
@@ -51,15 +52,12 @@ export function RequestDetail({ db, actor, run, id }) {
   const consults = db.approvals.filter(
     (a) => a.leaveId === r.id && a.reviewType === 'Consultation' && !a.cancelled,
   );
-  const waitingHR = consults.some((a) => a.status === 'Pending');
-  const ownHR = consults.find((a) => a.approverId === actor.id && a.status === 'Pending');
   const year = Number(r.startDate.slice(0, 4));
   const q = balance(db, r.employeeId, r.leaveTypeId, year, r.maternityCaseId);
   const labels = {
     approve: 'ยืนยันอนุมัติคำขอ',
     reject: 'ไม่อนุมัติคำขอ',
-    refer: 'ขอความเห็นจาก HR',
-    consult: 'ส่งความเห็นให้ผู้จัดการ',
+    refer: 'ส่งคำขอให้ HR ตัดสิน',
     withdraw: 'ยืนยันถอนคำขอ',
   };
   function open(d) {
@@ -136,13 +134,15 @@ export function RequestDetail({ db, actor, run, id }) {
             )}
           </Card>
           {consults.length > 0 && (
-            <Card title="ความเห็นจาก HR">
+            <Card title="การพิจารณาของ HR">
               {consults.map((c) => (
                 <div className="consult-row" key={c.id}>
                   <div className="actions between">
                     <strong>{db.employees.find((e) => e.id === c.approverId)?.name}</strong>
                     <span className={'badge ' + (c.status === 'Pending' ? 'pending' : 'approved')}>
-                      {c.status === 'Pending' ? 'รอความเห็น' : 'ส่งความเห็นแล้ว'}
+                      {r.status === 'Pending' && c.id === referral?.id
+                        ? 'รอ HR ตัดสิน'
+                        : 'ดำเนินการแล้ว'}
                     </span>
                   </div>
                   <p>{c.comment}</p>
@@ -204,38 +204,25 @@ export function RequestDetail({ db, actor, run, id }) {
               </div>
             ) : canDecide ? (
               <div className="vertical-actions">
-                {waitingHR && (
-                  <div className="info">
-                    <Clock3 size={17} />
-                    <span>อยู่ระหว่างปรึกษา HR</span>
-                  </div>
-                )}
-                <button
-                  className="btn primary"
-                  disabled={waitingHR}
-                  onClick={() => open('approve')}
-                >
+                <button className="btn primary" onClick={() => open('approve')}>
                   <Check size={16} />
                   อนุมัติ
                 </button>
-                <button className="btn danger" disabled={waitingHR} onClick={() => open('reject')}>
+                <button className="btn danger" onClick={() => open('reject')}>
                   <X size={16} />
                   ไม่อนุมัติ
                 </button>
                 {canRefer && (
-                  <button className="btn" disabled={waitingHR} onClick={() => open('refer')}>
+                  <button className="btn" onClick={() => open('refer')}>
                     <Users size={16} />
-                    ส่งปรึกษา HR
+                    ส่งต่อให้ HR
                   </button>
                 )}
               </div>
-            ) : actor.role === 'HR' && person.role === 'Employee' && ownHR ? (
-              <div className="vertical-actions">
-                <button className="btn primary" onClick={() => open('consult')}>
-                  <Send size={16} />
-                  ส่งความเห็น
-                </button>
-                <p className="tiny">HR ให้ความเห็น ผู้จัดการตัดสินผลสุดท้าย</p>
+            ) : referral && actor.role === 'Manager' ? (
+              <div className="info">
+                <Clock3 size={17} />
+                <span>ส่งต่อให้ HR เป็นผู้ตัดสินแล้ว</span>
               </div>
             ) : (
               <p className="muted">ไม่มีรายการที่ต้องดำเนินการสำหรับคุณ</p>
@@ -260,8 +247,8 @@ export function RequestDetail({ db, actor, run, id }) {
                 ? `อนุมัติ ${totalDays(db, r.id)} วัน และอัปเดตโควตาของ ${person.name}`
                 : dialog === 'withdraw'
                   ? 'คำขอจะถูกยกเลิกโดยไม่หักสิทธิ์วันลา'
-                  : dialog === 'consult'
-                    ? 'ส่งความเห็นให้ผู้จัดการ โดยยังคงสถานะรอพิจารณา'
+                  : dialog === 'refer'
+                    ? 'HR จะเป็นผู้อนุมัติหรือไม่อนุมัติคำขอนี้แทนคุณ หลังส่งต่อคุณจะตัดสินคำขอนี้ไม่ได้'
                     : 'ระบุเหตุผลหรือความเห็นประกอบการพิจารณา'}
             </p>
             {dialog === 'refer' && (
@@ -290,8 +277,8 @@ export function RequestDetail({ db, actor, run, id }) {
                     : dialog === 'reject'
                       ? 'เหตุผลการไม่อนุมัติ *'
                       : dialog === 'refer'
-                        ? 'เหตุผลที่ส่งปรึกษา HR *'
-                        : 'ความเห็นจาก HR *'}
+                        ? 'เหตุผลที่ส่งต่อให้ HR *'
+                        : 'ความเห็น *'}
                 </label>
                 <textarea
                   id="review-comment"

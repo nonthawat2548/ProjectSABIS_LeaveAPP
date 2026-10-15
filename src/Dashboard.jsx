@@ -15,33 +15,26 @@ import { formatDate, today } from './domain/date.js';
 import { Card, RequestTable, Stat } from './components.jsx';
 import { QuotaOverview, TeamOverview, UpcomingLeave, WelcomeHero, WeeklyOverview } from './ui.jsx';
 import { formatWorkStatus } from './labels.js';
-import { ManagementAnalytics } from './ManagementAnalytics.jsx';
+import { canDecideRequest, latestHRReferral } from './domain/approvalRouting.js';
 
 /** @param {import('./pages/types.js').PageProps} props */
-export function Dashboard({ db, actor, onAnalyticsDialogChange }) {
+export function Dashboard({ db, actor }) {
   const employee = actor.role === 'Employee';
   const requests = db.requests.filter((r) =>
     employee
       ? r.employeeId === actor.id
       : actor.role === 'HR'
-        ? db.approvals.some(
-            (a) =>
-              a.leaveId === r.id &&
-              a.approverId === actor.id &&
-              a.reviewType === 'Consultation' &&
-              !a.cancelled,
-          )
+        ? latestHRReferral(db, r)?.approverId === actor.id
         : db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id,
   );
   const year = Number(today().slice(0, 4)),
     vacation = balance(db, actor.id, 1, year),
     pending = requests.filter((r) => r.status === 'Pending');
-  const consultations = db.approvals.filter(
-    (a) =>
-      a.reviewType === 'Consultation' &&
-      !a.cancelled &&
-      a.status === 'Pending' &&
-      (actor.role !== 'HR' || a.approverId === actor.id),
+  const referrals = pending.filter((request) => latestHRReferral(db, request));
+  const managerRequests = db.requests.filter(
+    (request) =>
+      db.employees.find((person) => person.id === request.employeeId)?.role === 'Manager' &&
+      canDecideRequest(db, actor, request),
   );
   const team = db.employees.filter(
     (e) => e.active && (actor.role === 'HR' || (e.role !== 'HR' && e.managerId === actor.id)),
@@ -123,10 +116,12 @@ export function Dashboard({ db, actor, onAnalyticsDialogChange }) {
           <>
             <Stat
               tone="peach"
-              title={actor.role === 'HR' ? 'คำขอรอความเห็น' : 'คำขอรอพิจารณา'}
+              title={actor.role === 'HR' ? 'คำขอส่งต่อรอพิจารณา' : 'คำขอรอพิจารณา'}
               value={
                 <>
-                  {actor.role === 'HR' ? consultations.length : pending.length}
+                  {actor.role === 'HR'
+                    ? referrals.filter((r) => canDecideRequest(db, actor, r)).length
+                    : pending.length}
                   <small>คำขอ</small>
                 </>
               }
@@ -136,14 +131,14 @@ export function Dashboard({ db, actor, onAnalyticsDialogChange }) {
 
             <Stat
               tone="purple"
-              title="อยู่ระหว่างปรึกษา HR"
+              title={actor.role === 'HR' ? 'คำขอผู้จัดการรอพิจารณา' : 'ส่งต่อให้ HR แล้ว'}
               value={
                 <>
-                  {consultations.length}
+                  {actor.role === 'HR' ? managerRequests.length : referrals.length}
                   <small>คำขอ</small>
                 </>
               }
-              note="รอความเห็นก่อนตัดสินผล"
+              note={actor.role === 'HR' ? 'คำขอส่วนตัวของผู้จัดการ' : 'HR เป็นผู้ตัดสินคำขอ'}
               icon={<ShieldCheck />}
             />
 
@@ -175,13 +170,6 @@ export function Dashboard({ db, actor, onAnalyticsDialogChange }) {
           </>
         )}
       </div>
-      {actor.role === 'Manager' && (
-        <ManagementAnalytics
-          db={db}
-          actor={actor}
-          onAnalyticsDialogChange={onAnalyticsDialogChange}
-        />
-      )}
       <div className="dashboard-grid">
         <div className="dashboard-main">
           <Card

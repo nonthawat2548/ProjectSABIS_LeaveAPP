@@ -46,3 +46,30 @@ func isDecisionReviewer(db *model.Database, actor *model.Employee, r model.Leave
 	}
 	return owner.Role == "Employee" && count == 0
 }
+
+func latestHRReferral(db *model.Database, r model.LeaveRequest) *model.LeaveApproval {
+	var latest *model.LeaveApproval
+	for i := range db.Approvals {
+		step := &db.Approvals[i]
+		if step.LeaveID == r.ID && step.ReviewType == "Consultation" && !step.Cancelled &&
+			(latest == nil || step.StepNo > latest.StepNo || step.StepNo == latest.StepNo && step.ID > latest.ID) {
+			latest = step
+		}
+	}
+	return latest
+}
+
+func pendingHRReferral(db *model.Database, actor *model.Employee, r model.LeaveRequest) *model.LeaveApproval {
+	if r.Status != "Pending" || actor.ID == r.EmployeeID || !actor.Active || actor.Role != "HR" {
+		return nil
+	}
+	owner := employee(db, r.EmployeeID)
+	if owner == nil || !owner.Active || owner.Role != "Employee" {
+		return nil
+	}
+	step := latestHRReferral(db, r)
+	if step != nil && step.ApproverID == actor.ID && step.ReviewRole == "HR" && (step.Status == "Pending" || step.Status == "Completed") {
+		return step
+	}
+	return nil
+}

@@ -84,14 +84,15 @@ test('Work status labels agree across dashboards, team summaries, tables and pho
         const props = { ...tasks, actor, db: visibleSnapshot(full, id) };
         const work = render(WorkPage, props),
           document = work.window.document;
-        const row = [...document.querySelectorAll('.work-table tr')].find((e) =>
-          e.textContent?.includes(employee.name),
+        const row = [...document.querySelectorAll('.work-table tbody tr')].find((e) =>
+          e.textContent?.includes(actor.name),
         );
         const card = [...document.querySelectorAll('.work-cards li')].find((e) =>
-          e.textContent?.includes(employee.name),
+          e.textContent?.includes(actor.name),
         );
-        assert.equal(row.querySelector('.work-badge')?.textContent, expected);
-        assert.equal(card.querySelector('.work-badge')?.textContent, expected);
+        const ownStatus = id === 1 ? expected : 'ทำงานที่สำนักงาน';
+        assert.equal(row.querySelector('.work-badge')?.textContent, ownStatus);
+        assert.equal(card.querySelector('.work-badge')?.textContent, ownStatus);
         const options = [...document.querySelectorAll('#work-status option')];
         assert.deepEqual(
           options.map((option) => option.value),

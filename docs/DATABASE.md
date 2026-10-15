@@ -101,8 +101,8 @@ BIS Analytics อ่าน Employee ที่ active, Leave_Request/Leave_Day, D
 | Leave_Request.Status = `Withdrawn` | ยกเลิกคำขอโดยรักษาประวัติ |
 | Leave_Request.Version | ป้องกันบันทึกทับข้อมูลเก่า/อนุมัติซ้ำ |
 | Leave_Request.Timeline_json | ลำดับการดำเนินการใน demo |
-| Leave_Approval.Status = `Completed` สำหรับ Consultation | HR ให้ความเห็นโดยไม่อนุมัติคำขอ |
-| Leave_Approval.Cancelled | ไม่ใช้การพิจารณาเดิมหลังแก้ไข/ยกเลิก |
+| Leave_Approval.Status = `Completed` สำหรับ Consultation | ปิดการส่งต่อเมื่อ HR ตัดสินแล้ว โดยเก็บ Decision Approved/Rejected ของ HR แยกอีกแถว; แถวความเห็นเก่าคงเป็นประวัติและไม่คืนสิทธิ์ Manager เมื่อคำขอยัง Pending |
+| Leave_Approval.Cancelled | ไม่ใช้การพิจารณาเดิมหลังแก้ไข/ยกเลิก หรือเมื่อ HR ตัดสินคำขอที่ส่งต่อแล้ว |
 | Leave_Document.Data_url | เก็บเอกสารจริงใน demo; หลังบ้านจริงใช้ storage key |
 | App_Notification / notifications | การแจ้งเตือนจาก Navigation Flow |
 | App_Holiday / holidays | ยกเว้นวันหยุดในการนับวันทำงาน |

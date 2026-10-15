@@ -81,12 +81,12 @@ export function WelcomeHero({ actor }) {
             ? 'ยื่นคำขอลา ตรวจสอบสิทธิ์ และติดตามผลการพิจารณา'
             : actor.role === 'Manager'
               ? 'ตรวจสอบและพิจารณาคำขอของพนักงานในทีม'
-              : 'ให้ความเห็นคำขอและจัดสรรสิทธิ์การลา'}
+              : 'พิจารณาคำขอและจัดสรรสิทธิ์การลา'}
         </p>
         <div className="hero-actions flex flex-wrap items-center gap-[18px]">
           <a href={employee ? '#/new' : '#/requests'} className="btn primary">
             {employee ? <CalendarCheck2 size={18} /> : <Users size={18} />}{' '}
-            {employee ? 'ยื่นคำขอลา' : actor.role === 'HR' ? 'ดูคำขอปรึกษา' : 'พิจารณาคำขอ'}
+            {employee ? 'ยื่นคำขอลา' : actor.role === 'HR' ? 'ดูคำขอส่งต่อ' : 'พิจารณาคำขอ'}
             <ArrowUpRight size={17} />
           </a>
           <span className="hero-date">

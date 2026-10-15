@@ -61,7 +61,7 @@ npm run dev:cloud
 
 Service ไม่รับ role/actorId/gender จาก body มาเป็นสิทธิ์ ต้องอ่าน Employee ของเจ้าของคำขอจากข้อมูลล่าสุด วันที่ API/ฐานยังเป็น ISO ค.ศ. การแสดง พ.ศ. คงอยู่ใน `src/domain/date.js` ของ frontend โควตาลาคลอดยังเป็นรายกรณีและตรวจเพศก่อนกรณี/วันที่/โควตา ไม่มีการเปลี่ยนนโยบายตัวอย่าง
 
-Employee/Manager ยื่น/แก้ไข/ถอนคำขอของตนได้ขณะ Pending ผู้พิจารณา Decision ต้องเป็นคนอื่น: Employee ส่งผู้จัดการ และ Manager ส่ง HR active ใช้ `approval_routing.go` ตรวจทั้งตอนยื่นและตอนตัดสิน ตามไฟล์ฉบับ `(1)` ห้ามส่ง HR ลงให้ผู้จัดการแผนก จึงปิด submit/edit/upload ของ HR จนกว่าจะมีผู้อนุมัติระดับสูงกว่า ยังอ่านประวัติ/สิทธิ์และถอน Pending เดิมได้ ผู้จัดการไม่ได้สิทธิ์อ่าน/ตัดสิน HR แม้มี assignment เก่า การปรึกษา HR สำหรับคำขอ Employee ยังเป็น Consultation และไม่ให้อำนาจอนุมัติ ดู [FIXES_AUDIT.md](FIXES_AUDIT.md)
+Employee/Manager ยื่น/แก้ไข/ถอนคำขอของตนได้ขณะ Pending ผู้พิจารณา Decision ต้องเป็นคนอื่น: Employee ส่งผู้จัดการ และ Manager ส่ง HR active ใช้ `approval_routing.go` ตรวจทั้งตอนยื่นและตอนตัดสิน ห้ามส่งคำขอส่วนตัวของ HR ลงให้ผู้จัดการแผนก จึงปิด submit/edit/upload ของ HR จนกว่าจะมีผู้อนุมัติระดับสูงกว่า ยังอ่านประวัติ/สิทธิ์และถอน Pending เดิมได้ เมื่อ Manager ส่งต่อคำขอ Employee ให้ HR แล้ว HR เป็นผู้ตัดสินขั้นสุดท้ายทั้ง approve/reject ผ่าน `pendingHRReferral` ผู้จัดการไม่มีสิทธิ์ตัดสินหรือส่งต่อซ้ำ ไม่มีการส่งกลับ และ command consult เดิมคืน 403 ใช้ Consultation ที่ไม่ cancelled ล่าสุดเป็น assignment โดยรองรับ Completed ของระบบเก่าด้วย ไม่คืนสิทธิ์ผู้จัดการเมื่อเปลี่ยนทีม/ผู้จัดการ inactive เมื่อ HR ตัดสินให้บันทึก Decision ในนาม HR แยกจาก assignment เดิมและแจ้งพนักงานกับผู้ส่งต่อ ใช้ transaction/โควตา/เอกสารเดิม ไม่เปลี่ยน schema ดูสัญญาปัจจุบันใน [API.md](API.md) และประวัติแก้ไขเดิมใน [FIXES_AUDIT.md](FIXES_AUDIT.md)
 
 ## ทดสอบ
 

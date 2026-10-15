@@ -19,6 +19,7 @@ import { findLoginAccount, loginUsername } from './domain/auth.js';
 import { roleLabels } from './components.jsx';
 import { BrandMark } from './ui.jsx';
 import { ThemeButton } from './ThemeButton.jsx';
+import { formatPosition } from './labels.js';
 
 export function Login({ onLogin, initialError, theme, onToggleTheme }) {
   const accounts = getDemoAccounts();
@@ -208,6 +209,8 @@ export function Login({ onLogin, initialError, theme, onToggleTheme }) {
                     {account.name}
                     {' · '}
                     {loginUsername(account.email)}
+                    {' · '}
+                    {formatPosition(account.position)}
                   </option>
                 ))}
               </select>

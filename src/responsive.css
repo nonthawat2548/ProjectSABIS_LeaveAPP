@@ -1,0 +1,413 @@
+/* Measure the space left beside the sidebar, including browser zoom.
+   Keep viewport rules in styles.css for the drawer and fixed overlays. */
+main {
+  container: workspace / inline-size;
+  min-width: 0;
+}
+
+.login-page {
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+}
+
+.login-intro,
+.card-body,
+.request-list {
+  min-width: 0;
+}
+
+.table-scroll,
+.calendar-scroll,
+.management-table-scroll,
+.leave-summary-table-scroll,
+.leave-summary-chart-scroll {
+  min-width: 0;
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+}
+
+.form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.card-head {
+  flex-wrap: wrap;
+}
+
+.card-head h2,
+.page-heading > div,
+.management-heading > div,
+.dialog-head h2,
+.person > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dialog-head > button,
+.stat-icon {
+  flex-shrink: 0;
+}
+
+.hr-donut-wrap {
+  width: min(190px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+}
+
+/* Wide pages keep their desktop layout. Compact workspaces use fewer columns. */
+@container workspace (max-width: 900px) {
+  .stats,
+  .management-kpis,
+  .management-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid,
+  .columns,
+  .columns.form-columns,
+  .leave-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-side {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    align-items: start;
+    gap: 18px;
+  }
+
+  .dashboard-side > .card {
+    margin-bottom: 0;
+  }
+
+  .quota-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  }
+
+  .leave-summary-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .leave-summary-filter-grid > button {
+    justify-self: start;
+  }
+
+  .leave-summary-type-row {
+    grid-template-columns: minmax(0, 1fr) 150px 150px;
+  }
+
+  .leave-report-request-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .leave-report-request-fields > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@container workspace (max-width: 620px) {
+  .request-table,
+  .work-table {
+    display: none;
+  }
+
+  .request-cards,
+  .work-cards {
+    display: block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .request-cards > li {
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .request-cards > li:last-child,
+  .work-cards > li:last-child {
+    border-bottom: 0;
+  }
+
+  .request-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 12px;
+  }
+
+  .request-card-header .code-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+  }
+
+  .request-cards time {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .request-card-person {
+    margin-top: 12px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  .request-card-details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    margin: 14px 0 0;
+    font-size: 13px;
+  }
+
+  .request-card-details dt {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .request-card-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .request-card-details small {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .request-card-dates {
+    grid-column: 1/-1;
+  }
+
+  .work-cards > li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .work-cards strong {
+    font-size: 14px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  .work-cards small {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  .work-cards .work-badge {
+    max-width: 120px;
+    font-size: 12px;
+  }
+
+  .dashboard-side,
+  .columns > .stack,
+  .management-charts,
+  .colleague-search,
+  .leave-report-charts,
+  .leave-report-delivery dl,
+  .leave-report-overview dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hr-analytics-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hr-request-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 14px;
+  }
+
+  .hr-request-person {
+    grid-column: 1 / -1;
+  }
+
+  .hr-request-list .badge {
+    grid-column: 1;
+  }
+
+  .hr-request-link {
+    grid-column: 2;
+  }
+
+  .leave-report-status-card,
+  .leave-report-charts .leave-summary-breakdown,
+  .leave-report-frequency,
+  .leave-report-month-card {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .colleague-search > .btn {
+    grid-column: auto;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .leave-summary-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .leave-summary-filter-grid .field:nth-child(3),
+  .leave-summary-filter-grid > button {
+    grid-column: 1 / -1;
+  }
+
+  .leave-summary-type-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .leave-summary-type-row > div {
+    grid-column: 1 / -1;
+  }
+
+  .leave-summary-type-row > span {
+    text-align: left;
+  }
+
+  .leave-summary-daily li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .leave-summary-report-controls .field {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+
+  .leave-summary-report-controls .btn {
+    width: 100%;
+  }
+
+  .leave-summary-months:not(.single-month),
+  .hr-trend-panel .leave-summary-months.with-values {
+    min-width: 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px 12px;
+  }
+
+  .leave-summary-month-bars {
+    height: 100px;
+  }
+
+  .weekly-overview {
+    display: block;
+  }
+
+  .weekly-overview > div:first-child {
+    width: auto;
+    margin-bottom: 14px;
+  }
+
+  .week-strip {
+    gap: 4px;
+  }
+
+  .week-strip > div {
+    width: 100%;
+  }
+
+  .hero-date {
+    display: none;
+  }
+
+  .welcome-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 80%;
+    padding: 24px 21px;
+  }
+
+  .welcome-copy h1 {
+    font-size: clamp(23px, 5cqi, 28px);
+  }
+
+  .welcome-art {
+    position: absolute;
+    right: -18%;
+    bottom: -10px;
+    width: 66%;
+    height: 210px;
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  .art-note {
+    display: none;
+  }
+}
+
+@container workspace (max-width: 380px) {
+  .stats,
+  .management-kpis,
+  .management-filters,
+  .form-grid,
+  .review-grid,
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stat > p {
+    max-width: none;
+  }
+
+  .hr-analytics .management-heading,
+  .hr-analytics .hr-filter-card .card-body {
+    padding: 18px;
+  }
+
+  .hr-request-heading .field,
+  .leave-report-list-tools .field {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .notification-popover {
+    position: fixed;
+    inset: 71px max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left));
+    width: auto;
+    max-width: none;
+    max-height: min(620px, calc(100dvh - 90px));
+  }
+}
+
+/* Keep controls reachable when a phone rotates or its keyboard opens. */
+@media (max-height: 500px) {
+  .dialog-shade {
+    padding-block: 8px;
+  }
+
+  .dialog {
+    max-height: calc(100dvh - 16px);
+  }
+
+  .notification-popover {
+    max-height: calc(100dvh - 80px);
+  }
+
+  .date-picker {
+    position: fixed;
+    inset: auto auto max(12px, env(safe-area-inset-bottom)) 50%;
+    transform: translateX(-50%);
+    width: min(360px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+}

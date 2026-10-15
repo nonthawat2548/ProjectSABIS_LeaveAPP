@@ -470,4 +470,5 @@ func TestPostgresTransport(t *testing.T) {
 	}
 	testLeaveReportFlow(t, handler)
 	testPersonalRoleFlow(t, handler)
+	testHRReferralDecisions(t, handler, false)
 }

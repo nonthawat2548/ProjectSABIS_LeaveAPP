@@ -82,12 +82,113 @@ sequence('annual/approve', fresh(), [
   [1, { type: 'submit', input: base }],
   [4, { type: 'approve', id: 1001, version: 1, comment: '' }],
 ]);
-sequence('annual/edit/consult', fresh(), [
+for (const [name, owner, input] of [
+  ['half day', 1, { ...base, duration: 'AM' }],
+  ['cross year', 1, { ...base, startDate: '2026-12-30', endDate: '2027-01-04' }],
+  ['maternity', 3, maternity],
+]) {
+  sequence(`HR referral approval/${name}`, fresh(), [
+    [owner, { type: 'submit', input }],
+    [4, { type: 'refer', id: 1001, version: 1, hrId: 5, comment: 'ตรวจสิทธิ์' }],
+    [5, { type: 'approve', id: 1001, version: 2, comment: 'ตรวจครบแล้ว' }],
+  ]);
+}
+{
+  const db = fresh();
+  applyCommand(db, 1, { type: 'submit', input: base }, now);
+  add('HR approval without referral denied', db, 5, {
+    type: 'approve',
+    id: 1001,
+    version: 1,
+    comment: '',
+  });
+  applyCommand(db, 4, { type: 'refer', id: 1001, version: 1, hrId: 5, comment: 'ตรวจสิทธิ์' }, now);
+  add('HR referral can reject', db, 5, {
+    type: 'reject',
+    id: 1001,
+    version: 2,
+    comment: 'ไม่ผ่าน',
+  });
+  add('HR referral cannot return an opinion', db, 5, {
+    type: 'consult',
+    id: 1001,
+    version: 2,
+    comment: 'ตรวจแล้ว',
+  });
+  add('HR cannot forward the final decision elsewhere', db, 5, {
+    type: 'refer',
+    id: 1001,
+    version: 2,
+    hrId: 5,
+    comment: 'ส่งต่อ',
+  });
+  add('HR referral stale version', db, 5, { type: 'approve', id: 1001, version: 1, comment: '' });
+  const mutations = {
+    cancelled: (copy) => {
+      copy.approvals.at(-1).cancelled = true;
+    },
+    completed: (copy) => {
+      copy.approvals.at(-1).status = 'Completed';
+    },
+    unassigned: (copy) => {
+      copy.approvals.at(-1).approverId = 6;
+    },
+    'inactive HR': (copy) => {
+      copy.employees.find((e) => e.id === 5).active = false;
+    },
+    'inactive manager': (copy) => {
+      copy.employees.find((e) => e.id === 4).active = false;
+    },
+    'inactive owner': (copy) => {
+      copy.employees.find((e) => e.id === 1).active = false;
+    },
+    'changed manager': (copy) => {
+      copy.employees.find((e) => e.id === 1).managerId = 7;
+    },
+    'self approval': (copy) => {
+      copy.requests[0].employeeId = 5;
+    },
+    quota: (copy) => {
+      copy.entitlements.find(
+        (e) => e.employeeId === 1 && e.leaveTypeId === 1 && e.year === 2026,
+      ).grantedDays = 0;
+    },
+    documents: (copy) => {
+      copy.leaveTypes[0].documentRequiredFromDays = 1;
+    },
+  };
+  for (const [name, mutate] of Object.entries(mutations)) {
+    const copy = structuredClone(db);
+    mutate(copy);
+    add(`HR referral approval ${name}`, copy, 5, {
+      type: 'approve',
+      id: 1001,
+      version: 2,
+      comment: '',
+    });
+  }
+  const edited = structuredClone(db);
+  applyCommand(edited, 1, { type: 'edit', id: 1001, version: 2, input: base }, now);
+  add('HR approval after edit denied', edited, 5, {
+    type: 'approve',
+    id: 1001,
+    version: 3,
+    comment: '',
+  });
+  applyCommand(db, 5, { type: 'approve', id: 1001, version: 2, comment: '' }, now);
+  for (const actor of [4, 5])
+    add(`HR referral duplicate approval ${actor}`, db, actor, {
+      type: 'approve',
+      id: 1001,
+      version: 3,
+      comment: '',
+    });
+}
+sequence('annual/edit/referral', fresh(), [
   [1, { type: 'submit', input: base }],
   [4, { type: 'refer', id: 1001, version: 1, comment: 'ขอตรวจเอกสาร', hrId: 5 }],
-  [5, { type: 'consult', id: 1001, version: 2, comment: 'ตรวจแล้ว' }],
-  [1, { type: 'edit', id: 1001, version: 3, input: { ...base, reason: 'แก้ไขคำขอ' } }],
-  [4, { type: 'reject', id: 1001, version: 4, comment: 'ติดงาน' }],
+  [1, { type: 'edit', id: 1001, version: 2, input: { ...base, reason: 'แก้ไขคำขอ' } }],
+  [4, { type: 'reject', id: 1001, version: 3, comment: 'ติดงาน' }],
 ]);
 sequence('maternity/edit/approve', fresh(), [
   [3, { type: 'submit', input: maternity }],

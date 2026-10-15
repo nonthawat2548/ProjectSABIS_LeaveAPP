@@ -345,14 +345,13 @@ function Workspace() {
       </>
     );
 
-  const menus = [
-    { path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> },
-    {
+  const menus = [{ path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> }];
+  if (actor.role !== 'Employee')
+    menus.push({
       path: '/leave-summary',
       label: actor.role === 'HR' ? 'แดชบอร์ด' : 'สรุปการลา',
       icon: <ChartNoAxesCombined />,
-    },
-  ];
+    });
 
   if (actor.role !== 'HR') menus.push({ path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> });
   menus.push(
@@ -367,7 +366,7 @@ function Workspace() {
     menus.push(
       {
         path: '/requests',
-        label: actor.role === 'HR' ? 'คำขอปรึกษา HR' : 'รายการคำขอของทีม',
+        label: actor.role === 'HR' ? 'คำขอส่งต่อ' : 'รายการคำขอของทีม',
         icon: <ClipboardList />,
       },
       { path: '/calendar', label: 'ปฏิทินการลา', icon: <CalendarDays /> },
@@ -399,7 +398,7 @@ function Workspace() {
       >
         <WorkspaceNavigation
           actor={actor}
-          menus={menus}
+          menus={menus.filter((menu) => menu.path !== '/notifications')}
           open={mobile}
           onClose={closeMobile}
           onLogout={() => void logout()}

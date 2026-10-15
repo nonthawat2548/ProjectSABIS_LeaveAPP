@@ -384,13 +384,12 @@ test('HR opens maternity cases from the selected employee gender, not the HR acc
   }
   fails(db, 3, { type: 'maternity', employeeId: 1, maximumDays: 17 }, /ฝ่ายบุคคล/, 'FORBIDDEN');
 });
-test('Maternity keeps HR consultation blocking the male manager final decision', () => {
+test('Maternity referral delegates the final decision to HR', () => {
   const db = fixture(),
     id = submit(db);
   send(db, 4, { type: 'refer', id, version: 1, hrId: 5, comment: 'ตรวจเอกสาร' });
-  fails(db, 4, { type: 'approve', id, version: 2, comment: '' }, /รอความเห็น HR/);
-  send(db, 5, { type: 'consult', id, version: 2, comment: 'ตรวจแล้ว' });
+  fails(db, 4, { type: 'approve', id, version: 2, comment: '' }, /ไม่มีสิทธิ์/, 'FORBIDDEN');
   assert.equal(balance(db, 3, 4, 0, 1).used, 0);
-  approve(db, id);
+  send(db, 5, { type: 'approve', id, version: 2, comment: 'ตรวจแล้ว' });
   assert.equal(balance(db, 3, 4, 0, 1).used, 3);
 });
