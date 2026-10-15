@@ -1,6 +1,6 @@
 # Data Dictionary → โครงสร้างในแอป
 
-การแก้ตาม `codex_leave_app_fixes.md` ใช้ตารางเดิม: Manager ยื่นคำขอและมี `Leave_Approval` แบบ HR/Decision ส่วน HR ยื่นและมี Manager/Decision ไม่เพิ่มตารางหรือ field ของผู้อนุมัติ คำขอตัวอย่าง 1001–1003 อยู่ใน source JSON และ SQL/SQLite ที่ส่งออก เวลาในไฟล์เป็น UTC และแสดงผลไทยตาม Asia/Bangkok
+การแก้ตาม `codex_leave_app_fixes (1).md` ใช้ตารางเดิม: Employee มี Manager/Decision และ HR/Consultation เมื่อส่งปรึกษา ส่วน Manager ยื่นลาส่วนตัวมี HR/Decision; ไม่เปิดการยื่นของ HR เพราะไม่มีบทบาทผู้อนุมัติที่สูงกว่า ห้ามใช้ managerId/Decision เก่าส่ง HR ลงผู้จัดการแผนก ไม่เพิ่มตารางหรือ field และไม่ลบประวัติ HR เดิม คำขอตัวอย่าง 1001–1003 อยู่ใน source JSON และ SQL/SQLite ที่ส่งออก เวลาเป็น UTC และแสดงไทยตาม Asia/Bangkok
 
 IndexedDB ใช้ `leave-management-10-people-v2` เพื่อเริ่มชุดตัวอย่างสะอาดโดยเก็บฐาน v1 ไว้ ข้อมูล Go/Node ในเครื่องมีตัวแก้แบบเฉพาะรายการ `node scripts/repair-demo-data.mjs --apply` พร้อมไฟล์สำรอง ส่วนฐาน Supabase เดิมใช้ `database/supabase/repair-demo-records.sql` หลังสำรองรายการที่กระทบ ไม่รัน setup ซ้ำ ไม่ล้างคำขอที่ถูกต้องอื่น
 
@@ -59,6 +59,8 @@ Backend หลักปัจจุบันเป็น Go + Gin ใช้ stru
 | Work_Status | Work_status_id, Employee_id, Status_date, Status_type, Leave_id, Updated_at | id, employeeId, date, statusType, (derived leave link), updatedAt |
 
 ## Derived fields
+
+BIS Analytics อ่าน Employee ที่ active, Leave_Request/Leave_Day, Decision ใน Leave_Approval, Leave_Entitlement, Maternity_Case, Work_Status และ App_Holiday ผ่าน snapshot ตามสิทธิ์เดิม ไม่เพิ่มตาราง KPI หรือแก้ฐาน/seed เพื่อเพิ่มส่วนนี้ ดู [สูตรคำนวณ](MANAGEMENT_ANALYTICS.md)
 
 หน้า `#/leave-summary` คำนวณสรุปจาก `Leave_Request` และ `Leave_Day.date/units` ตามสิทธิ์เดิม ไม่เพิ่มตารางยอดรวมหรือเขียนค่าคำนวณกลับฐาน การส่งรายงานใช้ `App_Notification.Message`/`notifications.text` เก็บข้อความอ่านได้ซึ่งเริ่มด้วย `รายงานสรุปการลา` และบรรทัด `ผู้ส่ง:` เป็นสำเนารายงาน ณ เวลาส่ง มีสองแถวแยกเจ้าของสำหรับ HR ผู้รับและ Manager ผู้ส่ง (`leaveId=null`, `read=false`) จึงคงอยู่หลังโหลดหน้าใหม่ใน IndexedDB, Go JSON และ PostgreSQL ไม่มี schema/migration เพิ่ม และไม่แก้ข้อมูลต้นทางหรือฐานที่ใช้งานเพียงเพื่อเพิ่มหน้าเว็บ
 

@@ -1,5 +1,7 @@
 # REST API contract
 
+รายงาน BIS บน Dashboard Manager/HR เป็นการอ่าน snapshot ตามสิทธิ์และคำนวณผ่าน `src/domain/managementAnalytics.js` ไม่เพิ่ม endpoint/command/schema หรือรับยอดจาก client ไปบันทึก ผู้จัดการอ่านได้เฉพาะ Employee ในทีม ไม่ใช้สิทธิ์โปรไฟล์ขยาย scope และไม่รวม HR ใน KPI/CSV ดู [MANAGEMENT_ANALYTICS.md](MANAGEMENT_ANALYTICS.md)
+
 Implementation ปัจจุบัน: `internal/httpapi/` (Go + Gin) · frontend adapter: `src/data/apiRepository.js` · สัญญา [OpenAPI](openapi.yaml) · วิธีรันและลำดับอ่านโค้ด [GO_BACKEND.md](GO_BACKEND.md)
 
 บน Vercel ใช้ api/go.go → serverless/handler.go → internal/httpapi/ → internal/service/ และ internal/repository/postgres.go เชื่อม PostgreSQL private schema leave_app ใช้ business commands และ cookie contract เดิม ไม่ใช้ไฟล์ JSON/session ใน memory ดู [SUPABASE.md](SUPABASE.md) ไม่มี fallback ไป IndexedDB ส่วน Node ใน server/*.js เป็น reference/โหมด legacy สำหรับเทียบระหว่างย้ายระบบ
@@ -11,7 +13,7 @@ Implementation ปัจจุบัน: `internal/httpapi/` (Go + Gin) · front
 | Method | Path | ข้อมูล |
 | --- | --- | --- |
 | GET | `/api/health` | cloud: status ok, mode cloud-postgres, documentTransport parts-v1, partCharacters 2097152; 503 เมื่อฐาน/migration ไม่พร้อม |
-| POST | `/api/uploads` | `{fileName,fileType,fileSize,encodedLength}` → `{uploadId,partCharacters}`; session ของ Employee/Manager/HR ที่ active สำหรับแนบคำขอของตน |
+| POST | `/api/uploads` | `{fileName,fileType,fileSize,encodedLength}` → `{uploadId,partCharacters}`; session ของ Employee/Manager ที่ active สำหรับแนบคำขอของตน |
 | PUT | `/api/uploads/:uploadId/parts/:part` | `{data}` base64; owner/session, idempotent replacement ของส่วนเดิม |
 | DELETE | `/api/uploads/:uploadId` | ยกเลิก staging ของตนเอง |
 | GET | `/api/documents/:id` | metadata + totalCharacters/partCharacters; ตรวจ canView |
@@ -73,7 +75,7 @@ API และ IndexedDB ของโหมดเบราว์เซอร์�
 
 ## ยื่นคำขอ
 
-Employee, Manager และ HR ยื่น/แก้ไข/ถอนคำขอตนเองได้ผ่าน endpoint เดิม อัปโหลดเอกสารส่วนตัวได้ทุกบทบาทที่ยืนยัน session แล้ว `Decision` มอบหมาย Employee → Manager, Manager → HR active, HR → Manager ที่กำหนด ห้ามพิจารณาคำขอตนเองและ HR ไม่ตัดสินคำขอ Employee ที่ตนให้ Consultation ผู้จัดการอ่านคำขอ HR ได้เฉพาะที่ถูกมอบหมาย Decision แต่ไม่รวมในรายงานทีม สถานะงานของวันที่มีวันลาอนุมัติเต็มหรือครึ่งวันเป็นข้อมูลที่ระบบแสดงอัตโนมัติและห้ามบันทึกสถานะเอง ทับช่วงวันที่คำขอ Pending/Approved ไม่ได้ รวม AM/PM คนละช่วงด้วย
+Employee และ Manager ยื่น/แก้ไข/ถอนคำขอตนเองและแนบเอกสารได้ผ่าน endpoint เดิม `Decision` มอบหมาย Employee → Manager และ Manager → HR active ห้ามพิจารณาคำขอตนเอง HR ให้ Consultation เฉพาะคำขอ Employee ที่ถูกส่งมาปรึกษา ส่วนผู้จัดการตัดสินผลสุดท้าย ตามไฟล์ `codex_leave_app_fixes (1).md` ห้ามส่งคำขอ HR ลงให้ผู้จัดการแผนก จึงคืน 403 FORBIDDEN เมื่อ HR ยื่น/แก้ไข/เริ่มอัปโหลดสำหรับคำขอตนเองจนกว่าจะมีผู้อนุมัติระดับสูงกว่า; ยังอ่านประวัติ/สิทธิ์และถอน Pending เดิมได้ ผู้จัดการไม่มีสิทธิ์อ่านหรือตัดสิน HR แม้มี managerId หรือ Decision เก่าชี้มาที่ตน สถานะงานวันที่มีวันลาอนุมัติเต็มหรือครึ่งวันแสดงอัตโนมัติและห้ามบันทึกเอง ทับช่วงวันที่ Pending/Approved ไม่ได้ รวม AM/PM คนละช่วงด้วย
 
 ```json
 {

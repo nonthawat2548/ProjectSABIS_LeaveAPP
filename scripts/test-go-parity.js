@@ -96,22 +96,68 @@ sequence('maternity/edit/approve', fresh(), [
 ]);
 sequence('half days', fresh(), [
   [1, { type: 'submit', input: { ...base, duration: 'AM' } }],
-  [1, { type: 'submit', input: { ...base, startDate: '2026-12-07', endDate: '2026-12-07', duration: 'PM' } }],
+  [
+    1,
+    {
+      type: 'submit',
+      input: { ...base, startDate: '2026-12-07', endDate: '2026-12-07', duration: 'PM' },
+    },
+  ],
   [1, { type: 'withdraw', id: 1001, version: 1 }],
 ]);
 for (const actor of [999, 4, 5, 7])
   add(`submit authority ${actor}`, fresh(), actor, { type: 'submit', input: base });
-for (const [owner, reviewer] of [[4,5],[7,5],[5,4]]) {
+for (const [owner, reviewer] of [
+  [4, 5],
+  [7, 5],
+]) {
   const db = fresh();
-  applyCommand(db, owner, {type:'submit',input:base},now);
-  add(`personal self approval ${owner}`, db, owner, {type:'approve',id:1001,version:1,comment:''});
-  sequence(`personal review ${owner}`, fresh(), [[owner,{type:'submit',input:base}],[reviewer,{type:'approve',id:1001,version:1,comment:''}]]);
+  applyCommand(db, owner, { type: 'submit', input: base }, now);
+  add(`personal self approval ${owner}`, db, owner, {
+    type: 'approve',
+    id: 1001,
+    version: 1,
+    comment: '',
+  });
+  sequence(`personal review ${owner}`, fresh(), [
+    [owner, { type: 'submit', input: base }],
+    [reviewer, { type: 'approve', id: 1001, version: 1, comment: '' }],
+  ]);
 }
 {
   const db = fresh();
-  applyCommand(db,1,{type:'submit',input:{...base,duration:'AM'}},now);
-  add('same date opposite half overlaps', db, 1, {type:'submit',input:{...base,duration:'PM'}});
-  add('sick range starts beyond thirty days', fresh(), 1, {type:'submit',input:{...base,leaveTypeId:2,startDate:'2026-09-09',endDate:'2026-10-10'}});
+  applyCommand(db, 1, { type: 'submit', input: base }, now);
+  db.requests[0].employeeId = 5;
+  db.employees.find((person) => person.id === 5).managerId = 4;
+  add('legacy HR downward decision denied', db, 4, {
+    type: 'approve',
+    id: 1001,
+    version: 1,
+    comment: '',
+  });
+  add('HR cannot submit despite configured department manager', db, 5, {
+    type: 'submit',
+    input: base,
+  });
+  add('HR cannot resubmit legacy request', db, 5, {
+    type: 'edit',
+    id: 1001,
+    version: 1,
+    input: base,
+  });
+  add('HR can withdraw legacy own request', db, 5, { type: 'withdraw', id: 1001, version: 1 });
+}
+{
+  const db = fresh();
+  applyCommand(db, 1, { type: 'submit', input: { ...base, duration: 'AM' } }, now);
+  add('same date opposite half overlaps', db, 1, {
+    type: 'submit',
+    input: { ...base, duration: 'PM' },
+  });
+  add('sick range starts beyond thirty days', fresh(), 1, {
+    type: 'submit',
+    input: { ...base, leaveTypeId: 2, startDate: '2026-09-09', endDate: '2026-10-10' },
+  });
 }
 for (const gender of ['Male', 'Other', '', 'female', 'Unknown', null]) {
   const db = fresh();
@@ -121,6 +167,19 @@ for (const gender of ['Male', 'Other', '', 'female', 'Unknown', null]) {
     type: 'submit',
     input: { ...maternity, maternityCaseId: 999, startDate: 'bad', reason: '', duration: 'AM' },
   });
+}
+{
+  const db = fresh();
+  db.maternityCases[0].maximumDays = 120;
+  const input = { ...maternity, startDate: '2026-11-01', endDate: '2027-02-28' };
+  add('maternity 120 calendar days', db, 3, { type: 'submit', input });
+  add('maternity 121 calendar days', db, 3, {
+    type: 'submit',
+    input: { ...input, endDate: '2027-03-01' },
+  });
+  add('maternity admin cap 120', db, 5, { type: 'maternity', employeeId: 3, maximumDays: 121 });
+  db.maternityCases[0].maximumDays = 121;
+  add('maternity legacy oversized case', db, 3, { type: 'submit', input });
 }
 for (const caseId of [null, 2, 999])
   add(`case ${caseId}`, fresh(), 3, {

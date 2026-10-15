@@ -96,6 +96,9 @@ func CheckRequest(db *model.Database, actorID int, input *model.RequestInput, ex
 	if err != nil {
 		return nil, err
 	}
+	if actor.Role == "HR" {
+		return nil, Problem(HRPersonalLeaveUnavailable, "FORBIDDEN")
+	}
 	if exclude != 0 {
 		r, err := request(db, exclude)
 		if err != nil {
@@ -178,7 +181,7 @@ func CheckRequest(db *model.Database, actorID int, input *model.RequestInput, ex
 			continue
 		}
 		if input.StartDate <= r.EndDate && input.EndDate >= r.StartDate {
-			return nil, Invalid("วันที่ลาซ้อนกับคำขอ " + RequestCode(&r))
+			return nil, Invalid("ไม่สามารถยื่นคำขอลาซ้ำกับช่วงวันที่คุณมีคำขอลาอยู่แล้วได้ (" + RequestCode(&r) + ")")
 		}
 	}
 	if t.QuotaScope == "Annual" {

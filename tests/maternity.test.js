@@ -175,7 +175,7 @@ test('Maternity validates manager, then dates/full day, then reason and existing
     db,
     3,
     { type: 'submit', input: { ...input, startDate: '2026-10-10', endDate: '2026-10-10' } },
-    /ยื่นลาล่วงหน้าอย่างน้อย 1 วัน/,
+    /กรุณายื่นขอล่วงหน้าอย่างน้อย 1 วัน/,
   );
   const policy = db.leaveTypes.find((t) => t.id === 4);
   policy.documentRequiredFromDays = 3;
@@ -193,7 +193,7 @@ test('Maternity validates manager, then dates/full day, then reason and existing
   };
   const id = submit(db, documentInput);
   fails(db, 3, { type: 'submit', input }, /ต้องแนบใบรับรองแพทย์/); // Policy before overlap.
-  fails(db, 3, { type: 'submit', input: documentInput }, /วันที่ลาซ้อน/);
+  fails(db, 3, { type: 'submit', input: documentInput }, /ไม่สามารถยื่นคำขอลาซ้ำ/);
   send(db, 3, { type: 'edit', id, version: 1, input: { ...input, keepDocument: true } });
   assert.equal(db.documents.filter((d) => d.leaveId === id).length, 1);
   fails(
@@ -227,6 +227,18 @@ test('Maternity counts holidays, weekends and cross-year dates against the selec
     annual,
   );
 });
+test('Maternity allows 120 calendar days and rejects an oversized case or request', () => {
+  const db = fixture(120);
+  const data = { ...input, startDate: '2026-11-01', endDate: '2027-02-28' };
+  fails(db, 5, { type: 'maternity', employeeId: 3, maximumDays: 121 }, /กรณีลาคลอดไม่ถูกต้อง/);
+  fails(db, 3, { type: 'submit', input: { ...data, endDate: '2027-03-01' } }, /โควตา/);
+  db.maternityCases[0].maximumDays = 121;
+  fails(db, 3, { type: 'submit', input: data }, /ข้อมูลสิทธิ์ของกรณีลาคลอดไม่ถูกต้อง/);
+  db.maternityCases[0].maximumDays = 120;
+  const id = submit(db, data);
+  assert.equal(totalDays(db, id), 120);
+});
+
 test('Used and pending days block excess maternity requests, after overlap is checked', () => {
   const db = fixture(9);
   const used = submit(db);
@@ -243,7 +255,7 @@ test('Used and pending days block excess maternity requests, after overlap is ch
     db,
     3,
     { type: 'submit', input: { ...input, startDate: '2026-12-10', endDate: '2026-12-23' } },
-    /วันที่ลาซ้อน/,
+    /ไม่สามารถยื่นคำขอลาซ้ำ/,
   );
   send(db, 3, { type: 'withdraw', id: pending, version: 1 });
   assert.equal(balance(db, 3, 4, 0, 1).pending, 0);
@@ -300,7 +312,7 @@ test('Approval measures notice from the latest edit instead of the decision date
   db.leaveTypes.find((t) => t.id === 4).advanceNoticeDays = 2;
   assert.throws(
     () => approve(db, id, new Date('2026-12-05T05:00:00Z')),
-    /ยื่นลาล่วงหน้าอย่างน้อย 2 วัน/,
+    /กรุณายื่นขอล่วงหน้าอย่างน้อย 2 วัน/,
   );
   assert.equal(db.requests[0].status, 'Pending');
   assert.equal(balance(db, 3, 4, 0, 1).used, 0);

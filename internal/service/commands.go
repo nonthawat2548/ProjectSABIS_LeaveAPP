@@ -70,7 +70,10 @@ func Apply(db *model.Database, actorID int, c model.Command, now time.Time) (mod
 }
 
 func submit(db *model.Database, actor *model.Employee, c model.Command, now time.Time) (model.Result, error) {
-	if actor.Role != "Employee" && actor.Role != "Manager" && actor.Role != "HR" {
+	if actor.Role == "HR" {
+		return model.Result{}, Problem(HRPersonalLeaveUnavailable, "FORBIDDEN")
+	}
+	if actor.Role != "Employee" && actor.Role != "Manager" {
 		return model.Result{}, Problem("ขั้นตอนยื่นลานี้เปิดให้บทบาทพนักงาน", "FORBIDDEN")
 	}
 	var r *model.LeaveRequest
@@ -335,7 +338,8 @@ func consult(db *model.Database, actor *model.Employee, c model.Command, at stri
 	if err != nil {
 		return model.Result{}, err
 	}
-	if actor.Role != "HR" || r.EmployeeID == actor.ID {
+	owner := employee(db, r.EmployeeID)
+	if actor.Role != "HR" || r.EmployeeID == actor.ID || owner == nil || owner.Role != "Employee" {
 		return model.Result{}, Problem("เฉพาะ HR ที่ได้รับมอบหมายและไม่ได้เป็นผู้ยื่นเท่านั้น", "FORBIDDEN")
 	}
 	for i := range db.Approvals {

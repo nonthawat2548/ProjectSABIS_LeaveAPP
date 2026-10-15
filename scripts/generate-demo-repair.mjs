@@ -15,7 +15,7 @@ const literal = (value) =>
           : '0'
         : `'${String(value).replaceAll("'", "''")}'`;
 const lines = [
-  '-- Targeted repair requested in codex_leave_app_fixes.md. Run after exporting affected rows.',
+  '-- Targeted repair requested in codex_leave_app_fixes (1).md. Run after exporting affected rows.',
   '-- Keeps unrelated valid requests, accounts, granted quotas, policies and documents.',
   'BEGIN;',
   'SELECT pg_advisory_xact_lock(1279607126,1);',
@@ -28,7 +28,9 @@ for (const id of [1, 3, 4, 5, 6, 7]) {
   );
 }
 for (const request of db.requests.filter((request) => ids.includes(request.id))) {
-  lines.push(`IF NOT EXISTS (SELECT 1 FROM leave_app.leave_entitlement WHERE employee_id=${request.employeeId} AND leave_type_id=${request.leaveTypeId} AND entitlement_year=2026) THEN RAISE EXCEPTION 'Annual entitlement missing; repair cancelled'; END IF;`);
+  lines.push(
+    `IF NOT EXISTS (SELECT 1 FROM leave_app.leave_entitlement WHERE employee_id=${request.employeeId} AND leave_type_id=${request.leaveTypeId} AND entitlement_year=2026) THEN RAISE EXCEPTION 'Annual entitlement missing; repair cancelled'; END IF;`,
+  );
 }
 lines.push(
   "IF NOT EXISTS (SELECT 1 FROM leave_app.leave_type WHERE leave_type_id=3 AND leave_type_name='ลากิจ') THEN RAISE EXCEPTION 'Leave type mismatch; repair cancelled'; END IF; END $$;",
@@ -39,7 +41,6 @@ lines.push(
   'DELETE FROM leave_app.leave_document WHERE leave_id IN (SELECT leave_id FROM demo_repair_ids);',
   'DELETE FROM leave_app.leave_day WHERE leave_id IN (SELECT leave_id FROM demo_repair_ids);',
   'DELETE FROM leave_app.leave_request WHERE leave_id IN (SELECT leave_id FROM demo_repair_ids);',
-  'UPDATE leave_app.employee SET manager_id=4 WHERE employee_id=5 AND manager_id IS NULL;',
 );
 for (const collection of ['requests', 'days', 'approvals', 'notifications']) {
   const table = tables.find((table) => table.collection === collection);

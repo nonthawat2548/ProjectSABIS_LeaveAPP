@@ -27,7 +27,6 @@ for (const [ownerId, reviewerId] of [
   [1, 4],
   [4, 5],
   [7, 5],
-  [5, 4],
 ]) {
   test(`personal leave ${ownerId} routes to ${reviewerId} and never allows self approval`, () => {
     const db = fresh();
@@ -38,15 +37,6 @@ for (const [ownerId, reviewerId] of [
       code: 'FORBIDDEN',
     });
     assert.ok(visibleSnapshot(db, reviewerId).requests.some((r) => r.id === id));
-    if (ownerId === 5)
-      assert.equal(
-        summarizeLeave(
-          db,
-          db.employees.find((e) => e.id === reviewerId),
-          { year: 2026 },
-        ).requestCount,
-        0,
-      );
     applyCommand(db, reviewerId, { type: 'approve', id, version: 1 }, now);
     assert.equal(balance(db, ownerId, 1, 2026).used, 1);
     assert.equal(db.requests[0].status, 'Approved');
@@ -55,6 +45,39 @@ for (const [ownerId, reviewerId] of [
     });
   });
 }
+
+test('HR leave never routes down to a department manager, including legacy assignments', () => {
+  const db = fresh();
+  const hr = db.employees.find((person) => person.id === 5);
+  hr.managerId = 4; // Previously configured data must not create an approval right.
+  const { id } = applyCommand(db, 1, { type: 'submit', input }, now);
+  db.requests[0].employeeId = 5;
+  db.documents.push({ id: 1, leaveId: id, fileName: 'private.pdf' });
+  const before = structuredClone(db);
+  for (const command of [
+    { type: 'submit', input },
+    { type: 'edit', id, version: 1, input },
+  ])
+    assert.throws(() => applyCommand(db, 5, command, now), { code: 'FORBIDDEN' });
+  for (const type of ['approve', 'reject', 'refer'])
+    assert.throws(
+      () => applyCommand(db, 4, { type, id, version: 1, comment: 'ตรวจสอบ', hrId: 5 }, now),
+      { code: 'FORBIDDEN' },
+    );
+  assert.deepEqual(db, before);
+  const manager = db.employees.find((person) => person.id === 4);
+  const scoped = visibleSnapshot(db, 4);
+  assert.equal(scoped.requests.length, 0);
+  assert.equal(scoped.days.length, 0);
+  assert.equal(scoped.documents.length, 0);
+  assert.equal(
+    scoped.entitlements.some((row) => row.employeeId === 5),
+    false,
+  );
+  assert.equal(summarizeLeave(db, manager, { year: 2026 }).requestCount, 0);
+  applyCommand(db, 5, { type: 'withdraw', id, version: 1 }, now);
+  assert.equal(db.requests[0].status, 'Withdrawn');
+});
 
 test('manager edits and withdraws own pending request; consultation HR cannot make the employee decision', () => {
   const db = fresh();

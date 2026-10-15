@@ -32,6 +32,15 @@ export function formatLeaveDays(value) {
   const parts = leaveDayParts(value);
   return `${parts.number}${parts.number === 'ครึ่ง' ? '' : ' '}${parts.unit}`;
 }
+/** @param {number | null} milliseconds */
+export function formatApprovalTime(milliseconds) {
+  if (milliseconds === null) return 'ยังไม่มีข้อมูล';
+  if (milliseconds < 60000) return 'น้อยกว่า 1 นาที';
+  const minutes = Math.round(milliseconds / 60000);
+  if (minutes < 60) return `${dayNumber.format(minutes)} นาที`;
+  if (minutes < 1440) return `${Math.floor(minutes / 60)} ชม. ${minutes % 60} นาที`;
+  return `${Math.floor(minutes / 1440)} วัน ${Math.floor((minutes % 1440) / 60)} ชม.`;
+}
 export const workStatusLabels = {
   'In-office': 'ทำงานที่สำนักงาน',
   WFH: 'ทำงานจากบ้าน (WFH)',

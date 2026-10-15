@@ -73,15 +73,16 @@ export function createWorkspaceRoutes(props) {
     },
     { path: '/notifications', title: 'การแจ้งเตือน', element: <NotificationsPage {...props} /> },
   ];
-  routes.push(
-    { path: '/new', title: 'ยื่นคำขอลา', element: <LeaveForm {...props} /> },
-    { path: '/quota', title: 'สิทธิ์และโควตา', element: <Quotas {...props} /> },
-    {
-      path: '/request/:id/edit',
-      title: 'รายละเอียดคำขอ',
-      element: <RequestRoute pageProps={props} edit />,
-    },
-  );
+  routes.push({ path: '/quota', title: 'สิทธิ์และโควตา', element: <Quotas {...props} /> });
+  if (!hr)
+    routes.push(
+      { path: '/new', title: 'ยื่นคำขอลา', element: <LeaveForm {...props} /> },
+      {
+        path: '/request/:id/edit',
+        title: 'รายละเอียดคำขอ',
+        element: <RequestRoute pageProps={props} edit />,
+      },
+    );
   if (!employee)
     routes.push({ path: '/calendar', title: 'ปฏิทินการลา', element: <CalendarPage {...props} /> });
   if (!employee)

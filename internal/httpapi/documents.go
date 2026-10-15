@@ -96,7 +96,10 @@ func (a *API) createUpload(c *gin.Context) {
 		if err != nil {
 			return nil, err
 		}
-		if actor.Role != "Employee" && actor.Role != "Manager" && actor.Role != "HR" {
+		if actor.Role == "HR" {
+			return nil, service.Problem(service.HRPersonalLeaveUnavailable, "FORBIDDEN")
+		}
+		if actor.Role != "Employee" && actor.Role != "Manager" {
 			return nil, service.Problem("เฉพาะพนักงานที่ยื่นคำขอเท่านั้น", "FORBIDDEN")
 		}
 		u.EmployeeID = id

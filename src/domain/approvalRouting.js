@@ -2,19 +2,22 @@
 /** @typedef {import('./types.js').Employee} Employee */
 /** @typedef {import('./types.js').LeaveRequest} LeaveRequest */
 
+export const HR_PERSONAL_LEAVE_UNAVAILABLE =
+  'ยังไม่เปิดการยื่นลาสำหรับ HR เนื่องจากยังไม่มีผู้อนุมัติระดับสูงกว่า';
+
 /**
  * Resolve a different active staff member using the existing employee/approval fields.
  * @param {Database} db @param {Employee} owner @returns {Employee | null}
  */
 export function requestReviewer(db, owner) {
+  if (owner.role === 'HR') return null;
   if (owner.role === 'Manager')
     return (
       db.employees
         .filter((person) => person.active && person.role === 'HR' && person.id !== owner.id)
         .sort((a, b) => a.id - b.id)[0] ?? null
     );
-  const managerId =
-    owner.managerId ?? (owner.id === 5 && owner.email === 'hr@demo.local' ? 4 : null);
+  const managerId = owner.managerId;
   return (
     db.employees.find(
       (person) =>

@@ -67,7 +67,8 @@ export function Requests({
             : 'ค้นหาตามเลขคำขอ ชื่อพนักงาน หรือเหตุผล'
         }
         action={
-          personal && (
+          personal &&
+          actor.role !== 'HR' && (
             <a className="btn primary" href="#/new">
               <FilePlus2 size={17} />
               ยื่นคำขอใหม่
@@ -94,7 +95,9 @@ export function Requests({
             <label htmlFor="request-status">สถานะ</label>
             <select id="request-status" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="all">ทุกสถานะ</option>
-              {actor.role === 'HR' && !personal && !decisionsOnly && <option value="HRPending">รอความเห็น HR</option>}
+              {actor.role === 'HR' && !personal && !decisionsOnly && (
+                <option value="HRPending">รอความเห็น HR</option>
+              )}
               {Object.entries(statusLabels).map(([v, label]) => (
                 <option key={v} value={v}>
                   {label}

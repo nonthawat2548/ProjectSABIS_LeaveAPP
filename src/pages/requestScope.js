@@ -11,9 +11,7 @@ export function assigned(db, actor) {
               !a.cancelled,
           )
         : r.employeeId !== actor.id &&
-          ((db.employees.find((e) => e.id === r.employeeId)?.role === 'Employee' &&
-            db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) ||
-            isDecisionReviewer(db, actor, r)),
+          db.employees.find((e) => e.id === r.employeeId)?.role === 'Employee' &&
+          db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id,
   );
 }
-import { isDecisionReviewer } from '../domain/approvalRouting.js';

@@ -2,8 +2,10 @@ package service
 
 import "leave-management/internal/model"
 
+const HRPersonalLeaveUnavailable = "ยังไม่เปิดการยื่นลาสำหรับ HR เนื่องจากยังไม่มีผู้อนุมัติระดับสูงกว่า"
+
 func requestReviewer(db *model.Database, owner *model.Employee) *model.Employee {
-	if owner == nil {
+	if owner == nil || owner.Role == "HR" {
 		return nil
 	}
 	if owner.Role == "Manager" {
@@ -17,9 +19,6 @@ func requestReviewer(db *model.Database, owner *model.Employee) *model.Employee 
 		return chosen
 	}
 	id := valueOf(owner.ManagerID)
-	if id == 0 && owner.ID == 5 && owner.Email == "hr@demo.local" {
-		id = 4
-	}
 	p := employee(db, id)
 	if p != nil && p.Active && p.Role == "Manager" && p.ID != owner.ID {
 		return p

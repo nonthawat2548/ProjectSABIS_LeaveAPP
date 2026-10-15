@@ -38,6 +38,7 @@ export function RequestDetail({ db, actor, run, id }) {
   const canDecide = canDecideRequest(db, actorById(db, actor.id), r);
   const canRefer =
     actor.role === 'Manager' &&
+    person.role === 'Employee' &&
     db.employees.some((e) => e.role === 'HR' && e.active && e.id !== r.employeeId);
   const backPath =
     own && actor.role !== 'Employee'
@@ -168,38 +169,34 @@ export function RequestDetail({ db, actor, run, id }) {
         </div>
         <div className="stack">
           <Card title="สิทธิ์วันลาของผู้ยื่น">
-            {actor.role === 'Manager' && person.role === 'HR' ? (
-              <p className="tiny">ระบบตรวจสิทธิ์จากข้อมูลล่าสุดเมื่อบันทึกผลพิจารณา</p>
-            ) : (
-              <>
-                <KeyRow label={type.quotaScope === 'Annual' ? `ปี ${year + 543}` : 'กรณีลาคลอด'}>
-                  {q.total}
-                  {' วัน'}
-                </KeyRow>
-                <KeyRow label="ใช้แล้ว">
-                  {q.used}
-                  {' วัน'}
-                </KeyRow>
-                <KeyRow label="คงเหลือ">
-                  {q.remaining}
-                  {' วัน'}
-                </KeyRow>
-                <KeyRow label="รอพิจารณา">
-                  {q.pending}
-                  {' วัน'}
-                </KeyRow>
-                <p className="tiny">ตรวจสอบสิทธิ์ล่าสุดอีกครั้งเมื่ออนุมัติ</p>
-              </>
-            )}
+            <KeyRow label={type.quotaScope === 'Annual' ? `ปี ${year + 543}` : 'กรณีลาคลอด'}>
+              {q.total}
+              {' วัน'}
+            </KeyRow>
+            <KeyRow label="ใช้แล้ว">
+              {q.used}
+              {' วัน'}
+            </KeyRow>
+            <KeyRow label="คงเหลือ">
+              {q.remaining}
+              {' วัน'}
+            </KeyRow>
+            <KeyRow label="รอพิจารณา">
+              {q.pending}
+              {' วัน'}
+            </KeyRow>
+            <p className="tiny">ตรวจสอบสิทธิ์ล่าสุดอีกครั้งเมื่ออนุมัติ</p>
           </Card>
           <Card title="การดำเนินการ">
             {r.status !== 'Pending' ? (
               <p className="muted">คำขอสิ้นสุดการพิจารณาแล้ว</p>
             ) : own ? (
               <div className="vertical-actions">
-                <a className="btn" href={'#/request/' + id + '/edit'}>
-                  แก้ไขคำขอ
-                </a>
+                {actor.role !== 'HR' && (
+                  <a className="btn" href={'#/request/' + id + '/edit'}>
+                    แก้ไขคำขอ
+                  </a>
+                )}
                 <button className="btn danger" onClick={() => open('withdraw')}>
                   ถอนคำขอ
                 </button>
@@ -232,7 +229,7 @@ export function RequestDetail({ db, actor, run, id }) {
                   </button>
                 )}
               </div>
-            ) : actor.role === 'HR' && ownHR ? (
+            ) : actor.role === 'HR' && person.role === 'Employee' && ownHR ? (
               <div className="vertical-actions">
                 <button className="btn primary" onClick={() => open('consult')}>
                   <Send size={16} />

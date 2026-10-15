@@ -366,7 +366,6 @@ test.each([
   [5, '/leave-summary', 'สรุปการลา'],
   [1, '/new', 'แบบฟอร์มยื่นคำขอลา'],
   [4, '/new', 'แบบฟอร์มยื่นคำขอลา'],
-  [5, '/new', 'แบบฟอร์มยื่นคำขอลา'],
   [4, '/my-requests', 'ประวัติคำขอลา'],
   [5, '/quota', 'สิทธิ์และโควตาวันลา'],
   [4, '/calendar', 'ปฏิทินการลา'],
@@ -375,6 +374,24 @@ test.each([
   await openWorkspace(id, path);
   expect(screen.getByRole('heading', { level: 1, name: title })).toBeInTheDocument();
   expect(window.location.hash).toBe('#' + path);
+});
+
+test('HR retains personal history and quota but has no submission menu or quick-search action', async () => {
+  const user = userEvent.setup();
+  await openWorkspace(5);
+  const navigation = screen.getByRole('navigation', { name: 'เมนูหลัก' });
+  expect(
+    within(navigation).queryByRole('link', { name: 'ยื่นคำขอลา', exact: true }),
+  ).not.toBeInTheDocument();
+  expect(
+    within(navigation).getByRole('link', { name: 'ประวัติคำขอของฉัน', exact: true }),
+  ).toBeInTheDocument();
+  expect(
+    within(navigation).getByRole('link', { name: 'สิทธิ์และโควตา', exact: true }),
+  ).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'ค้นหาเมนูหรือคำขอ', exact: true }));
+  const search = screen.getByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' });
+  expect(within(search).queryByRole('link', { name: /ยื่นคำขอลา/ })).not.toBeInTheDocument();
 });
 
 test('leave summary is available from the workspace menu and quick search', async () => {
@@ -405,6 +422,8 @@ test('leave summary is available from the workspace menu and quick search', asyn
 test.each([
   [1, '/admin'],
   [4, '/admin'],
+  [5, '/new'],
+  [5, '/request/1001/edit'],
   [5, '/missing'],
   [1, '/request/abc'],
 ])('account %i cannot open unavailable route %s', async (id, path) => {
@@ -431,6 +450,19 @@ test('browser back and forward change pages through React Router', async () => {
   expect(
     await screen.findByRole('heading', { level: 1, name: 'สิทธิ์และโควตาวันลา' }),
   ).toBeInTheDocument();
+});
+
+test('KPI details make the workspace inert, block quick search and release it on close', async () => {
+  await openWorkspace(5);
+  const trigger = screen.getByRole('button', { name: 'ดูรายละเอียดระยะเวลาอนุมัติเฉลี่ย' });
+  fireEvent.click(trigger);
+  const dialog = screen.getByRole('dialog', { name: 'รายละเอียดระยะเวลาอนุมัติ' });
+  expect(document.querySelector('.app-shell')).toHaveAttribute('inert');
+  fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
+  expect(screen.queryByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' })).not.toBeInTheDocument();
+  fireEvent.click(within(dialog).getByRole('button', { name: 'ปิด', exact: true }));
+  await waitFor(() => expect(document.querySelector('.app-shell')).not.toHaveAttribute('inert'));
+  await waitFor(() => expect(trigger).toHaveFocus());
 });
 
 test('maternity stays visible but disabled for a male employee', async () => {

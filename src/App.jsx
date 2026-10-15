@@ -60,6 +60,7 @@ function Workspace() {
     [mobile, setMobile] = useState(false),
     [commandOpen, setCommandOpen] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [analyticsDialogOpen, setAnalyticsDialogOpen] = useState(false);
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   );
@@ -100,6 +101,7 @@ function Workspace() {
   function openProfile(employeeId, trigger) {
     if (
       entry ||
+      analyticsDialogOpen ||
       !canReadEmployeeProfile(actor, employeeId) ||
       !Number.isSafeInteger(employeeId) ||
       employeeId < 1
@@ -145,14 +147,21 @@ function Workspace() {
   }, [theme]);
   useEffect(() => {
     const shortcut = (e) => {
-      if (actor && !entry && !profile && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      if (
+        actor &&
+        !entry &&
+        !profile &&
+        !analyticsDialogOpen &&
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === 'k'
+      ) {
         e.preventDefault();
         setCommandOpen((v) => !v);
       }
     };
     window.addEventListener('keydown', shortcut);
     return () => window.removeEventListener('keydown', shortcut);
-  }, [actor, entry, profile]);
+  }, [actor, entry, profile, analyticsDialogOpen]);
   const reload = useCallback(async () => {
     const version = sessionVersion.current;
     const snapshot = await repository.snapshot();
@@ -341,8 +350,8 @@ function Workspace() {
     { path: '/leave-summary', label: 'สรุปการลา', icon: <ChartNoAxesCombined /> },
   ];
 
+  if (actor.role !== 'HR') menus.push({ path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> });
   menus.push(
-    { path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> },
     {
       path: actor.role === 'Employee' ? '/requests' : '/my-requests',
       label: actor.role === 'Employee' ? 'ประวัติคำขอ' : 'ประวัติคำขอของฉัน',
@@ -370,7 +379,7 @@ function Workspace() {
       { path: '/admin', label: 'ข้อมูลและสิทธิ์การลา', icon: <Users /> },
       { path: '/settings', label: 'การตั้งค่า', icon: <Settings /> },
     );
-  const props = { actor, db, run, reload };
+  const props = { actor, db, run, reload, onAnalyticsDialogChange: setAnalyticsDialogOpen };
   const routes = createWorkspaceRoutes(props);
   const matchedRoute = matchRoutes(routes, route)?.at(-1);
   const invalidRequestId = matchedRoute?.params.id && !/^\d+$/.test(matchedRoute.params.id);
@@ -379,7 +388,11 @@ function Workspace() {
   const searchShortcut = appleKeyboard ? '⌘ + K' : 'Ctrl + K';
   return (
     <EmployeeProfileContext.Provider value={openProfile}>
-      <div className="app-shell" inert={!!entry || !!profile} aria-busy={!!entry}>
+      <div
+        className="app-shell"
+        inert={!!entry || !!profile || analyticsDialogOpen}
+        aria-busy={!!entry}
+      >
         <WorkspaceNavigation
           actor={actor}
           menus={menus}
@@ -443,14 +456,14 @@ function Workspace() {
                 notifications={db.notifications}
                 employeeId={actor.id}
                 route={route}
-                disabled={mobile || commandOpen || !!entry || !!profile}
+                disabled={mobile || commandOpen || !!entry || !!profile || analyticsDialogOpen}
                 onReadAll={() => run({ type: 'readNotifications' })}
               />
 
               <AccountMenu
                 actor={actor}
                 route={route}
-                disabled={mobile || commandOpen || !!entry || !!profile}
+                disabled={mobile || commandOpen || !!entry || !!profile || analyticsDialogOpen}
               />
             </div>
           </header>
@@ -513,7 +526,7 @@ function Workspace() {
               key={actor.id + ':' + sessionVersion.current}
               notifications={db.notifications}
               employeeId={actor.id}
-              paused={mobile || commandOpen || !!entry || !!profile}
+              paused={mobile || commandOpen || !!entry || !!profile || analyticsDialogOpen}
             />
           )}
         </div>

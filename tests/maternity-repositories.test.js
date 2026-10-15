@@ -293,7 +293,7 @@ test('Direct REST commands cannot bypass maternity eligibility, case or fresh ap
         },
       };
       await denied(undefined, bad, /เข้าสู่ระบบ/, 401);
-      await denied(hr, bad, /ไม่ใช่ของเจ้าของคำขอ/);
+      await denied(hr, bad, /ยังไม่เปิดการยื่นลาสำหรับ HR/, 403);
       await denied(male, bad, /พนักงานชาย/);
       await denied(other, bad, /ติดต่อ HR.*ข้อมูลเพศ/);
       for (const gender of [null, undefined, '', 'female']) {
@@ -381,7 +381,7 @@ test('Direct REST commands cannot bypass maternity eligibility, case or fresh ap
       assert.equal(saved.requests[0].startDate, input().startDate);
       assert.equal(totalDays(saved, id), 3);
       assert.equal(balance(saved, 3, 4, 0, 1).used, 0);
-      await denied(female, { type: 'submit', input: input() }, /วันที่ลาซ้อน/);
+      await denied(female, { type: 'submit', input: input() }, /ไม่สามารถยื่นคำขอลาซ้ำ/);
       const edited = await send(female, {
         type: 'edit',
         id,

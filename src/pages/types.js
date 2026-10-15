@@ -12,6 +12,7 @@
  * @property {Employee} actor
  * @property {(c: Command) => Promise<CommandResult>} run
  * @property {() => Promise<void>} reload
+ * @property {(open: boolean) => void} [onAnalyticsDialogChange]
  */
 
 export {};

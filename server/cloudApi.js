@@ -16,6 +16,7 @@ import { findLoginAccount, LOGIN_ERROR } from '../src/domain/auth.js';
 import { createDemoDatabase } from '../src/data/demoDatabase.js';
 import { searchColleagues } from '../src/domain/colleagues.js';
 import { employeeProfile, parseEmployeeProfileId } from '../src/domain/employeeProfile.js';
+import { HR_PERSONAL_LEAVE_UNAVAILABLE } from '../src/domain/approvalRouting.js';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   CLOUD_PART_CHARACTERS,
@@ -401,7 +402,8 @@ export function createCloudHandler(store, options = {}) {
         await store.transaction(async (client) => {
           const actorId = await authenticate(client, request),
             actor = actorById(await loadDatabase(client), actorId);
-          if (!['Employee', 'Manager', 'HR'].includes(actor.role))
+          if (actor.role === 'HR') fail(HR_PERSONAL_LEAVE_UNAVAILABLE, 'FORBIDDEN');
+          if (!['Employee', 'Manager'].includes(actor.role))
             fail('เฉพาะผู้ยื่นคำขอที่เข้าสู่ระบบเท่านั้น', 'FORBIDDEN');
           await client.query(
             'DELETE FROM leave_app.app_upload WHERE expires_at<=CURRENT_TIMESTAMP',

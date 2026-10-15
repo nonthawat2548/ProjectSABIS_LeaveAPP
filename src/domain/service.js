@@ -11,7 +11,11 @@
  */
 import { datesBetween, dayDifference, isoDate, today, workingDates } from './date.js';
 import { canReadReportNotification, sendLeaveReport } from './leaveReport.js';
-import { canDecideRequest, isDecisionReviewer, requestReviewer } from './approvalRouting.js';
+import {
+  canDecideRequest,
+  HR_PERSONAL_LEAVE_UNAVAILABLE,
+  requestReviewer,
+} from './approvalRouting.js';
 import {
   ALLOWED_ATTACHMENT_TYPES,
   MAX_ATTACHMENT_BASE64_LENGTH,
@@ -65,9 +69,8 @@ export function canView(db, actor, r) {
   return (
     actor.id === r.employeeId ||
     (actor.role === 'Manager' &&
-      ((db.employees.find((e) => e.id === r.employeeId)?.role === 'Employee' &&
-        db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) ||
-        isDecisionReviewer(db, actor, r))) ||
+      db.employees.find((e) => e.id === r.employeeId)?.role === 'Employee' &&
+      db.employees.find((e) => e.id === r.employeeId)?.managerId === actor.id) ||
     actor.role === 'HR'
   );
 }
@@ -312,7 +315,8 @@ export function previewRequest(db, actor, input, excludeId, now = new Date()) {
 }
 function checkRequest(db, actor, input, excludeId, now, quotaCode = 'VALIDATION') {
   actor = actorById(db, actor.id);
-  if (!['Employee', 'Manager', 'HR'].includes(actor.role)) fail('ไม่มีสิทธิ์ยื่นคำขอ', 'FORBIDDEN');
+  if (actor.role === 'HR') fail(HR_PERSONAL_LEAVE_UNAVAILABLE, 'FORBIDDEN');
+  if (!['Employee', 'Manager'].includes(actor.role)) fail('ไม่มีสิทธิ์ยื่นคำขอ', 'FORBIDDEN');
   if (excludeId !== undefined) {
     const previous = db.requests.find((r) => r.id === excludeId) ?? fail('ไม่พบคำขอ', 'NOT_FOUND');
     if (previous.employeeId !== actor.id) fail('คุณแก้ไขคำขอผู้อื่นไม่ได้', 'FORBIDDEN');
@@ -370,7 +374,7 @@ function checkRequest(db, actor, input, excludeId, now, quotaCode = 'VALIDATION'
   );
   for (const r of other) {
     if (input.startDate <= r.endDate && input.endDate >= r.startDate)
-      fail(`วันที่ลาซ้อนกับคำขอ ${requestCode(r)}`);
+      fail(`ไม่สามารถยื่นคำขอลาซ้ำกับช่วงวันที่คุณมีคำขอลาอยู่แล้วได้ (${requestCode(r)})`);
   }
   if (type.quotaScope === 'Annual') {
     for (const year of new Set(days.map((d) => Number(d.date.slice(0, 4))))) {
@@ -672,7 +676,11 @@ export function applyCommand(db, actorId, c, now = new Date()) {
   }
   if (c.type === 'consult') {
     const r = pending(db, c.id, c.version);
-    if (actor.role !== 'HR' || r.employeeId === actor.id)
+    if (
+      actor.role !== 'HR' ||
+      r.employeeId === actor.id ||
+      db.employees.find((e) => e.id === r.employeeId)?.role !== 'Employee'
+    )
       fail('เฉพาะ HR ที่ได้รับมอบหมายและไม่ได้เป็นผู้ยื่นเท่านั้น', 'FORBIDDEN');
     const a =
       db.approvals.find(

@@ -173,11 +173,13 @@ paths:
       description: >-
         Actor/role/gender in a body are not identity evidence. Editing and reviewing
         require the latest request version. HR consultation is not final approval.
-        All active roles may submit, edit and withdraw their own pending requests.
+        Active Employees and Managers may submit and edit their own pending requests.
         Employee requests go to their manager; manager requests go to active HR;
-        HR requests go to their designated manager. A decision requires the assigned
-        reviewer and never permits self-approval. Assigned HR requests are excluded
-        from manager team summaries and reports.
+        HR personal submission is disabled until a higher approver role exists;
+        HR requests never route downward to a department manager. Existing HR history
+        is preserved and its owner may withdraw a pending request. A decision requires
+        the assigned reviewer and never permits self-approval. HR consultation on an
+        employee request returns to its Manager for the final decision.
         Maternity checks stored owner gender before case, manager, dates, policy,
         overlap and per-case quota, including before approval.
       requestBody:
@@ -203,7 +205,7 @@ paths:
         '403': { $ref: '#/components/responses/Error' }
   /uploads:
     post:
-      summary: Active Employee, Manager or HR; stage an attachment for their own request (25 MiB maximum)
+      summary: Active Employee or Manager; stage an attachment for their own request (25 MiB maximum)
       description: At most three pending uploads per account. An upload cannot be used by another account.
       requestBody:
         required: true

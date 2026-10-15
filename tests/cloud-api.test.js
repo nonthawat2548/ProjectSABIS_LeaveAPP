@@ -610,7 +610,7 @@ test('Cloud pending quota is reserved across simultaneous requests, edit exclude
       type: 'submit',
       input: { ...requestInput, startDate: row.startDate, endDate: row.endDate },
     });
-    assert.match((await overlap.json()).message, /วันที่ลาซ้อน/);
+    assert.match((await overlap.json()).message, /ไม่สามารถยื่นคำขอลาซ้ำ/);
     assert.equal(
       (
         await hr.request('/commands', 'POST', {

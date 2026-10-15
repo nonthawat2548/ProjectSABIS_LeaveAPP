@@ -268,7 +268,7 @@ func TestOverlapHalfDayAndQuota(t *testing.T) {
 		t.Fatal(data)
 	}
 	status, data = c.request("POST", "/commands", command(maternityInput()))
-	if status != 400 || !strings.Contains(fmt.Sprint(data["message"]), "ซ้อน") {
+	if status != 400 || !strings.Contains(fmt.Sprint(data["message"]), "ไม่สามารถยื่นคำขอลาซ้ำ") {
 		t.Fatal(status, data)
 	}
 }

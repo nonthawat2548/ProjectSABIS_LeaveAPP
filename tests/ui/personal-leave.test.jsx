@@ -34,7 +34,6 @@ function fixture(ownerId) {
 test.each([
   [4, 5],
   [7, 5],
-  [5, 4],
 ])(
   'owner %i edits/withdraws; only assigned reviewer %i sees decision actions',
   (ownerId, reviewerId) => {
@@ -64,3 +63,29 @@ test.each([
     expect(screen.queryByRole('button', { name: 'ถอนคำขอ' })).not.toBeInTheDocument();
   },
 );
+
+test('legacy HR leave can be withdrawn by its owner but has no edit or manager decision', () => {
+  const { db, id } = fixture(4);
+  db.requests[0].employeeId = 5;
+  db.employees.find((person) => person.id === 5).managerId = 4;
+  db.approvals[0].approverId = 4;
+  db.approvals[0].reviewRole = 'Manager';
+  render(
+    <RequestDetail
+      db={visibleSnapshot(db, 5)}
+      actor={db.employees.find((e) => e.id === 5)}
+      id={id}
+      run={jest.fn()}
+    />,
+  );
+  expect(screen.queryByRole('link', { name: 'แก้ไขคำขอ' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'ถอนคำขอ' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'อนุมัติ', exact: true })).not.toBeInTheDocument();
+  cleanup();
+  render(
+    <RequestDetail db={db} actor={db.employees.find((e) => e.id === 4)} id={id} run={jest.fn()} />,
+  );
+  expect(
+    screen.getByRole('heading', { name: 'ไม่พบคำขอ หรือไม่มีสิทธิ์เข้าถึง' }),
+  ).toBeInTheDocument();
+});

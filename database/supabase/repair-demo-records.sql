@@ -1,4 +1,4 @@
--- Targeted repair requested in codex_leave_app_fixes.md. Run after exporting affected rows.
+-- Targeted repair requested in codex_leave_app_fixes (1).md. Run after exporting affected rows.
 -- Keeps unrelated valid requests, accounts, granted quotas, policies and documents.
 BEGIN;
 SELECT pg_advisory_xact_lock(1279607126,1);
@@ -9,6 +9,9 @@ IF NOT EXISTS (SELECT 1 FROM leave_app.employee WHERE employee_id=4 AND email='m
 IF NOT EXISTS (SELECT 1 FROM leave_app.employee WHERE employee_id=5 AND email='hr@demo.local') THEN RAISE EXCEPTION 'Demo employee identity mismatch; repair cancelled'; END IF;
 IF NOT EXISTS (SELECT 1 FROM leave_app.employee WHERE employee_id=6 AND email='other@demo.local') THEN RAISE EXCEPTION 'Demo employee identity mismatch; repair cancelled'; END IF;
 IF NOT EXISTS (SELECT 1 FROM leave_app.employee WHERE employee_id=7 AND email='sales-manager@demo.local') THEN RAISE EXCEPTION 'Demo employee identity mismatch; repair cancelled'; END IF;
+IF NOT EXISTS (SELECT 1 FROM leave_app.leave_entitlement WHERE employee_id=3 AND leave_type_id=3 AND entitlement_year=2026) THEN RAISE EXCEPTION 'Annual entitlement missing; repair cancelled'; END IF;
+IF NOT EXISTS (SELECT 1 FROM leave_app.leave_entitlement WHERE employee_id=1 AND leave_type_id=1 AND entitlement_year=2026) THEN RAISE EXCEPTION 'Annual entitlement missing; repair cancelled'; END IF;
+IF NOT EXISTS (SELECT 1 FROM leave_app.leave_entitlement WHERE employee_id=6 AND leave_type_id=1 AND entitlement_year=2026) THEN RAISE EXCEPTION 'Annual entitlement missing; repair cancelled'; END IF;
 IF NOT EXISTS (SELECT 1 FROM leave_app.leave_type WHERE leave_type_id=3 AND leave_type_name='ลากิจ') THEN RAISE EXCEPTION 'Leave type mismatch; repair cancelled'; END IF; END $$;
 CREATE TEMP TABLE demo_repair_ids ON COMMIT DROP AS SELECT leave_id FROM leave_app.leave_request WHERE leave_id IN (1001,1002,1003) OR reason ~ 'ง่วง|8-090-9|วาสส|ไปนอนได้' OR timeline_json::text ~ 'ง่วง|8-090-9|วาสส|ไปนอนได้' UNION SELECT leave_id FROM leave_app.leave_approval WHERE comment ~ 'ง่วง|8-090-9|วาสส|ไปนอนได้';
 DELETE FROM leave_app.app_notification WHERE leave_id IN (SELECT leave_id FROM demo_repair_ids);
@@ -17,7 +20,6 @@ DELETE FROM leave_app.leave_approval WHERE leave_id IN (SELECT leave_id FROM dem
 DELETE FROM leave_app.leave_document WHERE leave_id IN (SELECT leave_id FROM demo_repair_ids);
 DELETE FROM leave_app.leave_day WHERE leave_id IN (SELECT leave_id FROM demo_repair_ids);
 DELETE FROM leave_app.leave_request WHERE leave_id IN (SELECT leave_id FROM demo_repair_ids);
-UPDATE leave_app.employee SET manager_id=4 WHERE employee_id=5 AND manager_id IS NULL;
 INSERT INTO leave_app.leave_request (leave_id,employee_id,leave_type_id,maternity_case_id,start_date,end_date,reason,request_date,status,duration,version,timeline_json) VALUES (1001,3,3,NULL,'2026-10-14','2026-10-14','ติดต่อทำธุระทางราชการที่สำนักงานเขต','2026-10-11T14:30:00.000Z','Approved','Full',4,'[{"action":"ยื่นคำขอ","actorId":3,"at":"2026-10-11T14:30:00.000Z","comment":""},{"action":"ส่งปรึกษา HR","actorId":4,"at":"2026-10-11T14:30:00.000Z","comment":"ช่วงวันดังกล่าวมีประชุมทีม รบกวน HR ช่วยตรวจสอบเงื่อนไขและสิทธิ์วันลา"},{"action":"HR ส่งความเห็น","actorId":5,"at":"2026-10-11T14:32:00.000Z","comment":"ตรวจสอบสิทธิ์ลากิจคงเหลือเพียงพอ และยื่นล่วงหน้าถูกต้องตามระเบียบ"},{"action":"อนุมัติคำขอ","actorId":4,"at":"2026-10-11T14:33:00.000Z","comment":""}]');
 INSERT INTO leave_app.leave_request (leave_id,employee_id,leave_type_id,maternity_case_id,start_date,end_date,reason,request_date,status,duration,version,timeline_json) VALUES (1002,1,1,NULL,'2026-10-12','2026-10-12','เดินทางไปทำธุระครอบครัวที่ต่างจังหวัด','2026-10-10T07:20:00.000Z','Pending','Full',1,'[{"action":"ยื่นคำขอ","actorId":1,"at":"2026-10-10T07:20:00.000Z","comment":""}]');
 INSERT INTO leave_app.leave_request (leave_id,employee_id,leave_type_id,maternity_case_id,start_date,end_date,reason,request_date,status,duration,version,timeline_json) VALUES (1003,6,1,NULL,'2026-10-16','2026-10-16','ติดต่อธุระส่วนตัวและพักผ่อนประจำปี','2026-10-12T02:15:00.000Z','Pending','Full',1,'[{"action":"ยื่นคำขอ","actorId":6,"at":"2026-10-12T02:15:00.000Z","comment":""}]');

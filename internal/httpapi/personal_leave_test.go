@@ -12,7 +12,7 @@ func TestPersonalLeaveForEveryRole(t *testing.T) {
 }
 
 func testPersonalRoleFlow(t *testing.T, handler http.Handler) {
-	for _, account := range []struct{ owner, reviewer string }{{"pimchanok", "thanawat"}, {"thanawat", "siriporn"}, {"pakorn", "siriporn"}, {"siriporn", "thanawat"}} {
+	for _, account := range []struct{ owner, reviewer string }{{"pimchanok", "thanawat"}, {"thanawat", "siriporn"}, {"pakorn", "siriporn"}} {
 		t.Run(account.owner, func(t *testing.T) {
 			owner := testClient{t: t, handler: handler}
 			owner.login(account.owner)
@@ -36,4 +36,17 @@ func testPersonalRoleFlow(t *testing.T, handler http.Handler) {
 			}
 		})
 	}
+
+	t.Run("HR submission disabled without a higher approver", func(t *testing.T) {
+		hr := testClient{t: t, handler: handler}
+		hr.login("siriporn")
+		status, result := hr.request("POST", "/commands", command(annualInput()))
+		if status != 403 {
+			t.Fatal("HR leave routed downwards", status, result)
+		}
+		status, result = hr.request("POST", "/uploads", map[string]any{"fileName": "certificate.pdf", "fileType": "application/pdf", "fileSize": 20, "encodedLength": 28})
+		if status != 403 {
+			t.Fatal("HR staged an unsupported own request", status, result)
+		}
+	})
 }

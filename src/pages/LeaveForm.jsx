@@ -27,7 +27,7 @@ import { Badge, Card, DateField, DocumentRow, Heading, KeyRow } from '../compone
 import { Stepper } from '../ui.jsx';
 import { durationLabels as durations } from '../labels.js';
 import { useTask } from './useTask.js';
-import { requestReviewer } from '../domain/approvalRouting.js';
+import { HR_PERSONAL_LEAVE_UNAVAILABLE, requestReviewer } from '../domain/approvalRouting.js';
 
 function HRContact({ db }) {
   const contacts = db.employees.filter((e) => e.role === 'HR' && e.active);
@@ -119,6 +119,8 @@ export function LeaveForm({ db, actor, run, editId }) {
     setReview(false);
     if (db.leaveTypes.find((t) => t.id === id)?.quotaScope === 'Pregnancy') setDuration('Full');
   }
+  if (owner.role === 'HR')
+    return <Heading title="ไม่สามารถยื่นคำขอลา" description={HR_PERSONAL_LEAVE_UNAVAILABLE} />;
   if (editId && (!previous || previous.employeeId !== owner.id || previous.status !== 'Pending'))
     return (
       <>

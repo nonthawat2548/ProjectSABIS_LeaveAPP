@@ -151,9 +151,9 @@ test('Document threshold, advance notice, overlap and half days', () => {
   assert.equal(totalDays(db, id), 0.5);
   assert.throws(
     () => command(db, 1, { type: 'submit', input: { ...input, duration: 'PM' } }),
-    /ซ้อน/,
+    /ไม่สามารถยื่นคำขอลาซ้ำ/,
   );
-  assert.throws(() => command(db, 1, { type: 'submit', input }), /ซ้อน/);
+  assert.throws(() => command(db, 1, { type: 'submit', input }), /ไม่สามารถยื่นคำขอลาซ้ำ/);
   assert.throws(
     () =>
       command(db, 1, {

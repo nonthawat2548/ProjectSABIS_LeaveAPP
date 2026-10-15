@@ -186,7 +186,7 @@ INSERT INTO "Employee" VALUES(1,'พิมพ์ชนก วัฒนกุล'
 INSERT INTO "Employee" VALUES(2,'นัทธพงศ์ สุขใจ','Male','nat@demo.local','0810000002','เจ้าหน้าที่ระบบ','Employee',4,'ฝ่ายไอที',1);
 INSERT INTO "Employee" VALUES(3,'อรทัย มั่นคง','Female','orn@demo.local','0810000003','นักวิเคราะห์ระบบ','Employee',4,'ฝ่ายไอที',1);
 INSERT INTO "Employee" VALUES(4,'ธนวัฒน์ กิตติวงศ์','Male','manager@demo.local','0810000004','ผู้จัดการฝ่ายไอที','Manager',NULL,'ฝ่ายไอที',1);
-INSERT INTO "Employee" VALUES(5,'ศิริพร ใจดี','Female','hr@demo.local','0810000005','เจ้าหน้าที่ฝ่ายบุคคล','HR',4,'ฝ่ายบุคคล',1);
+INSERT INTO "Employee" VALUES(5,'ศิริพร ใจดี','Female','hr@demo.local','0810000005','เจ้าหน้าที่ฝ่ายบุคคล','HR',NULL,'ฝ่ายบุคคล',1);
 INSERT INTO "Employee" VALUES(6,'กานต์ พรชัย','Other','other@demo.local','0810000006','เจ้าหน้าที่ฝ่ายขาย','Employee',7,'ฝ่ายขาย',1);
 INSERT INTO "Employee" VALUES(7,'ปกรณ์ รุ่งเรือง','Male','sales-manager@demo.local','0810000007','ผู้จัดการฝ่ายขาย','Manager',NULL,'ฝ่ายขาย',1);
 INSERT INTO "Employee" VALUES(8,'ชุติมา แสงทอง','Female','chutima@demo.local','0810000008','เจ้าหน้าที่ประสานงานขาย','Employee',7,'ฝ่ายขาย',1);

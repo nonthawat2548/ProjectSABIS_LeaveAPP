@@ -25,8 +25,6 @@ export function repairDemoRecords(database) {
   db.requests = db.requests.filter((request) => !targetIds.has(request.id));
   for (const collection of ['days', 'documents', 'approvals', 'notifications', 'workStatuses'])
     db[collection] = db[collection].filter((row) => !targetIds.has(row.leaveId));
-  const hr = db.employees.find((person) => person.id === 5);
-  hr.managerId ??= 4;
   db.requests.push(
     ...structuredClone(
       source.requests.filter((request) => [1001, 1002, 1003].includes(request.id)),
