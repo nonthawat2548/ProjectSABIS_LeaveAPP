@@ -8,7 +8,7 @@ import { requestCode } from './domain/service.js';
 import { formatLeaveDays, statusLabels } from './labels.js';
 
 const chartColors = [
-  'var(--primary)',
+  'var(--mint-ink)',
   'var(--sky-ink)',
   'var(--purple-ink)',
   'var(--peach-ink)',
@@ -394,10 +394,12 @@ export function HrAnalyticsCharts({ report, db, onOpen }) {
   const [employeeId, setEmployeeId] = useState(0);
   const [status, setStatus] = useState('all');
   const headingRef = useRef(null);
+  const previousEmployeeId = useRef(employeeId);
   const yearApproved = report.monthly.reduce((total, month) => total + month.approvedDays, 0);
   const yearPending = report.monthly.reduce((total, month) => total + month.pendingDays, 0);
   useEffect(() => {
-    if (employeeId) {
+    if (employeeId !== previousEmployeeId.current) {
+      previousEmployeeId.current = employeeId;
       headingRef.current?.focus({ preventScroll: true });
       headingRef.current?.scrollIntoView({ behavior: 'auto', block: 'center' });
     }

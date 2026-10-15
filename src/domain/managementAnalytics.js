@@ -289,20 +289,23 @@ export function managementAnalytics(
     return maximum ? items.filter((item) => item.approvedDays + item.pendingDays === maximum) : [];
   };
   // Rank approved requests in the selected period, keeping people with the same name separate.
+  /** @type {Map<number, {requestCount: number, days: number}>} */
+  const approvedTotals = new Map();
+  for (const { request, periodDays } of summary.requests) {
+    if (request.status !== 'Approved') continue;
+    const totals = approvedTotals.get(request.employeeId) ?? { requestCount: 0, days: 0 };
+    totals.requestCount++;
+    totals.days += periodDays;
+    approvedTotals.set(request.employeeId, totals);
+  }
   const approvedEmployees = rows
-    .map((person) => {
-      const entries = summary.requests.filter(
-        ({ request }) => request.employeeId === person.employeeId && request.status === 'Approved',
-      );
-      return {
-        employeeId: person.employeeId,
-        code: person.code,
-        name: person.name,
-        department: person.department,
-        requestCount: entries.length,
-        days: entries.reduce((total, item) => total + item.periodDays, 0),
-      };
-    })
+    .map((person) => ({
+      employeeId: person.employeeId,
+      code: person.code,
+      name: person.name,
+      department: person.department,
+      ...(approvedTotals.get(person.employeeId) ?? { requestCount: 0, days: 0 }),
+    }))
     .filter((person) => person.requestCount > 0)
     .sort(
       (a, b) => b.requestCount - a.requestCount || b.days - a.days || a.employeeId - b.employeeId,

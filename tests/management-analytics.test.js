@@ -63,6 +63,60 @@ function add(
     });
 }
 
+test('employee ranking counts approved requests separately from duration and preserves identity and scope', () => {
+  const db = fresh();
+  person(db, 3).name = person(db, 1).name;
+  add(db, 1, 1);
+  add(db, 2, 1, { date: '2026-10-15', units: 0.5 });
+  add(db, 3, 1, { date: '2026-10-16', status: 'Pending' });
+  add(db, 4, 2, { date: '2026-10-16' });
+  for (const [index, date] of ['2026-10-19', '2026-10-20', '2026-10-21'].entries())
+    db.days.push({ ...db.days[3], id: 100 + index, date });
+  add(db, 5, 3);
+  add(db, 6, 3, { date: '2026-10-15' });
+  add(db, 7, 3, { date: '2026-10-16', status: 'Rejected' });
+  add(db, 8, 3, { date: '2026-10-19', status: 'Withdrawn' });
+  add(db, 9, 6, { date: '2026-11-02' });
+  add(db, 10, 5);
+  add(db, 11, 10);
+  person(db, 10).active = false;
+  const before = structuredClone(db);
+  const hr = managementAnalytics(db, person(db, 5), filters, now);
+  assert.deepEqual(
+    hr.approvedEmployees.map((row) => [row.employeeId, row.requestCount, row.days]),
+    [
+      [3, 2, 2],
+      [1, 2, 1.5],
+      [2, 1, 4],
+      [5, 1, 1],
+    ],
+  );
+  assert.equal(hr.approvedEmployees[0].name, hr.approvedEmployees[1].name);
+  assert.notEqual(hr.approvedEmployees[0].code, hr.approvedEmployees[1].code);
+  assert.deepEqual(
+    managementAnalytics(db, person(db, 4), filters, now).approvedEmployees.map(
+      (row) => row.employeeId,
+    ),
+    [3, 1, 2],
+  );
+  assert.deepEqual(
+    managementAnalytics(db, person(db, 5), { ...filters, department: 'Sales Department' }, now)
+      .approvedEmployees,
+    [],
+  );
+  assert.deepEqual(
+    managementAnalytics(db, person(db, 5), { ...filters, month: 11 }, now).approvedEmployees.map(
+      (row) => row.employeeId,
+    ),
+    [6],
+  );
+  assert.deepEqual(
+    managementAnalytics(db, person(db, 5), { ...filters, leaveTypeId: 2 }, now).approvedEmployees,
+    [],
+  );
+  assert.deepEqual(db, before);
+});
+
 test('KPIs use saved units, active scoped headcount, real final decisions and annual balances', () => {
   const db = fresh();
   add(db, 1, 1);

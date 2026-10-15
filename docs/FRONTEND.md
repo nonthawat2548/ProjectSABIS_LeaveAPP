@@ -48,9 +48,11 @@ npm run dev:api
 
 ## หน้าสรุปการลาและรายงาน
 
+เมนู “แดชบอร์ด” ของ HR ที่ `#/leave-summary` จัดแบบ Dashboard ผ่าน `ManagementAnalytics.jsx` และ `HrAnalyticsCharts.jsx` โดย `routes.jsx` เลือกทั้งชุดนี้แทน `LeaveSummaryPage` เฉพาะ HR รวมกราฟรายเดือน/ประเภท/แผนกกับอันดับจำนวนคำขออนุมัติรายคน กดอันดับเพื่อกรองคำขอและเปิดรายละเอียดต่อได้ ตารางสิทธิ์รายปีพับไว้ก่อน CSS เฉพาะหน้าอยู่ใน `hr-dashboard.css` ซึ่งนำเข้าผ่าน `styles.css` หน้าหลัก HR กลับมาใช้ Dashboard เดิมและไม่แสดง Analytics ซ้ำ ส่วน Manager/Employee คง layout เดิม ข้อมูลทั้งหมดมาจาก snapshot ตามสิทธิ์ ไม่มี schema/endpoint ใหม่ ดูสูตรและขอบเขตใน `MANAGEMENT_ANALYTICS.md`
+
 การ์ด KPI ใน Dashboard กดเปิด `ManagementKpiDialog.jsx` เพื่อดูรายการที่มาของยอดและเปิดคำขอเดิมต่อได้ ใช้ Dialog/portal และ `onAnalyticsDialogChange` ใน PageProps เพื่อทำพื้นหลัง inert พักป๊อปอัปแจ้งเตือน/ค้นหาด่วน คงตัวกรอง URL และ scroll เมื่อปิด พร้อมคืนโฟกัสไปการ์ด รายละเอียดตรวจ actor/active/scope จากข้อมูลล่าสุด ไม่เพิ่ม endpoint/schema หรือเขียนยอดคำนวณกลับฐาน
 
-Dashboard Manager/HR เพิ่ม `src/ManagementAnalytics.jsx` อ่านผ่าน `src/domain/managementAnalytics.js` ซึ่งตรวจ actor/active/scope ซ้ำ เลือกเดือน/ปี/ฝ่าย/ประเภท ดู KPI/กราฟ/สิทธิ์รายปีและ CSV ผ่าน `managementExport.js` ไม่เพิ่ม endpoint หรือแก้รายงาน snapshot เดิม Employee ไม่เห็นส่วนนี้ ดู [MANAGEMENT_ANALYTICS.md](MANAGEMENT_ANALYTICS.md)
+Dashboard Manager และหน้า “แดชบอร์ด” HR ใช้ `src/ManagementAnalytics.jsx` อ่านผ่าน `src/domain/managementAnalytics.js` ซึ่งตรวจ actor/active/scope ซ้ำ เลือกเดือน/ปี/ฝ่าย/ประเภท ดู KPI/กราฟ/สิทธิ์รายปีและ CSV ผ่าน `managementExport.js` ไม่เพิ่ม endpoint หรือแก้รายงาน snapshot เดิม Employee ไม่เห็นส่วนนี้ ดู [MANAGEMENT_ANALYTICS.md](MANAGEMENT_ANALYTICS.md)
 
 Employee/Manager มีเมนูยื่นคำขอลา ทุกบทบาทดูโควตาส่วนตัวได้ Manager/HR ดูประวัติตนเองที่ `#/my-requests`; `#/requests` คงเป็นรายการทีม/ปรึกษา HR และ `#/approvals` เป็นงานอนุมัติคำขอผู้จัดการของ HR ตามไฟล์ `(1)` ไม่เปิดเมนู/URL ยื่นหรือแก้ไขคำขอ HR เพราะไม่มีผู้อนุมัติระดับสูงกว่า และห้ามส่ง HR ลงผู้จัดการแผนก ประวัติเดิมยังอ่านและถอน Pending ได้ ปุ่มอนุมัติตรวจ Decision และห้ามอนุมัติตนเอง เมนูแจ้งเตือนแถบซ้ายแสดงทุกบทบาทตามข้อกำหนดล่าสุด พร้อมกระดิ่งเดิม
 

@@ -347,7 +347,11 @@ function Workspace() {
 
   const menus = [
     { path: '/dashboard', label: 'หน้าหลัก', icon: <LayoutDashboard /> },
-    { path: '/leave-summary', label: 'สรุปการลา', icon: <ChartNoAxesCombined /> },
+    {
+      path: '/leave-summary',
+      label: actor.role === 'HR' ? 'แดชบอร์ด' : 'สรุปการลา',
+      icon: <ChartNoAxesCombined />,
+    },
   ];
 
   if (actor.role !== 'HR') menus.push({ path: '/new', label: 'ยื่นคำขอลา', icon: <FilePlus2 /> });

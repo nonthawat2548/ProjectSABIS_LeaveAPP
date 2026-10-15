@@ -1,6 +1,7 @@
 import { Link, useParams, useRoutes } from 'react-router-dom';
 import { Heading } from './components.jsx';
 import { ColleaguesPage } from './ColleaguesPage.jsx';
+import { ManagementAnalytics } from './ManagementAnalytics.jsx';
 import { EmployeeProfilePage } from './pages/EmployeeProfilePage.jsx';
 import {
   AdminPage,
@@ -57,7 +58,17 @@ export function createWorkspaceRoutes(props) {
   const routes = [
     { path: '/', title: 'หน้าหลัก', element: <Dashboard {...props} /> },
     { path: '/dashboard', title: 'หน้าหลัก', element: <Dashboard {...props} /> },
-    { path: '/leave-summary', title: 'สรุปการลา', element: <LeaveSummaryPage {...props} /> },
+    {
+      path: '/leave-summary',
+      title: hr ? 'แดชบอร์ด' : 'สรุปการลา',
+      element: hr ? (
+        <div className="dashboard-page hr-dashboard-page">
+          <ManagementAnalytics {...props} />
+        </div>
+      ) : (
+        <LeaveSummaryPage {...props} />
+      ),
+    },
     {
       path: '/requests',
       title: employee ? 'ประวัติคำขอ' : hr ? 'คำขอปรึกษา HR' : 'รายการคำขอของทีม',

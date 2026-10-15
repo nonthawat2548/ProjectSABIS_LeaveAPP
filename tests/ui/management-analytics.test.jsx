@@ -2,6 +2,8 @@ import { afterEach, beforeEach, expect, jest, test } from '@jest/globals';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { ManagementAnalytics } from '../../src/ManagementAnalytics.jsx';
 import { ManagementKpiDialog } from '../../src/ManagementKpiDialog.jsx';
+import { createWorkspaceRoutes } from '../../src/routes.jsx';
+import { HrWorkLinks } from '../../src/HrAnalyticsCharts.jsx';
 import { createDemoDatabase } from '../../src/data/demoDatabase.js';
 
 let db;
@@ -38,6 +40,166 @@ test('HR sees four KPIs, twelve trend months, scoped department/type filters and
   fireEvent.change(screen.getByLabelText('ประเภทการลาในรายงาน'), { target: { value: '1' } });
   expect(within(table).queryByRole('columnheader', { name: /ลากิจ/ })).not.toBeInTheDocument();
   expect(within(table).getByRole('columnheader', { name: /ลาพักร้อน/ })).toBeInTheDocument();
+});
+
+test('HR ranking filters approved source requests, restores all rows and resets selection with period filters', () => {
+  const template = db.requests[0];
+  db.requests = [
+    {
+      ...template,
+      id: 1,
+      employeeId: 1,
+      leaveTypeId: 1,
+      status: 'Approved',
+      startDate: '2026-10-14',
+      endDate: '2026-10-14',
+    },
+    {
+      ...template,
+      id: 2,
+      employeeId: 1,
+      leaveTypeId: 1,
+      status: 'Pending',
+      startDate: '2026-10-15',
+      endDate: '2026-10-15',
+    },
+    {
+      ...template,
+      id: 3,
+      employeeId: 6,
+      leaveTypeId: 3,
+      status: 'Approved',
+      startDate: '2026-10-16',
+      endDate: '2026-10-16',
+    },
+  ];
+  db.days = db.requests.map((request) => ({
+    id: request.id,
+    leaveId: request.id,
+    date: request.startDate,
+    units: request.id === 1 ? 0.5 : 1,
+  }));
+  db.approvals = [];
+  const before = structuredClone(db);
+  const previousScroll = HTMLElement.prototype.scrollIntoView;
+  HTMLElement.prototype.scrollIntoView = jest.fn();
+  try {
+    const routes = createWorkspaceRoutes({
+      db,
+      actor: db.employees.find((person) => person.id === 5),
+    });
+    render(routes.find((route) => route.path === '/leave-summary').element);
+    expect(screen.getByRole('heading', { name: 'ภาพรวมการลา', level: 1 })).toBeInTheDocument();
+    expect(document.querySelector('.welcome-hero')).toBeNull();
+    expect(screen.getByText(/อันดับสูงสุดเท่ากัน:/)).toHaveTextContent('EMP-00001');
+    expect(screen.getByText(/อันดับสูงสุดเท่ากัน:/)).toHaveTextContent('EMP-00006');
+    const ranking = screen.getByRole('list', { name: 'อันดับตามจำนวนคำขออนุมัติ' });
+    fireEvent.click(within(ranking).getByRole('button', { name: /EMP-00001/ }));
+    expect(screen.getByRole('heading', { name: 'คำขอในเดือนที่เลือก' })).toHaveFocus();
+    expect(screen.getByLabelText('สถานะคำขอ')).toHaveValue('Approved');
+    let requests = screen.getByRole('list', { name: 'คำขอในรายงาน HR' });
+    expect(within(requests).getAllByRole('listitem')).toHaveLength(1);
+    expect(within(requests).getByText('ครึ่งวัน')).toBeInTheDocument();
+    expect(within(requests).getByRole('link')).toHaveAttribute('href', '#/request/1');
+    fireEvent.click(screen.getByRole('button', { name: 'ดูทุกคน' }));
+    expect(screen.getByRole('heading', { name: 'คำขอในเดือนที่เลือก' })).toHaveFocus();
+    requests = screen.getByRole('list', { name: 'คำขอในรายงาน HR' });
+    expect(within(requests).getAllByRole('listitem')).toHaveLength(3);
+    expect(within(requests).getAllByRole('link')[0]).toHaveAttribute('href', '#/request/2');
+    fireEvent.click(within(ranking).getByRole('button', { name: /EMP-00001/ }));
+    fireEvent.change(screen.getByLabelText('แผนก'), { target: { value: 'Sales Department' } });
+    expect(screen.queryByRole('button', { name: 'ดูทุกคน' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('สถานะคำขอ')).toHaveValue('all');
+    requests = screen.getByRole('list', { name: 'คำขอในรายงาน HR' });
+    expect(within(requests).getAllByRole('link')).toHaveLength(1);
+    expect(within(requests).getByRole('link')).toHaveAttribute('href', '#/request/3');
+    fireEvent.change(screen.getByLabelText('เดือนของตัวชี้วัด'), { target: { value: '9' } });
+    expect(screen.getByText('เดือนนี้ยังไม่มีวันลา')).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'คำขอในรายงาน HR' })).not.toBeInTheDocument();
+    expect(db).toEqual(before);
+  } finally {
+    if (previousScroll) HTMLElement.prototype.scrollIntoView = previousScroll;
+    else delete HTMLElement.prototype.scrollIntoView;
+  }
+});
+
+test('HR work links distinguish assigned decisions from consultations and reject a forged HR identity', () => {
+  const template = db.requests[0];
+  db.requests = [
+    { ...template, id: 81, employeeId: 4, status: 'Pending' },
+    { ...template, id: 82, employeeId: 1, status: 'Pending' },
+    { ...template, id: 83, employeeId: 6, status: 'Pending' },
+    { ...template, id: 84, employeeId: 5, status: 'Pending' },
+    { ...template, id: 85, employeeId: 2, status: 'Approved' },
+  ];
+  db.approvals = [
+    {
+      id: 1,
+      leaveId: 81,
+      approverId: 5,
+      reviewRole: 'HR',
+      reviewType: 'Decision',
+      status: 'Pending',
+    },
+    {
+      id: 2,
+      leaveId: 82,
+      approverId: 5,
+      reviewRole: 'HR',
+      reviewType: 'Consultation',
+      status: 'Pending',
+    },
+    {
+      id: 3,
+      leaveId: 82,
+      approverId: 5,
+      reviewRole: 'HR',
+      reviewType: 'Consultation',
+      status: 'Pending',
+    },
+    {
+      id: 4,
+      leaveId: 83,
+      approverId: 7,
+      reviewRole: 'HR',
+      reviewType: 'Consultation',
+      status: 'Pending',
+    },
+    {
+      id: 5,
+      leaveId: 84,
+      approverId: 5,
+      reviewRole: 'HR',
+      reviewType: 'Consultation',
+      status: 'Pending',
+    },
+    {
+      id: 6,
+      leaveId: 85,
+      approverId: 5,
+      reviewRole: 'HR',
+      reviewType: 'Consultation',
+      status: 'Pending',
+    },
+  ];
+  render(
+    <HrWorkLinks
+      db={db}
+      actor={db.employees.find((person) => person.id === 5)}
+      date="2026-10-15"
+    />,
+  );
+  expect(screen.getByRole('link', { name: 'รอคุณอนุมัติ 1 คำขอ' })).toHaveAttribute(
+    'href',
+    '#/approvals',
+  );
+  expect(screen.getByRole('link', { name: 'รอความเห็น 1 คำขอ' })).toHaveAttribute(
+    'href',
+    '#/requests',
+  );
+  cleanup();
+  render(<HrWorkLinks db={db} actor={{ ...db.employees[0], role: 'HR' }} date="2026-10-15" />);
+  expect(screen.queryByRole('link')).not.toBeInTheDocument();
 });
 
 test('manager report is team-only and employees cannot open the component by forging their role', () => {

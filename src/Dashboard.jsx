@@ -19,17 +19,6 @@ import { ManagementAnalytics } from './ManagementAnalytics.jsx';
 
 /** @param {import('./pages/types.js').PageProps} props */
 export function Dashboard({ db, actor, onAnalyticsDialogChange }) {
-  if (actor.role === 'HR') {
-    return (
-      <div className="dashboard-page hr-dashboard-page">
-        <ManagementAnalytics
-          db={db}
-          actor={actor}
-          onAnalyticsDialogChange={onAnalyticsDialogChange}
-        />
-      </div>
-    );
-  }
   const employee = actor.role === 'Employee';
   const requests = db.requests.filter((r) =>
     employee
@@ -186,7 +175,7 @@ export function Dashboard({ db, actor, onAnalyticsDialogChange }) {
           </>
         )}
       </div>
-      {!employee && (
+      {actor.role === 'Manager' && (
         <ManagementAnalytics
           db={db}
           actor={actor}

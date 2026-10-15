@@ -363,7 +363,7 @@ test('login waits for the scoped snapshot and recovers if it fails', async () =>
 test.each([
   [1, '/leave-summary', 'สรุปการลา'],
   [4, '/leave-summary', 'สรุปการลา'],
-  [5, '/leave-summary', 'สรุปการลา'],
+  [5, '/leave-summary', 'ภาพรวมการลา'],
   [1, '/new', 'แบบฟอร์มยื่นคำขอลา'],
   [4, '/new', 'แบบฟอร์มยื่นคำขอลา'],
   [4, '/my-requests', 'ประวัติคำขอลา'],
@@ -374,6 +374,35 @@ test.each([
   await openWorkspace(id, path);
   expect(screen.getByRole('heading', { level: 1, name: title })).toBeInTheDocument();
   expect(window.location.hash).toBe('#' + path);
+});
+
+test('HR analytics live in leave summary and the home page no longer duplicates the board', async () => {
+  const user = userEvent.setup();
+  await openWorkspace(5);
+  expect(document.querySelector('.management-analytics')).toBeNull();
+  const navigation = screen.getByRole('navigation', { name: 'เมนูหลัก' });
+  await user.click(within(navigation).getByRole('link', { name: 'แดชบอร์ด', exact: true }));
+  expect(await screen.findByRole('heading', { name: 'ภาพรวมการลา', level: 1 })).toBeInTheDocument();
+  expect(window.location.hash).toBe('#/leave-summary');
+  expect(document.querySelectorAll('.hr-analytics-grid > section')).toHaveLength(4);
+  expect(document.querySelector('.topbar-title')).toHaveTextContent('แดชบอร์ด');
+  await user.click(screen.getByRole('button', { name: 'ดูรายละเอียดระยะเวลาอนุมัติเฉลี่ย' }));
+  expect(
+    await screen.findByRole('dialog', { name: 'รายละเอียดระยะเวลาอนุมัติ' }),
+  ).toBeInTheDocument();
+  expect(document.querySelector('.app-shell')).toHaveAttribute('inert');
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(document.querySelector('.app-shell')).not.toHaveAttribute('inert'));
+  expect(window.location.hash).toBe('#/leave-summary');
+  await user.click(screen.getByRole('button', { name: 'ค้นหาเมนูหรือคำขอ', exact: true }));
+  const search = screen.getByRole('dialog', { name: 'ค้นหาเมนูหรือคำขอ' });
+  await user.type(within(search).getByRole('textbox', { name: 'ค้นหาเมนูหรือคำขอ' }), 'แดชบอร์ด');
+  const dashboardLink = within(search).getByRole('link', { name: 'แดชบอร์ด', exact: true });
+  expect(dashboardLink).toHaveAttribute('href', '#/leave-summary');
+  await user.click(dashboardLink);
+  await user.click(within(navigation).getByRole('link', { name: 'หน้าหลัก', exact: true }));
+  expect(window.location.hash).toBe('#/dashboard');
+  await waitFor(() => expect(document.querySelector('.management-analytics')).toBeNull());
 });
 
 test('HR retains personal history and quota but has no submission menu or quick-search action', async () => {
@@ -453,7 +482,7 @@ test('browser back and forward change pages through React Router', async () => {
 });
 
 test('KPI details make the workspace inert, block quick search and release it on close', async () => {
-  await openWorkspace(5);
+  await openWorkspace(5, '/leave-summary');
   const trigger = screen.getByRole('button', { name: 'ดูรายละเอียดระยะเวลาอนุมัติเฉลี่ย' });
   fireEvent.click(trigger);
   const dialog = screen.getByRole('dialog', { name: 'รายละเอียดระยะเวลาอนุมัติ' });
